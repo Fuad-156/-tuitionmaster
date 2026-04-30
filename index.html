@@ -5,131 +5,218 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tuition Master</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root {
-    --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56;
-    --bg: #F7FAF9; --white: #ffffff; --text: #1a1a1a; --text-muted: #6b7280;
-    --border: #e5e7eb; --card: #ffffff; --danger: #ef4444; --warn: #f59e0b;
-    --blue: #3b82f6; --radius: 14px; --radius-sm: 8px;
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ===== LANGUAGE TOGGLE =====
+const T = {
+  en: {
+    home:'Home', search:'Search', messages:'Message', profile:'Profile',
+    homebn:'হোম', searchbn:'খুঁজুন', msgbn:'বার্তা', profilebn:'প্রোফাইল',
+    logout:'Logout', welcome:'Welcome back,', login:'Login', register:'Register',
+    noAccount:"No account?", hasAccount:"Already have account?",
+    loginBtn:'Login', regBtn:'Create Account',
+    searchPlaceholder:'Search name or subject...',
+    allDistricts:'All Districts', allClasses:'All Classes',
+    noTeacher:'No teachers found', noMsg:'No messages yet',
+    sendMsg:'Type a message...',
+  },
+  bn: {
+    home:'হোম', search:'খুঁজুন', messages:'বার্তা', profile:'প্রোফাইল',
+    homebn:'', searchbn:'', msgbn:'', profilebn:'',
+    logout:'বের হন', welcome:'স্বাগতম,', login:'লগইন', register:'নিবন্ধন',
+    noAccount:'অ্যাকাউন্ট নেই?', hasAccount:'ইতিমধ্যে আছে?',
+    loginBtn:'লগইন করুন', regBtn:'অ্যাকাউন্ট তৈরি করুন',
+    searchPlaceholder:'নাম বা বিষয় লিখুন...',
+    allDistricts:'সব জেলা', allClasses:'সব শ্রেণি',
+    noTeacher:'কোনো শিক্ষক পাওয়া যায়নি', noMsg:'এখনো কোনো বার্তা নেই',
+    sendMsg:'বার্তা লিখুন...',
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Plus Jakarta Sans','Noto Sans Bengali',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+};
+let currentLang = 'en';
 
-  #loading-screen { position: fixed; inset: 0; background: var(--green); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-  #loading-screen .logo { font-size: 60px; margin-bottom: 16px; }
-  #loading-screen h1 { color: #fff; font-size: 24px; font-weight: 700; }
-  #loading-screen p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 8px; }
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'bn' : 'en';
+  const btn = document.getElementById('lang-btn');
+  btn.textContent = currentLang === 'en' ? 'বাংলা' : 'English';
+  applyLang();
+}
 
-  #auth-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; background: linear-gradient(135deg, #0F6E56, #1D9E75, #5DCAA5); padding: 20px; }
-  .auth-card { background: var(--white); border-radius: 24px; padding: 36px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-  .auth-logo { text-align: center; margin-bottom: 28px; }
-  .auth-logo .icon { width: 64px; height: 64px; background: var(--green-light); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; }
-  .auth-logo h1 { font-size: 24px; font-weight: 700; }
-  .auth-logo p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-  .tabs { display: flex; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 24px; }
-  .tabs button { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-family: inherit; }
-  .tabs button.active { background: var(--white); color: var(--green-dark); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
-  .form-group input, .form-group select { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s; }
-  .form-group input:focus, .form-group select:focus { border-color: var(--green); }
-  .role-btns { display: flex; gap: 8px; margin-bottom: 16px; }
-  .role-btn { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; background: var(--white); color: var(--text-muted); transition: all 0.2s; text-align: center; }
-  .role-btn.active { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
-  .btn-primary { width: 100%; padding: 13px; background: var(--green); color: var(--white); border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; }
-  .btn-primary:hover { background: var(--green-dark); }
-  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-  .hint { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 14px; }
-  .hint span { color: var(--green); cursor: pointer; font-weight: 500; }
-  .err-msg { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 12px; display: none; }
+function applyLang() {
+  const t = T[currentLang];
+  const isBn = currentLang === 'bn';
 
-  #app { display: none; }
-  .topbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 16px; height: 58px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; }
-  .topbar .logo { font-size: 16px; font-weight: 700; color: var(--green-dark); flex: 1; }
-  .t-avatar { width: 34px; height: 34px; border-radius: 50%; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .role-tag { font-size: 11px; background: var(--green-light); color: var(--green-dark); padding: 3px 8px; border-radius: 20px; font-weight: 500; }
-  .logout-btn { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--white); color: var(--text-muted); cursor: pointer; font-family: inherit; }
+  // Topbar
+  document.getElementById('logout-btn').textContent = t.logout;
 
-  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--border); display: flex; z-index: 100; }
-  .bottom-nav button { flex: 1; padding: 10px 4px 14px; border: none; background: transparent; cursor: pointer; font-size: 10px; color: var(--text-muted); font-family: inherit; font-weight: 500; transition: color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .bottom-nav button.active { color: var(--green); }
-  .nav-icon { font-size: 20px; }
+  // Bottom nav
+  const navBtns = document.querySelectorAll('#bnav button');
+  const navData = [
+    {en:'Home', bn:'হোম', icon:'🏠', sub:'হোম'},
+    {en:'Search', bn:'খুঁজুন', icon:'🔍', sub:'Search'},
+    {en:'Message', bn:'বার্তা', icon:'💬', sub:'বার্তা'},
+    {en:'Profile', bn:'প্রোফাইল', icon:'👤', sub:'Profile'},
+  ];
+  navBtns.forEach((btn, i) => {
+    const d = navData[i];
+    btn.innerHTML = `<span class="nav-icon">${d.icon}</span><span>${isBn ? d.bn : d.en}</span>`;
+  });
 
-  .main { padding: 16px 16px 80px; max-width: 480px; margin: 0 auto; }
-  .page { display: none; }
-  .page.active { display: block; }
+  // Auth tabs
+  const tabs = document.querySelectorAll('.tabs button');
+  if (tabs[0]) tabs[0].textContent = isBn ? 'লগইন' : 'Login / লগইন';
+  if (tabs[1]) tabs[1].textContent = isBn ? 'নিবন্ধন' : 'Register / নিবন্ধন';
 
-  .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; }
-  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .stat-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
-  .stat-box .num { font-size: 24px; font-weight: 700; color: var(--green); }
-  .stat-box .lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  // Search placeholder
+  const si = document.getElementById('search-inp');
+  if (si) si.placeholder = isBn ? 'নাম বা বিষয় লিখুন...' : 'Search name or subject...';
 
-  .teacher-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
-  .tc-header { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
-  .tc-avatar { width: 50px; height: 50px; border-radius: 14px; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .tc-name { font-size: 15px; font-weight: 600; }
-  .tc-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .tc-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-  .tc-info-item .lbl { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
-  .tc-info-item .val { font-size: 12px; font-weight: 600; }
-  .btn-sm { padding: 9px 16px; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-  .btn-green { background: var(--green); color: var(--white); }
-  .btn-outline { background: var(--white); color: var(--green); border: 1.5px solid var(--green); }
-  .btn-row { display: flex; gap: 8px; }
+  // Filter selects
+  const fd = document.getElementById('f-district');
+  if (fd && fd.options[0]) fd.options[0].text = isBn ? 'সব জেলা' : 'All Districts';
+  const fc = document.getElementById('f-class');
+  if (fc && fc.options[0]) fc.options[0].text = isBn ? 'সব শ্রেণি' : 'All Classes';
 
-  .search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
-  .search-bar input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; outline: none; }
-  .search-bar input:focus { border-color: var(--green); }
-  .filter-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
-  .filter-pills::-webkit-scrollbar { display: none; }
-  .pill { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; background: var(--white); color: var(--text-muted); transition: all 0.2s; }
-  .pill.active { background: var(--green); color: var(--white); border-color: var(--green); }
+  // Chat input
+  const ci = document.getElementById('chat-inp');
+  if (ci) ci.placeholder = isBn ? 'বার্তা লিখুন...' : 'Type a message...';
 
-  .chat-list-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; }
-  .chat-list-item .msg-preview { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  // Section titles - update all bilingual small tags
+  document.querySelectorAll('.section-title small').forEach(el => {
+    el.style.display = isBn ? 'none' : 'inline';
+  });
 
-  .chat-screen { display: none; flex-direction: column; height: calc(100vh - 58px); position: fixed; top: 58px; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 50; }
-  .chat-screen.open { display: flex; }
-  .chat-header { padding: 12px 16px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-  .chat-header button { border: none; background: none; font-size: 22px; cursor: pointer; color: var(--text-muted); }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
-  .bubble { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.5; word-break: break-word; }
-  .bubble.them { background: var(--white); border: 1px solid var(--border); border-bottom-left-radius: 4px; align-self: flex-start; }
-  .bubble.me { background: var(--green); color: var(--white); border-bottom-right-radius: 4px; align-self: flex-end; }
-  .btime { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-  .btime.r { text-align: right; }
-  .chat-input-bar { padding: 12px 16px; background: var(--white); border-top: 1px solid var(--border); display: flex; gap: 8px; }
-  .chat-input-bar input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; font-family: inherit; outline: none; }
-  .chat-input-bar input:focus { border-color: var(--green); }
-  .send-btn { width: 40px; height: 40px; background: var(--green); border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  // Role tag
+  const rt = document.getElementById('top-role');
+  if (rt && CUP) {
+    const roles = {
+      student: isBn ? 'শিক্ষার্থী' : 'Student',
+      teacher: isBn ? 'শিক্ষক' : 'Teacher',
+      admin: 'Admin'
+    };
+    rt.textContent = roles[CUP.role] || '';
+  }
 
-  .profile-header { text-align: center; padding: 24px 16px 16px; }
-  .profile-avatar { width: 80px; height: 80px; border-radius: 24px; font-size: 28px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
-  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .info-row:last-child { border-bottom: none; }
-  .info-row .key { color: var(--text-muted); }
-  .info-row .val { font-weight: 600; }
-  .status-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
-  .status-badge.active { background: var(--green-light); color: var(--green-dark); }
-  .status-badge.pending { background: #FEF3C7; color: #92400e; }
-  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-  .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
-  .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .admin-table th { background: var(--bg); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-  .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  // Re-render home to apply language
+  renderHome();
+}
 
-  #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 500; display: none; z-index: 9999; white-space: nowrap; }
+</script>
+<style>
+:root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--bg:#F7FAF9;--white:#fff;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#ef4444;--warn:#f59e0b;--radius:14px;--radius-sm:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#loading-screen{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+#loading-screen h1{color:#fff;font-size:24px;font-weight:700;margin-top:12px}
+#loading-screen p{color:rgba(255,255,255,0.75);font-size:13px;margin-top:6px}
+#auth-screen{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F6E56,#1D9E75,#5DCAA5);padding:20px}
+.auth-card{background:var(--white);border-radius:24px;padding:32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.auth-logo{text-align:center;margin-bottom:22px}
+.auth-logo .icon{width:60px;height:60px;background:var(--green-light);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:26px}
+.auth-logo h1{font-size:21px;font-weight:700}
+.auth-logo p{font-size:12px;color:var(--text-muted);margin-top:3px}
+.tabs{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:4px;margin-bottom:18px}
+.tabs button{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-muted);font-family:inherit;transition:all 0.2s}
+.tabs button.active{background:var(--white);color:var(--green-dark);box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.form-group{margin-bottom:11px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px}
+.form-group input,.form-group select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--green)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.role-btns{display:flex;gap:8px;margin-bottom:12px}
+.role-btn{flex:1;padding:9px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;background:var(--white);color:var(--text-muted);transition:all 0.2s;text-align:center;font-family:inherit}
+.role-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
+.btn-primary{width:100%;padding:12px;background:var(--green);color:var(--white);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.2s;margin-top:4px}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px}
+.hint span{color:var(--green);cursor:pointer;font-weight:600}
+.err-msg{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;padding:10px 14px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:12px;display:none}
+#app{display:none}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;height:56px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.topbar .logo{font-size:14px;font-weight:700;color:var(--green-dark);flex:1}
+.t-avatar{width:32px;height:32px;border-radius:50%;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.role-tag{font-size:10px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:20px;font-weight:700}
+
+.lang-btn{padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green-light);color:var(--green-dark);cursor:pointer;font-family:inherit}
+.logout-btn{padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--white);color:var(--text-muted);cursor:pointer;font-family:inherit}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
+.bottom-nav button{flex:1;padding:8px 4px 12px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--text-muted);font-family:inherit;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bottom-nav button.active{color:var(--green)}
+.nav-icon{font-size:18px}
+.main{padding:14px 14px 78px;max-width:500px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.stat-box .num{font-size:22px;font-weight:700;color:var(--green)}
+.stat-box .lbl-en{font-size:11px;font-weight:600;color:var(--text-muted)}
+.stat-box .lbl-bn{font-size:10px;color:var(--text-muted)}
+.teacher-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.tc-avatar{width:46px;height:46px;border-radius:12px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tc-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.tc-info-item .lbl{font-size:10px;color:var(--text-muted);margin-bottom:2px;font-weight:700;text-transform:uppercase}
+.tc-info-item .val{font-size:12px;font-weight:600}
+.btn-sm{padding:8px 14px;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-green{background:var(--green);color:var(--white)}
+.btn-outline{background:var(--white);color:var(--green);border:1.5px solid var(--green)}
+.btn-row{display:flex;gap:8px}
+.search-bar{display:flex;gap:8px;margin-bottom:10px}
+.search-bar input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none}
+.search-bar input:focus{border-color:var(--green)}
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.filter-row select{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;outline:none;background:var(--white)}
+.filter-row select:focus{border-color:var(--green)}
+.filter-pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
+.filter-pills::-webkit-scrollbar{display:none}
+.pill{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;background:var(--white);color:var(--text-muted);transition:all 0.2s}
+.pill.active{background:var(--green);color:var(--white);border-color:var(--green)}
+.chat-list-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;cursor:pointer}
+.chat-screen{display:none;flex-direction:column;height:calc(100vh - 56px);position:fixed;top:56px;left:0;right:0;bottom:0;background:var(--bg);z-index:50}
+.chat-screen.open{display:flex}
+.chat-header{padding:12px 14px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-header button{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-muted)}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:6px}
+.bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5;word-break:break-word}
+.bubble.them{background:var(--white);border:1px solid var(--border);border-bottom-left-radius:3px;align-self:flex-start}
+.bubble.me{background:var(--green);color:var(--white);border-bottom-right-radius:3px;align-self:flex-end}
+.btime{font-size:10px;color:var(--text-muted);margin-top:2px}
+.btime.r{text-align:right}
+.chat-input-bar{padding:10px 14px;background:var(--white);border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-input-bar input{flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-family:inherit;outline:none}
+.chat-input-bar input:focus{border-color:var(--green)}
+.send-btn{width:38px;height:38px;background:var(--green);border:none;border-radius:50%;cursor:pointer;color:white;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title small{font-size:11px;color:var(--text-muted);font-weight:400}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text-muted)}
+.empty-state .icon{font-size:36px;margin-bottom:8px}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.info-row:last-child{border-bottom:none}
+.info-row .key{color:var(--text-muted)}
+.info-row .val{font-weight:600;font-size:13px}
+.status-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
+.status-badge.active{background:var(--green-light);color:var(--green-dark)}
+.status-badge.pending{background:#FEF3C7;color:#92400e}
+.admin-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;background:var(--white);color:var(--text-muted);font-family:inherit;transition:all 0.2s}
+.admin-tab.active{background:var(--green);color:var(--white);border-color:var(--green)}
+.user-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:10px}
+.chip{display:inline-block;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;margin:2px 2px 0 0}
+.chip-green{background:var(--green-light);color:var(--green-dark)}
+.chip-blue{background:#DBEAFE;color:#1e40af}
+.chip-orange{background:#FEF3C7;color:#92400e}
+#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:white;padding:11px 22px;border-radius:30px;font-size:13px;font-weight:500;display:none;z-index:9999;white-space:nowrap}
+.bilingual{display:flex;flex-direction:column}
+.bilingual .en{font-size:13px;font-weight:600}
+.bilingual .bn{font-size:11px;color:var(--text-muted)}
 </style>
 </head>
 <body>
 
 <div id="loading-screen">
-  <div class="logo">📚</div>
+  <div style="font-size:56px">📚</div>
   <h1>Tuition Master</h1>
-  <p>লোড হচ্ছে...</p>
+  <p>শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
 </div>
 
 <div id="auth-screen">
@@ -137,71 +224,97 @@
     <div class="auth-logo">
       <div class="icon">📚</div>
       <h1>Tuition Master</h1>
-      <p>শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
+      <p>Connecting Teachers & Students • শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
     </div>
     <div class="tabs">
-      <button class="active" onclick="switchTab('login')">লগইন</button>
-      <button onclick="switchTab('register')">নিবন্ধন</button>
+      <button class="active" onclick="switchTab('login')">Login / লগইন</button>
+      <button onclick="switchTab('register')">Register / নিবন্ধন</button>
     </div>
     <div id="auth-err" class="err-msg"></div>
 
     <div id="login-form">
-      <div class="form-group"><label>ইমেইল</label><input type="email" id="l-email" placeholder="আপনার ইমেইল"></div>
-      <div class="form-group"><label>পাসওয়ার্ড</label><input type="password" id="l-pass" placeholder="পাসওয়ার্ড"></div>
-      <button class="btn-primary" id="login-btn" onclick="doLogin()">লগইন করুন</button>
-      <p class="hint">অ্যাকাউন্ট নেই? <span onclick="switchTab('register')">নিবন্ধন করুন</span></p>
+      <div class="form-group"><label>Email / ইমেইল</label><input type="email" id="l-email" placeholder="your@email.com"></div>
+      <div class="form-group"><label>Password / পাসওয়ার্ড</label><input type="password" id="l-pass" placeholder="Enter password / পাসওয়ার্ড লিখুন"></div>
+      <button class="btn-primary" id="login-btn" onclick="doLogin()">Login / লগইন করুন</button>
+      <p class="hint">No account? / অ্যাকাউন্ট নেই? <span onclick="switchTab('register')">Register / নিবন্ধন করুন</span></p>
     </div>
 
     <div id="register-form" style="display:none">
-      <div style="margin-bottom:14px">
-        <label style="display:block;font-size:13px;font-weight:500;color:var(--text-muted);margin-bottom:8px">আমি একজন —</label>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px">I am a / আমি একজন</label>
         <div class="role-btns">
-          <div class="role-btn active" id="role-s" onclick="selRole('student')">🎓 শিক্ষার্থী</div>
-          <div class="role-btn" id="role-t" onclick="selRole('teacher')">👨‍🏫 শিক্ষক</div>
+          <div class="role-btn active" id="role-s" onclick="selRole('student')">🎓 Student / শিক্ষার্থী</div>
+          <div class="role-btn" id="role-t" onclick="selRole('teacher')">👨‍🏫 Teacher / শিক্ষক</div>
         </div>
       </div>
-      <div class="form-group"><label>পুরো নাম</label><input type="text" id="r-name" placeholder="আপনার নাম"></div>
-      <div class="form-group"><label>ইমেইল</label><input type="email" id="r-email" placeholder="ইমেইল"></div>
-      <div class="form-group"><label>মোবাইল</label><input type="text" id="r-phone" placeholder="+880"></div>
-      <div class="form-group"><label>এলাকা</label>
-        <select id="r-area">
-          <option value="">এলাকা বেছে নিন</option>
-          <option>মিরপুর, ঢাকা</option><option>উত্তরা, ঢাকা</option>
-          <option>ধানমন্ডি, ঢাকা</option><option>গুলশান, ঢাকা</option>
-          <option>মোহাম্মদপুর, ঢাকা</option><option>রামপুরা, ঢাকা</option>
-          <option>বাড্ডা, ঢাকা</option><option>চট্টগ্রাম সদর</option><option>সিলেট সদর</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name / পুরো নাম</label><input type="text" id="r-name" placeholder="Your name / আপনার নাম"></div>
+        <div class="form-group"><label>Mobile / মোবাইল</label><input type="text" id="r-phone" placeholder="01XXXXXXXXX"></div>
       </div>
+      <div class="form-group"><label>Email / ইমেইল</label><input type="email" id="r-email" placeholder="your@email.com"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Division / বিভাগ</label>
+          <select id="r-division" onchange="updateDistricts()">
+            <option value="">Select / বেছে নিন</option>
+            <option>ঢাকা</option><option>চট্টগ্রাম</option><option>রাজশাহী</option>
+            <option>খুলনা</option><option>বরিশাল</option><option>সিলেট</option>
+            <option>রংপুর</option><option>ময়মনসিংহ</option>
+          </select>
+        </div>
+        <div class="form-group"><label>District / জেলা</label>
+          <select id="r-district" onchange="updateUpazilas()"><option value="">Select District</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Upazila / উপজেলা</label>
+        <select id="r-upazila"><option value="">Select Upazila</option></select>
+      </div>
+
       <div id="t-fields" style="display:none">
-        <div class="form-group"><label>বিষয়</label>
-          <select id="r-subject">
-            <option value="">বিষয় বেছে নিন</option>
-            <option>গণিত (Math)</option><option>পদার্থবিজ্ঞান (Physics)</option>
-            <option>রসায়ন (Chemistry)</option><option>জীববিজ্ঞান (Biology)</option>
-            <option>ইংরেজি (English)</option><option>বাংলা</option><option>ICT</option>
-          </select>
+        <div class="form-row">
+          <div class="form-group"><label>Subject / বিষয়</label>
+            <select id="r-subject">
+              <option value="">Select Subject</option>
+              <option>গণিত (Math)</option><option>পদার্থবিজ্ঞান (Physics)</option>
+              <option>রসায়ন (Chemistry)</option><option>জীববিজ্ঞান (Biology)</option>
+              <option>ইংরেজি (English)</option><option>বাংলা</option><option>ICT</option>
+              <option>অর্থনীতি (Economics)</option><option>হিসাববিজ্ঞান (Accounting)</option>
+              <option>ইতিহাস (History)</option><option>ভূগোল (Geography)</option>
+              <option>ইসলাম শিক্ষা</option><option>Arabic</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Monthly Fee / মাসিক ফি (৳)</label><input type="number" id="r-fee" placeholder="e.g. 2000"></div>
         </div>
-        <div class="form-group"><label>মাসিক ফি (৳)</label><input type="number" id="r-fee" placeholder="যেমন: 2000"></div>
-        <div class="form-group"><label>শ্রেণি</label>
+        <div class="form-group"><label>Class Range / শ্রেণি পরিসীমা</label>
           <select id="r-class">
-            <option>Class 1-5</option><option>Class 6-8</option>
+            <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
             <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
-            <option>University</option><option>সব শ্রেণি</option>
+            <option>University / বিশ্ববিদ্যালয়</option><option>All Classes / সব শ্রেণি</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Experience / অভিজ্ঞতা</label>
+          <select id="r-exp">
+            <option>Less than 1 year / ১ বছরের কম</option><option>1-2 years / ১-২ বছর</option>
+            <option>2-3 years / ২-৩ বছর</option><option>3-5 years / ৩-৫ বছর</option>
+            <option>5+ years / ৫+ বছর</option>
           </select>
         </div>
       </div>
+
       <div id="s-fields">
-        <div class="form-group"><label>আপনার শ্রেণি</label>
+        <div class="form-group"><label>Your Class / আপনার শ্রেণি</label>
           <select id="r-grade">
-            <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-            <option>Class 9</option><option>Class 10</option><option>Class 11</option>
-            <option>Class 12</option><option>University</option>
+            <option>Class 1</option><option>Class 2</option><option>Class 3</option>
+            <option>Class 4</option><option>Class 5</option><option>Class 6</option>
+            <option>Class 7</option><option>Class 8</option><option>Class 9</option>
+            <option>Class 10 (SSC)</option><option>Class 11 (HSC)</option>
+            <option>Class 12 (HSC)</option><option>University / বিশ্ববিদ্যালয়</option>
           </select>
         </div>
       </div>
-      <div class="form-group"><label>পাসওয়ার্ড</label><input type="password" id="r-pass" placeholder="কমপক্ষে ৬ অক্ষর"></div>
-      <button class="btn-primary" id="reg-btn" onclick="doRegister()">অ্যাকাউন্ট তৈরি করুন</button>
-      <p class="hint">ইতিমধ্যে আছে? <span onclick="switchTab('login')">লগইন করুন</span></p>
+
+      <div class="form-group"><label>Password / পাসওয়ার্ড</label><input type="password" id="r-pass" placeholder="Min 6 characters / কমপক্ষে ৬ অক্ষর"></div>
+      <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create Account / অ্যাকাউন্ট তৈরি করুন</button>
+      <p class="hint">Already have account? <span onclick="switchTab('login')">Login / লগইন করুন</span></p>
     </div>
   </div>
 </div>
@@ -212,31 +325,52 @@
     <div style="display:flex;align-items:center;gap:8px">
       <div class="t-avatar" id="top-av"></div>
       <div>
-        <div style="font-size:13px;font-weight:500" id="top-name"></div>
+        <div style="font-size:12px;font-weight:700" id="top-name"></div>
         <div class="role-tag" id="top-role"></div>
       </div>
     </div>
-    <button class="logout-btn" onclick="doLogout()">বের হন</button>
+    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">বাংলা</button>
+    <button class="logout-btn" id="logout-btn" onclick="doLogout()">Logout</button>
   </div>
 
   <div class="main" id="main-content">
     <div class="page active" id="page-home"></div>
     <div class="page" id="page-search">
-      <div class="section-title">শিক্ষক খুঁজুন</div>
-      <div class="search-bar"><input type="text" id="search-inp" placeholder="নাম বা বিষয়..." oninput="renderTeachers()"></div>
+      <div class="section-title">🔍 Find Teachers <small>শিক্ষক খুঁজুন</small></div>
+      <div class="search-bar"><input type="text" id="search-inp" placeholder="Search name or subject / নাম বা বিষয় লিখুন..." oninput="renderTeachers()"></div>
+      <div class="filter-row">
+        <select id="f-district" onchange="renderTeachers()">
+          <option value="">All Districts / সব জেলা</option>
+          <option>ঢাকা</option><option>গাজীপুর</option><option>নারায়ণগঞ্জ</option><option>মানিকগঞ্জ</option><option>মুন্সিগঞ্জ</option><option>নরসিংদী</option><option>ফরিদপুর</option><option>গোপালগঞ্জ</option><option>কিশোরগঞ্জ</option><option>টাঙ্গাইল</option>
+          <option>চট্টগ্রাম</option><option>কক্সবাজার</option><option>কুমিল্লা</option><option>ফেনী</option><option>নোয়াখালী</option><option>ব্রাহ্মণবাড়িয়া</option><option>চাঁদপুর</option>
+          <option>রাজশাহী</option><option>নাটোর</option><option>বগুড়া</option><option>পাবনা</option><option>নওগাঁ</option>
+          <option>খুলনা</option><option>বাগেরহাট</option><option>সাতক্ষীরা</option><option>যশোর</option><option>নড়াইল</option><option>মাগুরা</option><option>ঝিনাইদহ</option><option>কুষ্টিয়া</option><option>চুয়াডাঙ্গা</option><option>মেহেরপুর</option>
+          <option>বরিশাল</option><option>ভোলা</option><option>পটুয়াখালী</option><option>বরগুনা</option><option>পিরোজপুর</option>
+          <option>সিলেট</option><option>মৌলভীবাজার</option><option>হবিগঞ্জ</option><option>সুনামগঞ্জ</option>
+          <option>রংপুর</option><option>দিনাজপুর</option><option>গাইবান্ধা</option><option>নীলফামারী</option><option>পঞ্চগড়</option><option>ঠাকুরগাঁও</option>
+          <option>ময়মনসিংহ</option><option>জামালপুর</option><option>শেরপুর</option><option>নেত্রকোণা</option>
+        </select>
+        <select id="f-class" onchange="renderTeachers()">
+          <option value="">All Classes / সব শ্রেণি</option>
+          <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
+          <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
+          <option>University / বিশ্ববিদ্যালয়</option>
+        </select>
+      </div>
       <div class="filter-pills">
-        <div class="pill active" data-s="all" onclick="filterSub(this)">সব</div>
-        <div class="pill" data-s="গণিত (Math)" onclick="filterSub(this)">গণিত</div>
-        <div class="pill" data-s="পদার্থবিজ্ঞান (Physics)" onclick="filterSub(this)">পদার্থ</div>
-        <div class="pill" data-s="রসায়ন (Chemistry)" onclick="filterSub(this)">রসায়ন</div>
-        <div class="pill" data-s="ইংরেজি (English)" onclick="filterSub(this)">ইংরেজি</div>
-        <div class="pill" data-s="জীববিজ্ঞান (Biology)" onclick="filterSub(this)">জীববিজ্ঞান</div>
+        <div class="pill active" data-s="all" onclick="filterSub(this)">All / সব</div>
+        <div class="pill" data-s="গণিত (Math)" onclick="filterSub(this)">Math / গণিত</div>
+        <div class="pill" data-s="পদার্থবিজ্ঞান (Physics)" onclick="filterSub(this)">Physics</div>
+        <div class="pill" data-s="রসায়ন (Chemistry)" onclick="filterSub(this)">Chemistry</div>
+        <div class="pill" data-s="জীববিজ্ঞান (Biology)" onclick="filterSub(this)">Biology</div>
+        <div class="pill" data-s="ইংরেজি (English)" onclick="filterSub(this)">English</div>
+        <div class="pill" data-s="বাংলা" onclick="filterSub(this)">বাংলা</div>
         <div class="pill" data-s="ICT" onclick="filterSub(this)">ICT</div>
       </div>
       <div id="teacher-list"></div>
     </div>
     <div class="page" id="page-msg">
-      <div class="section-title">বার্তা</div>
+      <div class="section-title">💬 Messages <small>বার্তা</small></div>
       <div id="chat-list"></div>
     </div>
     <div class="page" id="page-profile"></div>
@@ -245,406 +379,529 @@
   <div class="chat-screen" id="chat-screen">
     <div class="chat-header">
       <button onclick="closeChat()">←</button>
-      <div class="t-avatar" id="chat-av" style="width:36px;height:36px"></div>
-      <div>
-        <div style="font-size:14px;font-weight:600" id="chat-nm"></div>
-        <div style="font-size:11px;color:var(--text-muted)" id="chat-sb"></div>
-      </div>
+      <div class="t-avatar" id="chat-av" style="width:34px;height:34px"></div>
+      <div><div style="font-size:13px;font-weight:700" id="chat-nm"></div><div style="font-size:11px;color:var(--text-muted)" id="chat-sb"></div></div>
     </div>
     <div class="chat-messages" id="chat-msgs"></div>
     <div class="chat-input-bar">
-      <input type="text" id="chat-inp" placeholder="বার্তা লিখুন..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <input type="text" id="chat-inp" placeholder="Type a message / বার্তা লিখুন..." onkeydown="if(event.key==='Enter')sendMsg()">
       <button class="send-btn" onclick="sendMsg()">➤</button>
     </div>
   </div>
 
   <div class="bottom-nav" id="bnav">
-    <button class="active" onclick="showPage('home',this)"><span class="nav-icon">🏠</span>হোম</button>
-    <button onclick="showPage('search',this)"><span class="nav-icon">🔍</span>খুঁজুন</button>
-    <button onclick="showPage('msg',this)"><span class="nav-icon">💬</span>বার্তা</button>
-    <button onclick="showPage('profile',this)"><span class="nav-icon">👤</span>প্রোফাইল</button>
+    <button class="active" onclick="showPage('home',this)"><span class="nav-icon">🏠</span><span>Home<br><small>হোম</small></span></button>
+    <button onclick="showPage('search',this)"><span class="nav-icon">🔍</span><span>Search<br><small>খুঁজুন</small></span></button>
+    <button onclick="showPage('msg',this)"><span class="nav-icon">💬</span><span>Message<br><small>বার্তা</small></span></button>
+    <button onclick="showPage('profile',this)"><span class="nav-icon">👤</span><span>Profile<br><small>প্রোফাইল</small></span></button>
   </div>
 </div>
 <div id="toast"></div>
 
 <script>
-const SURL = 'https://gerpejpskbpwxjpfskmf.supabase.co';
-const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlcnBlanBza2Jwd3hqcGZza21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODIzMzEsImV4cCI6MjA5MzA1ODMzMX0.HGXV5WxQljuh5zHYciFCBvYbvig_fylebssmROTIwTA';
-const sb = supabase.createClient(SURL, SKEY);
+const BD={"ঢাকা":{"ঢাকা":["আদাবর","বাড্ডা","বনানী","ডেমরা","ধানমন্ডি","দোহার","গুলশান","হাজারীবাগ","কদমতলী","কেরানীগঞ্জ","খিলগাঁও","কোতোয়ালি","লালবাগ","মিরপুর","মোহাম্মদপুর","মতিঝিল","নবাবগঞ্জ","পল্লবী","রমনা","সাবুজবাগ","তেজগাঁও","উত্তরা","ওয়ারী"],"গাজীপুর":["গাজীপুর সদর","কালিয়াকৈর","কাপাসিয়া","শ্রীপুর","টঙ্গী"],"নারায়ণগঞ্জ":["আড়াইহাজার","বন্দর","নারায়ণগঞ্জ সদর","রূপগঞ্জ","সোনারগাঁ"],"মানিকগঞ্জ":["দৌলতপুর","ঘিওর","হরিরামপুর","মানিকগঞ্জ সদর","শিবালয়","সাটুরিয়া","সিঙ্গাইর"],"মুন্সিগঞ্জ":["গজারিয়া","লৌহজং","মুন্সিগঞ্জ সদর","শ্রীনগর","সিরাজদিখান","টঙ্গীবাড়ি"],"নরসিংদী":["বেলাব","মনোহরদী","নরসিংদী সদর","পলাশ","রায়পুরা","শিবপুর"],"ফরিদপুর":["আলফাডাঙ্গা","ভাঙ্গা","বোয়ালমারী","ফরিদপুর সদর","মধুখালী","নগরকান্দা","সালথা"],"গোপালগঞ্জ":["গোপালগঞ্জ সদর","কাশিয়ানী","কোটালীপাড়া","মুকসুদপুর","টুঙ্গিপাড়া"],"কিশোরগঞ্জ":["ভৈরব","হোসেনপুর","কটিয়াদী","করিমগঞ্জ","কিশোরগঞ্জ সদর","কুলিয়ারচর","পাকুন্দিয়া","তাড়াইল"],"টাঙ্গাইল":["বাসাইল","ভূঞাপুর","দেলদুয়ার","ঘাটাইল","গোপালপুর","কালিহাতী","মধুপুর","মির্জাপুর","নাগরপুর","টাঙ্গাইল সদর"]},"চট্টগ্রাম":{"চট্টগ্রাম":["আনোয়ারা","বাঁশখালী","বোয়ালখালী","চন্দনাইশ","ফটিকছড়ি","হাটহাজারী","কোতোয়ালি","লোহাগাড়া","মীরসরাই","পটিয়া","রাঙ্গুনিয়া","রাউজান","সন্দ্বীপ","সাতকানিয়া","সীতাকুণ্ড"],"কক্সবাজার":["চকরিয়া","কক্সবাজার সদর","কুতুবদিয়া","মহেশখালী","রামু","টেকনাফ","উখিয়া"],"কুমিল্লা":["বরুড়া","বুড়িচং","চান্দিনা","চৌদ্দগ্রাম","দাউদকান্দি","দেবিদ্বার","কুমিল্লা সদর","লাকসাম","মুরাদনগর","নাঙ্গলকোট"],"ফেনী":["ছাগলনাইয়া","দাগনভূঞা","ফেনী সদর","ফুলগাজী","পরশুরাম","সোনাগাজী"],"নোয়াখালী":["বেগমগঞ্জ","চাটখিল","হাতিয়া","নোয়াখালী সদর","সেনবাগ","সোনাইমুড়ী","সুবর্ণচর"],"ব্রাহ্মণবাড়িয়া":["আখাউড়া","বাঞ্ছারামপুর","ব্রাহ্মণবাড়িয়া সদর","কসবা","নাসিরনগর","নবীনগর","সরাইল"],"চাঁদপুর":["চাঁদপুর সদর","ফরিদগঞ্জ","হাজীগঞ্জ","কচুয়া","মতলব উত্তর","মতলব দক্ষিণ","শাহরাস্তি"]},"রাজশাহী":{"রাজশাহী":["বাঘা","বাগমারা","চারঘাট","দুর্গাপুর","গোদাগাড়ী","মোহনপুর","পবা","পুঠিয়া","রাজশাহী সদর","তানোর"],"নাটোর":["বড়াইগ্রাম","বাগাতিপাড়া","গুরুদাসপুর","লালপুর","নাটোর সদর","সিংড়া"],"বগুড়া":["আদমদীঘি","বগুড়া সদর","ধুনট","গাবতলী","কাহালু","নন্দীগ্রাম","সারিয়াকান্দি","শেরপুর","শিবগঞ্জ","সোনাতলা"],"পাবনা":["আটঘরিয়া","বেড়া","ভাঙ্গুড়া","চাটমোহর","ঈশ্বরদী","পাবনা সদর","সাঁথিয়া","সুজানগর"],"নওগাঁ":["আত্রাই","বদলগাছী","মহাদেবপুর","মান্দা","নওগাঁ সদর","নিয়ামতপুর","পত্নীতলা","রাণীনগর","সাপাহার"]},"খুলনা":{"খুলনা":["বটিয়াঘাটা","দাকোপ","ডুমুরিয়া","ফুলতলা","কয়রা","পাইকগাছা","রূপসা","তেরখাদা","খুলনা সদর","সোনাডাঙ্গা","খালিশপুর","দৌলতপুর"],"বাগেরহাট":["বাগেরহাট সদর","চিতলমারী","ফকিরহাট","কচুয়া","মোংলা","মোরেলগঞ্জ","মোল্লাহাট","রামপাল","শরণখোলা"],"সাতক্ষীরা":["আশাশুনি","দেবহাটা","কালিগঞ্জ","কলারোয়া","সাতক্ষীরা সদর","শ্যামনগর","তালা"],"যশোর":["অভয়নগর","বাঘারপাড়া","চৌগাছা","ঝিকরগাছা","কেশবপুর","মণিরামপুর","শার্শা","যশোর সদর"],"নড়াইল":["কালিয়া","লোহাগড়া","নড়াইল সদর"],"মাগুরা":["মাগুরা সদর","মহম্মদপুর","শালিখা","শ্রীপুর"],"ঝিনাইদহ":["হরিণাকুণ্ডু","ঝিনাইদহ সদর","কালীগঞ্জ","কোটচাঁদপুর","মহেশপুর","শৈলকুপা"],"কুষ্টিয়া":["ভেড়ামারা","দৌলতপুর","খোকসা","কুমারখালী","কুষ্টিয়া সদর","মিরপুর"],"চুয়াডাঙ্গা":["আলমডাঙ্গা","চুয়াডাঙ্গা সদর","দামুড়হুদা","জীবননগর"],"মেহেরপুর":["গাংনী","মেহেরপুর সদর","মুজিবনগর"]},"বরিশাল":{"বরিশাল":["আগৈলঝাড়া","বাকেরগঞ্জ","বাবুগঞ্জ","বানারীপাড়া","বরিশাল সদর","গৌরনদী","হিজলা","মেহেন্দিগঞ্জ","মুলাদী","উজিরপুর"],"ভোলা":["বোরহানউদ্দিন","চরফ্যাশন","দৌলতখান","লালমোহন","মনপুরা","তজুমদ্দিন","ভোলা সদর"],"পটুয়াখালী":["বাউফল","দশমিনা","গলাচিপা","কলাপাড়া","পটুয়াখালী সদর"],"বরগুনা":["আমতলী","বামনা","বরগুনা সদর","বেতাগী","পাথরঘাটা","তালতলী"],"পিরোজপুর":["ভাণ্ডারিয়া","কাউখালী","মঠবাড়িয়া","নাজিরপুর","পিরোজপুর সদর"]},"সিলেট":{"সিলেট":["বালাগঞ্জ","বিয়ানীবাজার","বিশ্বনাথ","দক্ষিণ সুরমা","ফেঞ্চুগঞ্জ","গোলাপগঞ্জ","গোয়াইনঘাট","জৈন্তাপুর","কানাইঘাট","সিলেট সদর"],"মৌলভীবাজার":["বড়লেখা","জুড়ী","কমলগঞ্জ","কুলাউড়া","মৌলভীবাজার সদর","রাজনগর","শ্রীমঙ্গল"],"হবিগঞ্জ":["আজমিরীগঞ্জ","বাহুবল","বানিয়াচং","চুনারুঘাট","হবিগঞ্জ সদর","লাখাই","মাধবপুর","নবীগঞ্জ"],"সুনামগঞ্জ":["বিশ্বম্ভরপুর","ছাতক","দিরাই","দোয়ারাবাজার","জগন্নাথপুর","জামালগঞ্জ","সুনামগঞ্জ সদর","তাহিরপুর"]},"রংপুর":{"রংপুর":["বদরগঞ্জ","গঙ্গাচড়া","কাউনিয়া","মিঠাপুকুর","পীরগঞ্জ","পীরগাছা","রংপুর সদর","তারাগঞ্জ"],"দিনাজপুর":["বিরামপুর","বিরল","বোচাগঞ্জ","চিরিরবন্দর","দিনাজপুর সদর","ফুলবাড়ী","ঘোড়াঘাট","কাহারোল","খানসামা","নবাবগঞ্জ","পার্বতীপুর"],"গাইবান্ধা":["ফুলছড়ি","গাইবান্ধা সদর","গোবিন্দগঞ্জ","পলাশবাড়ী","সাঘাটা","সাদুল্লাপুর","সুন্দরগঞ্জ"],"নীলফামারী":["ডিমলা","ডোমার","জলঢাকা","কিশোরগঞ্জ","নীলফামারী সদর","সৈয়দপুর"],"পঞ্চগড়":["আটোয়ারী","বোদা","দেবীগঞ্জ","পঞ্চগড় সদর","তেঁতুলিয়া"],"ঠাকুরগাঁও":["বালিয়াডাঙ্গী","হরিপুর","পীরগঞ্জ","রাণীশংকৈল","ঠাকুরগাঁও সদর"]},"ময়মনসিংহ":{"ময়মনসিংহ":["ভালুকা","ধোবাউড়া","ফুলবাড়িয়া","গফরগাঁও","গৌরীপুর","হালুয়াঘাট","ঈশ্বরগঞ্জ","ময়মনসিংহ সদর","মুক্তাগাছা","নান্দাইল","ফুলপুর","তারাকান্দা","ত্রিশাল"],"জামালপুর":["বকশীগঞ্জ","দেওয়ানগঞ্জ","ইসলামপুর","জামালপুর সদর","মাদারগঞ্জ","মেলান্দহ","সরিষাবাড়ী"],"শেরপুর":["ঝিনাইগাতী","নকলা","নালিতাবাড়ী","শেরপুর সদর","শ্রীবরদী"],"নেত্রকোণা":["আটপাড়া","বারহাট্টা","দুর্গাপুর","কলমাকান্দা","কেন্দুয়া","মদন","মোহনগঞ্জ","নেত্রকোণা সদর","পূর্বধলা"]}};
 
-const ADMIN_EMAIL = 'skfuad502@gmail.com';
-const COLORS = [['#E6F1FB','#185FA5'],['#E1F5EE','#0F6E56'],['#FBEAF0','#993556'],['#FAEEDA','#854F0B'],['#EEEDFE','#3C3489']];
-
-let CU = null, CUP = null, allTeachers = [], allRequests = [], subFilter = 'all', chatWith = null, msgSub = null;
-
-function getColor(str) { let h=0; for(let c of str) h=c.charCodeAt(0)+h*31; return COLORS[Math.abs(h)%COLORS.length]; }
-function initials(name) { return (name||'').split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2)||'?'; }
-function fmtTime(ts) { const d=new Date(ts); return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes(); }
-
-function toast(msg, dur=2800) {
-  const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
-  setTimeout(()=>t.style.display='none', dur);
+function updateDistricts(){
+  const div=document.getElementById('r-division').value;
+  const ds=document.getElementById('r-district');
+  const us=document.getElementById('r-upazila');
+  ds.innerHTML='<option value="">Select District / জেলা</option>';
+  us.innerHTML='<option value="">Select Upazila / উপজেলা</option>';
+  if(!div||!BD[div])return;
+  Object.keys(BD[div]).forEach(d=>{ds.innerHTML+=`<option>${d}</option>`});
+}
+function updateUpazilas(){
+  const div=document.getElementById('r-division').value;
+  const dist=document.getElementById('r-district').value;
+  const us=document.getElementById('r-upazila');
+  us.innerHTML='<option value="">Select Upazila / উপজেলা</option>';
+  if(!div||!dist||!BD[div]||!BD[div][dist])return;
+  BD[div][dist].forEach(u=>{us.innerHTML+=`<option>${u}</option>`});
 }
 
-// ===== AUTH =====
-let authTab='login', selRole_='student';
+const SURL='https://gerpejpskbpwxjpfskmf.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlcnBlanBza2Jwd3hqcGZza21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODIzMzEsImV4cCI6MjA5MzA1ODMzMX0.HGXV5WxQljuh5zHYciFCBvYbvig_fylebssmROTIwTA';
+const sb=supabase.createClient(SURL,SKEY);
+const ADMIN_EMAIL='skfuad502@gmail.com';
+const COLORS=[['#E6F1FB','#185FA5'],['#E1F5EE','#0F6E56'],['#FBEAF0','#993556'],['#FAEEDA','#854F0B'],['#EEEDFE','#3C3489'],['#FEF3C7','#92400e']];
+let CU=null,CUP=null,allTeachers=[],allRequests=[],subFilter='all',chatWith=null,msgSub=null,adminTab='teachers';
+function getColor(s){let h=0;for(let c of s)h=c.charCodeAt(0)+h*31;return COLORS[Math.abs(h)%COLORS.length]}
+function ini(n){return(n||'').split(' ').map(x=>x[0]||'').join('').toUpperCase().slice(0,2)||'?'}
+function fmtTime(ts){const d=new Date(ts);return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
+function fmtDate(ts){const d=new Date(ts);return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
+function toast(msg,dur=2800){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',dur)}
 
-window.addEventListener('DOMContentLoaded', async ()=>{
-  const {data:{session}} = await sb.auth.getSession();
-  if (session) { CU=session.user; await loadProfile(); startApp(); }
-  else { document.getElementById('loading-screen').style.display='none'; document.getElementById('auth-screen').style.display='flex'; }
+window.addEventListener('DOMContentLoaded',async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){CU=session.user;await loadProfile();startApp();}
+  else{document.getElementById('loading-screen').style.display='none';document.getElementById('auth-screen').style.display='flex';}
 });
 
-function switchTab(t) {
-  authTab=t;
+function switchTab(t){
   document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
   document.getElementById('login-form').style.display=t==='login'?'block':'none';
   document.getElementById('register-form').style.display=t==='register'?'block':'none';
   document.getElementById('auth-err').style.display='none';
 }
-
-function selRole(r) {
-  selRole_=r;
+function selRole(r){
   document.getElementById('role-s').classList.toggle('active',r==='student');
   document.getElementById('role-t').classList.toggle('active',r==='teacher');
   document.getElementById('t-fields').style.display=r==='teacher'?'block':'none';
   document.getElementById('s-fields').style.display=r==='student'?'block':'none';
+  window._role=r;
 }
+window._role='student';
+function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
 
-function showErr(msg) { const e=document.getElementById('auth-err'); e.textContent=msg; e.style.display='block'; }
-
-async function doLogin() {
+async function doLogin(){
   const email=document.getElementById('l-email').value.trim();
   const pass=document.getElementById('l-pass').value;
-  if(!email||!pass){showErr('সব তথ্য পূরণ করুন!');return;}
-  const btn=document.getElementById('login-btn'); btn.disabled=true; btn.textContent='অপেক্ষা করুন...';
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-  btn.disabled=false; btn.textContent='লগইন করুন';
-  if(error){showErr('ইমেইল বা পাসওয়ার্ড ভুল!');return;}
+  if(!email||!pass){showErr('Please fill all fields / সব তথ্য পূরণ করুন!');return;}
+  const btn=document.getElementById('login-btn');btn.disabled=true;btn.textContent='Logging in...';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;btn.textContent='Login / লগইন করুন';
+  if(error){showErr('Wrong email or password! / ইমেইল বা পাসওয়ার্ড ভুল!');return;}
   CU=data.user;
-  if(email===ADMIN_EMAIL) { CUP={id:CU.id,name:'Fuad',role:'admin',avatar:'FU',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL}; }
-  else { await loadProfile(); }
+  if(email===ADMIN_EMAIL){CUP={id:CU.id,name:'Fuad',role:'admin',avatar:'FU',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL};}
+  else{await loadProfile();}
   startApp();
 }
 
-async function doRegister() {
+async function doRegister(){
   const name=document.getElementById('r-name').value.trim();
   const email=document.getElementById('r-email').value.trim();
   const phone=document.getElementById('r-phone').value.trim();
-  const area=document.getElementById('r-area').value;
+  const division=document.getElementById('r-division').value;
+  const district=document.getElementById('r-district').value;
+  const upazila=document.getElementById('r-upazila').value;
   const pass=document.getElementById('r-pass').value;
-  if(!name||!email||!pass||!area){showErr('সব তথ্য পূরণ করুন!');return;}
-  if(pass.length<6){showErr('পাসওয়ার্ড কমপক্ষে ৬ অক্ষর!');return;}
-  const btn=document.getElementById('reg-btn'); btn.disabled=true; btn.textContent='অপেক্ষা করুন...';
-  const {data,error} = await sb.auth.signUp({email,password:pass});
-  if(error){showErr('সমস্যা হয়েছে: '+error.message); btn.disabled=false; btn.textContent='অ্যাকাউন্ট তৈরি করুন'; return;}
+  if(!name||!email||!pass||!district){showErr('Fill all required fields / সব তথ্য পূরণ করুন!');return;}
+  if(pass.length<6){showErr('Password min 6 characters / পাসওয়ার্ড কমপক্ষে ৬ অক্ষর!');return;}
+  const btn=document.getElementById('reg-btn');btn.disabled=true;btn.textContent='Creating...';
+  const {data,error}=await sb.auth.signUp({email,password:pass});
+  if(error){showErr('Error: '+error.message);btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';return;}
   CU=data.user;
-  const [bg,tc] = getColor(name);
-  const profile = {
-    id: CU.id, name, role: selRole_, phone, area,
-    avatar: initials(name), color: bg, tc,
-    ...(selRole_==='teacher'?{
-      subject: document.getElementById('r-subject').value,
-      fee: parseInt(document.getElementById('r-fee').value)||1500,
-      class_range: document.getElementById('r-class').value,
-      experience: '০ বছর', rating: 4.0, active: true
-    }:{grade: document.getElementById('r-grade').value})
-  };
+  const [bg,tc]=getColor(name);
+  const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
+  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
+    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:true}:{grade:document.getElementById('r-grade').value})};
   await sb.from('profiles').insert(profile);
   CUP=profile;
-  btn.disabled=false; btn.textContent='অ্যাকাউন্ট তৈরি করুন';
-  toast('✅ অ্যাকাউন্ট তৈরি হয়েছে!');
+  btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
+  toast('✅ Account created! / অ্যাকাউন্ট তৈরি হয়েছে!');
   startApp();
 }
 
-async function loadProfile() {
-  if(!CU) return;
-  if(CU.email===ADMIN_EMAIL){ CUP={id:CU.id,name:'Fuad',role:'admin',avatar:'FU',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL}; return; }
-  const {data} = await sb.from('profiles').select('*').eq('id',CU.id).single();
-  CUP = data;
+async function loadProfile(){
+  if(!CU)return;
+  if(CU.email===ADMIN_EMAIL){CUP={id:CU.id,name:'Fuad',role:'admin',avatar:'FU',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL};return;}
+  const {data}=await sb.from('profiles').select('*').eq('id',CU.id).single();
+  CUP=data;
 }
-
-async function doLogout() {
-  await sb.auth.signOut(); CU=null; CUP=null; allTeachers=[]; allRequests=[];
+async function doLogout(){
+  await sb.auth.signOut();CU=null;CUP=null;allTeachers=[];allRequests=[];
   if(msgSub){sb.removeChannel(msgSub);msgSub=null;}
   document.getElementById('app').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
-  toast('লগআউট হয়েছে');
+  toast('Logged out!');
 }
 
-// ===== APP START =====
-async function startApp() {
+async function startApp(){
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   const av=document.getElementById('top-av');
-  av.textContent=CUP?.avatar||'?'; av.style.background=CUP?.color||'#E1F5EE'; av.style.color=CUP?.tc||'#0F6E56';
+  av.textContent=CUP?.avatar||'?';av.style.background=CUP?.color||'#E1F5EE';av.style.color=CUP?.tc||'#0F6E56';
   document.getElementById('top-name').textContent=CUP?.name||'';
-  document.getElementById('top-role').textContent={student:'শিক্ষার্থী',teacher:'শিক্ষক',admin:'অ্যাডমিন'}[CUP?.role]||'';
-  await loadTeachers();
-  await loadRequests();
-  renderHome();
-  renderProfile();
-  renderChatList();
+  document.getElementById('top-role').textContent={student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin'}[CUP?.role]||'';
+  await loadTeachers();await loadRequests();
+  renderHome();renderProfile();renderChatList();
+}
+async function loadTeachers(){const {data}=await sb.from('profiles').select('*').eq('role','teacher').eq('active',true);allTeachers=data||[];}
+async function loadRequests(){
+  if(!CUP)return;
+  let q=sb.from('requests').select('*');
+  if(CUP.role==='student')q=q.eq('student_id',CUP.id);
+  else if(CUP.role==='teacher')q=q.eq('teacher_id',CUP.id);
+  const {data}=await q;allRequests=data||[];
 }
 
-async function loadTeachers() {
-  const {data} = await sb.from('profiles').select('*').eq('role','teacher').eq('active',true);
-  allTeachers = data||[];
-}
-
-async function loadRequests() {
-  if(!CUP) return;
-  let q = sb.from('requests').select('*');
-  if(CUP.role==='student') q=q.eq('student_id',CUP.id);
-  else if(CUP.role==='teacher') q=q.eq('teacher_id',CUP.id);
-  const {data} = await q;
-  allRequests = data||[];
-}
-
-// ===== PAGES =====
-function showPage(name,btn) {
+function showPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('#bnav button').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  if(name==='search') renderTeachers();
-  if(name==='msg') renderChatList();
-  if(name==='home') renderHome();
+  if(btn)btn.classList.add('active');
+  if(name==='search')renderTeachers();
+  if(name==='msg')renderChatList();
+  if(name==='home')renderHome();
 }
 
-// ===== HOME =====
-function renderHome() {
+function renderHome(){
   const el=document.getElementById('page-home');
   if(!CUP){el.innerHTML='';return;}
-  if(CUP.role==='student') renderStudentHome(el);
-  else if(CUP.role==='teacher') renderTeacherHome(el);
+  if(CUP.role==='student')renderStudentHome(el);
+  else if(CUP.role==='teacher')renderTeacherHome(el);
   else renderAdminHome(el);
 }
 
-async function renderStudentHome(el) {
-  const myT = allRequests.map(r=>allTeachers.find(t=>t.id===r.teacher_id)).filter(Boolean);
-  el.innerHTML=`
-    <div style="margin-bottom:16px"><p style="font-size:13px;color:var(--text-muted)">স্বাগতম,</p><p style="font-size:20px;font-weight:700">${CUP.name} 👋</p></div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="num">${allTeachers.length}</div><div class="lbl">নিবন্ধিত শিক্ষক</div></div>
-      <div class="stat-box"><div class="num">${myT.length}</div><div class="lbl">আমার শিক্ষক</div></div>
-    </div>
-    <div class="section-title">আমার শিক্ষকগণ</div>
-    ${myT.length===0?`<div class="empty-state"><div class="icon">🔍</div><p>"খুঁজুন" ট্যাবে গিয়ে শিক্ষক খুঁজুন!</p></div>`
-    :myT.map(t=>`<div class="card">
-      <div class="tc-header">
-        <div class="tc-avatar" style="background:${t.color};color:${t.tc}">${t.avatar}</div>
-        <div style="flex:1"><div class="tc-name">${t.name}</div><div class="tc-sub">${t.subject||''} · ${t.area||''}</div></div>
-        <span class="status-badge active">সক্রিয়</span>
+async function renderStudentHome(el){
+  const myT=allRequests.map(r=>allTeachers.find(t=>t.id===r.teacher_id)).filter(Boolean);
+  el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Welcome back / স্বাগতম,</p><p style="font-size:20px;font-weight:700">${CUP.name} 👋</p></div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">${allTeachers.length}</div><div class="lbl-en">Teachers Available</div><div class="lbl-bn">শিক্ষক আছেন</div></div>
+    <div class="stat-box"><div class="num">${myT.length}</div><div class="lbl-en">My Teachers</div><div class="lbl-bn">আমার শিক্ষক</div></div>
+  </div>
+  <div class="section-title">My Teachers <small>আমার শিক্ষকগণ</small></div>
+  ${myT.length===0?`<div class="empty-state"><div class="icon">🔍</div><p>No teachers yet / এখনো কোনো শিক্ষক নেই<br><small>Go to Search tab / "Search" এ যান</small></p></div>`
+  :myT.map(t=>`<div class="card"><div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
+    <div class="tc-avatar" style="background:${t.color};color:${t.tc}">${t.avatar}</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700">${t.name}</div><div style="font-size:12px;color:var(--text-muted)">${t.subject||''} • ${t.district||t.area||''}</div></div>
+    <span class="status-badge active">Active</span></div>
+    <button class="btn-sm btn-outline" style="width:100%" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Send Message / বার্তা পাঠান</button>
+  </div>`).join('')}`;
+}
+
+async function renderTeacherHome(el){
+  let myStudents=[];
+  if(allRequests.length>0){
+    const ids=allRequests.map(r=>r.student_id).filter(Boolean);
+    if(ids.length>0){const {data}=await sb.from('profiles').select('*').in('id',ids);myStudents=data||[];}
+  }
+  const earnings=allRequests.filter(r=>r.status==='active').length*(CUP.fee||0);
+  el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Welcome back / স্বাগতম,</p><p style="font-size:20px;font-weight:700">${CUP.name} 👋</p></div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">${allRequests.length}</div><div class="lbl-en">Total Requests</div><div class="lbl-bn">মোট অনুরোধ</div></div>
+    <div class="stat-box"><div class="num">${allRequests.filter(r=>r.status==='active').length}</div><div class="lbl-en">Active Students</div><div class="lbl-bn">সক্রিয় শিক্ষার্থী</div></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">৳${Math.round(earnings*0.8).toLocaleString()}</div><div class="lbl-en">Net Income</div><div class="lbl-bn">নেট আয়</div></div>
+    <div class="stat-box"><div class="num">৳${Math.round(earnings*0.2).toLocaleString()}</div><div class="lbl-en">Commission 20%</div><div class="lbl-bn">কমিশন</div></div>
+  </div>
+  <div class="section-title">Student Requests <small>শিক্ষার্থীর অনুরোধ</small></div>
+  ${allRequests.length===0?`<div class="empty-state"><div class="icon">📭</div><p>No requests yet / এখনো কোনো অনুরোধ নেই</p></div>`
+  :allRequests.map(r=>{const s=myStudents.find(x=>x.id===r.student_id);if(!s)return'';
+    return`<div class="card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+      <div class="tc-avatar" style="width:40px;height:40px;font-size:14px;border-radius:10px;background:${s.color};color:${s.tc}">${s.avatar}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.grade||''} • ${s.district||s.area||''}</div></div>
+      <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'Active':'Pending'}</span></div>
+      <div class="btn-row">
+        <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}')">💬 Message</button>
+        ${r.status!=='active'?`<button class="btn-sm btn-outline" style="flex:1" onclick="acceptReq('${r.id}')">✅ Accept / গ্রহণ</button>`:''}
+      </div></div>`;}).join('')}`;
+}
+
+async function renderAdminHome(el){
+  const {data:teachers}=await sb.from('profiles').select('*').eq('role','teacher').order('created_at',{ascending:false});
+  const {data:students}=await sb.from('profiles').select('*').eq('role','student').order('created_at',{ascending:false});
+  const {data:reqs}=await sb.from('requests').select('*');
+  const tL=teachers||[],sL=students||[],rL=reqs||[];
+  el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Admin Panel / অ্যাডমিন প্যানেল</p><p style="font-size:20px;font-weight:700">Tuition Master 📊</p></div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">${tL.length}</div><div class="lbl-en">Teachers</div><div class="lbl-bn">শিক্ষক</div></div>
+    <div class="stat-box"><div class="num">${sL.length}</div><div class="lbl-en">Students</div><div class="lbl-bn">শিক্ষার্থী</div></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">${rL.length}</div><div class="lbl-en">Sessions</div><div class="lbl-bn">সেশন</div></div>
+    <div class="stat-box"><div class="num">${tL.length+sL.length}</div><div class="lbl-en">Total Users</div><div class="lbl-bn">মোট ব্যবহারকারী</div></div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">👨‍🏫 Teachers (${tL.length})</button>
+    <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">🎓 Students (${sL.length})</button>
+    <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">📋 Sessions (${rL.length})</button>
+  </div>
+  <div id="admin-data">${buildAdminTab(tL,sL,rL)}</div>`;
+}
+
+function setAdminTab(tab,tL,sL,rL){
+  adminTab=tab;
+  document.querySelectorAll('.admin-tab').forEach(b=>{
+    b.classList.toggle('active',
+      (tab==='teachers'&&b.textContent.includes('Teacher'))||
+      (tab==='students'&&b.textContent.includes('Student'))||
+      (tab==='sessions'&&b.textContent.includes('Session'))
+    );
+  });
+  document.getElementById('admin-data').innerHTML=buildAdminTab(tL,sL,rL);
+}
+
+function buildAdminTab(tL,sL,rL){
+  if(adminTab==='teachers'){
+    if(!tL.length)return`<div class="empty-state"><div class="icon">👨‍🏫</div><p>No teachers yet / এখনো কোনো শিক্ষক নেই</p></div>`;
+    return tL.map(t=>`<div class="user-card">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${t.color};color:${t.tc}">${t.avatar}</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700">${t.name}</div>
+          <span class="chip chip-green">${t.subject||'—'}</span>
+          <span class="chip chip-blue">${t.class_range||'—'}</span>
+        </div>
       </div>
-      <button class="btn-sm btn-outline" style="width:100%" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 বার্তা পাঠান</button>
-    </div>`).join('')}`;
-}
-
-async function renderTeacherHome(el) {
-  const {data:students} = await sb.from('profiles').select('*').in('id', allRequests.map(r=>r.student_id).filter(Boolean));
-  const myStudents = students||[];
-  const earnings = allRequests.filter(r=>r.status==='active').length*(CUP.fee||0);
-  el.innerHTML=`
-    <div style="margin-bottom:16px"><p style="font-size:13px;color:var(--text-muted)">স্বাগতম,</p><p style="font-size:20px;font-weight:700">${CUP.name} 👋</p></div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="num">${allRequests.length}</div><div class="lbl">মোট অনুরোধ</div></div>
-      <div class="stat-box"><div class="num">${allRequests.filter(r=>r.status==='active').length}</div><div class="lbl">সক্রিয় শিক্ষার্থী</div></div>
-    </div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="num">৳${Math.round(earnings*0.8).toLocaleString()}</div><div class="lbl">নেট আয়</div></div>
-      <div class="stat-box"><div class="num">৳${Math.round(earnings*0.2).toLocaleString()}</div><div class="lbl">কমিশন (২০%)</div></div>
-    </div>
-    <div class="section-title">শিক্ষার্থীর অনুরোধ</div>
-    ${allRequests.length===0?`<div class="empty-state"><div class="icon">📭</div><p>এখনো কোনো অনুরোধ নেই।</p></div>`
-    :allRequests.map(r=>{
-      const s=myStudents.find(x=>x.id===r.student_id);
-      if(!s) return '';
-      return `<div class="card">
-        <div class="tc-header">
-          <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:10px;background:${s.color};color:${s.tc}">${s.avatar}</div>
-          <div style="flex:1"><div style="font-size:14px;font-weight:600">${s.name}</div><div style="font-size:12px;color:var(--text-muted)">${s.grade||''} · ${s.area||''}</div></div>
-          <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'সক্রিয়':'অপেক্ষারত'}</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px">
+        <div>📍 District: <strong>${t.district||'—'}</strong></div>
+        <div>🏘️ Upazila: <strong>${t.upazila||'—'}</strong></div>
+        <div>📱 Mobile: <strong>${t.phone||'—'}</strong></div>
+        <div>💰 Fee: <strong style="color:var(--green)">৳${(t.fee||0).toLocaleString()}/mo</strong></div>
+        <div>💼 Exp: <strong>${t.experience||'—'}</strong></div>
+        <div>⭐ Rating: <strong>${t.rating||4.5}</strong></div>
+        <div style="grid-column:span 2">📅 Joined: <strong>${t.created_at?fmtDate(t.created_at):'—'}</strong></div>
+      </div>
+    </div>`).join('');
+  } else if(adminTab==='students'){
+    if(!sL.length)return`<div class="empty-state"><div class="icon">🎓</div><p>No students yet / এখনো কোনো শিক্ষার্থী নেই</p></div>`;
+    return sL.map(s=>`<div class="user-card">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${s.color};color:${s.tc}">${s.avatar}</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700">${s.name}</div>
+          <span class="chip chip-blue">${s.grade||'—'}</span>
         </div>
-        <div class="btn-row">
-          <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}')">💬 বার্তা</button>
-          ${r.status!=='active'?`<button class="btn-sm btn-outline" style="flex:1" onclick="acceptReq('${r.id}')">✅ গ্রহণ করুন</button>`:''}
-        </div>
-      </div>`;}).join('')}`;
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px">
+        <div>📍 District: <strong>${s.district||'—'}</strong></div>
+        <div>🏘️ Upazila: <strong>${s.upazila||'—'}</strong></div>
+        <div>📱 Mobile: <strong>${s.phone||'—'}</strong></div>
+        <div>📅 Joined: <strong>${s.created_at?fmtDate(s.created_at):'—'}</strong></div>
+      </div>
+    </div>`).join('');
+  } else {
+    if(!rL.length)return`<div class="empty-state"><div class="icon">📋</div><p>No sessions yet / এখনো কোনো সেশন নেই</p></div>`;
+    return rL.map(r=>`<div class="user-card" style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:13px;font-weight:600">Session #${(r.id||'').slice(0,8)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px">💰 Service fee: <strong style="color:var(--green)">৳${r.service_fee||0}</strong> • 📅 ${r.created_at?fmtDate(r.created_at):'—'}</div>
+      </div>
+      <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'Active':'Pending'}</span>
+    </div>`).join('');
+  }
 }
 
-async function renderAdminHome(el) {
-  const {data:teachers} = await sb.from('profiles').select('*').eq('role','teacher');
-  const {data:students} = await sb.from('profiles').select('*').eq('role','student');
-  const {data:reqs} = await sb.from('requests').select('*');
-  const tCount=(teachers||[]).length, sCount=(students||[]).length, rCount=(reqs||[]).length;
-  el.innerHTML=`
-    <div style="margin-bottom:16px"><p style="font-size:13px;color:var(--text-muted)">অ্যাডমিন প্যানেল</p><p style="font-size:20px;font-weight:700">Tuition Master 📊</p></div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="num">${tCount}</div><div class="lbl">শিক্ষক</div></div>
-      <div class="stat-box"><div class="num">${sCount}</div><div class="lbl">শিক্ষার্থী</div></div>
-    </div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="num">${rCount}</div><div class="lbl">মোট সেশন</div></div>
-      <div class="stat-box"><div class="num">${tCount+sCount}</div><div class="lbl">মোট ব্যবহারকারী</div></div>
-    </div>
-    <div class="section-title">সকল শিক্ষক</div>
-    ${(teachers||[]).map(t=>`<div class="card" style="display:flex;align-items:center;gap:12px">
-      <div class="tc-avatar" style="width:44px;height:44px;font-size:16px;border-radius:12px;background:${t.color};color:${t.tc}">${t.avatar}</div>
-      <div style="flex:1"><div style="font-size:14px;font-weight:600">${t.name}</div><div style="font-size:12px;color:var(--text-muted)">${t.subject||''} · ${t.area||''}</div></div>
-      <span class="status-badge active">সক্রিয়</span>
-    </div>`).join('')}
-    <div class="section-title" style="margin-top:8px">সকল শিক্ষার্থী</div>
-    ${(students||[]).map(s=>`<div class="card" style="display:flex;align-items:center;gap:12px">
-      <div class="tc-avatar" style="width:44px;height:44px;font-size:16px;border-radius:12px;background:${s.color};color:${s.tc}">${s.avatar}</div>
-      <div style="flex:1"><div style="font-size:14px;font-weight:600">${s.name}</div><div style="font-size:12px;color:var(--text-muted)">${s.grade||''} · ${s.area||''}</div></div>
-    </div>`).join('')}`;
-}
-
-// ===== TEACHERS =====
-function renderTeachers() {
-  const el=document.getElementById('teacher-list'); if(!el) return;
+function renderTeachers(){
+  const el=document.getElementById('teacher-list');if(!el)return;
   const q=(document.getElementById('search-inp')||{value:''}).value.toLowerCase();
+  const fd=(document.getElementById('f-district')||{value:''}).value;
+  const fc=(document.getElementById('f-class')||{value:''}).value;
   const list=allTeachers.filter(t=>{
-    if(subFilter!=='all'&&t.subject!==subFilter) return false;
-    if(q&&!t.name.toLowerCase().includes(q)&&!(t.subject||'').toLowerCase().includes(q)) return false;
+    if(subFilter!=='all'&&t.subject!==subFilter)return false;
+    if(fd&&!(t.district||t.area||'').includes(fd))return false;
+    if(fc&&t.class_range!==fc)return false;
+    if(q&&!t.name.toLowerCase().includes(q)&&!(t.subject||'').toLowerCase().includes(q))return false;
     return true;
   });
-  if(list.length===0){el.innerHTML=`<div class="empty-state"><div class="icon">😔</div><p>কোনো শিক্ষক পাওয়া যায়নি</p></div>`;return;}
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="icon">😔</div><p>No teachers found / কোনো শিক্ষক পাওয়া যায়নি</p></div>`;return;}
   el.innerHTML=list.map(t=>{
     const isMy=allRequests.some(r=>r.student_id===CUP?.id&&r.teacher_id===t.id);
-    return `<div class="teacher-card">
-      <div class="tc-header">
+    return`<div class="teacher-card">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
         <div class="tc-avatar" style="background:${t.color};color:${t.tc}">${t.avatar}</div>
         <div style="flex:1">
-          <div class="tc-name">${t.name}</div>
-          <div class="tc-sub">${t.subject||''} · ${t.area||''}</div>
-          <div style="font-size:12px;color:var(--warn)">★ ${t.rating||4.5}</div>
+          <div style="font-size:14px;font-weight:700">${t.name}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${t.subject||''} • ${t.district||t.area||''}</div>
+          <div style="font-size:11px;color:var(--warn)">★ ${t.rating||4.5} &nbsp;|&nbsp; ${t.experience||''}</div>
         </div>
       </div>
       <div class="tc-info">
-        <div class="tc-info-item"><div class="lbl">শ্রেণি</div><div class="val">${t.class_range||''}</div></div>
-        <div class="tc-info-item"><div class="lbl">অভিজ্ঞতা</div><div class="val">${t.experience||'—'}</div></div>
-        <div class="tc-info-item"><div class="lbl">মাসিক ফি</div><div class="val" style="color:var(--green)">৳${(t.fee||0).toLocaleString()}</div></div>
+        <div class="tc-info-item"><div class="lbl">Class</div><div class="val">${(t.class_range||'').replace(' (Primary)','').replace(' (Junior)','').replace(' (HSC)','').replace(' (SSC)','')}</div></div>
+        <div class="tc-info-item"><div class="lbl">Area / এলাকা</div><div class="val">${t.upazila||t.district||'—'}</div></div>
+        <div class="tc-info-item"><div class="lbl">Fee / ফি</div><div class="val" style="color:var(--green)">৳${(t.fee||0).toLocaleString()}</div></div>
       </div>
       <div class="btn-row">
-        <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 বার্তা</button>
-        ${CUP?.role==='student'?`<button class="btn-sm btn-green" style="flex:1" ${isMy?'disabled':''}  onclick="reqTeacher('${t.id}','${t.fee||0}')">${isMy?'✅ যুক্ত আছেন':'+ অনুরোধ করুন'}</button>`:''}
+        <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message</button>
+        ${CUP?.role==='student'?`<button class="btn-sm btn-green" style="flex:1" ${isMy?'disabled':''} onclick="reqTeacher('${t.id}','${t.fee||0}')">${isMy?'✅ Requested':'+ Request / অনুরোধ'}</button>`:''}
       </div>
-    </div>`;
-  }).join('');
+    </div>`;}).join('');
 }
 
-function filterSub(el) {
+function filterSub(el){
   document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active'); subFilter=el.dataset.s; renderTeachers();
+  el.classList.add('active');subFilter=el.dataset.s;renderTeachers();
 }
-
-async function reqTeacher(tid, fee) {
-  if(CUP?.role!=='student'){toast('শুধু শিক্ষার্থীরা পারবে');return;}
+async function reqTeacher(tid,fee){
+  if(CUP?.role!=='student'){toast('Only students can request / শুধু শিক্ষার্থীরা পারবে');return;}
   const sf=Math.round(parseInt(fee)*0.10);
   const {error}=await sb.from('requests').insert({student_id:CUP.id,teacher_id:tid,status:'pending',service_fee:sf});
-  if(error){toast('❌ সমস্যা হয়েছে');return;}
-  await loadRequests(); renderTeachers(); renderHome();
-  toast(`✅ অনুরোধ পাঠানো হয়েছে! সার্ভিস ফি: ৳${sf} (১০%)`);
+  if(error){toast('❌ Error occurred');return;}
+  await loadRequests();renderTeachers();renderHome();
+  toast(`✅ Request sent! Service fee: ৳${sf} (10%)`);
 }
-
-async function acceptReq(rid) {
+async function acceptReq(rid){
   await sb.from('requests').update({status:'active'}).eq('id',rid);
-  await loadRequests(); renderHome(); toast('✅ গ্রহণ হয়েছে!');
+  await loadRequests();renderHome();toast('✅ Request accepted / গ্রহণ হয়েছে!');
 }
 
-// ===== MESSAGES =====
-async function renderChatList() {
-  const el=document.getElementById('chat-list'); if(!el) return;
-  const {data:sent} = await sb.from('messages').select('to_id').eq('from_id',CUP.id);
-  const {data:recv} = await sb.from('messages').select('from_id').eq('to_id',CUP.id);
+async function renderChatList(){
+  const el=document.getElementById('chat-list');if(!el)return;
+  const {data:sent}=await sb.from('messages').select('to_id').eq('from_id',CUP.id);
+  const {data:recv}=await sb.from('messages').select('from_id').eq('to_id',CUP.id);
   const ids=[...new Set([...(sent||[]).map(x=>x.to_id),...(recv||[]).map(x=>x.from_id)])];
-  if(ids.length===0){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>এখনো কোনো বার্তা নেই।</p></div>`;return;}
+  if(!ids.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>No messages yet / এখনো কোনো বার্তা নেই</p></div>`;return;}
   const {data:users}=await sb.from('profiles').select('*').in('id',ids);
-  el.innerHTML=(users||[]).map(u=>`
-    <div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
-      <div class="tc-avatar" style="width:46px;height:46px;font-size:17px;border-radius:13px;background:${u.color};color:${u.tc}">${u.avatar}</div>
-      <div style="flex:1"><div style="font-size:14px;font-weight:600">${u.name}</div><div class="msg-preview">${u.subject||u.grade||''}</div></div>
-    </div>`).join('');
+  el.innerHTML=(users||[]).map(u=>`<div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
+    <div class="tc-avatar" style="width:44px;height:44px;font-size:16px;border-radius:12px;background:${u.color};color:${u.tc}">${u.avatar}</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700">${u.name}</div><div style="font-size:12px;color:var(--text-muted)">${u.subject||u.grade||''} • ${u.district||u.area||''}</div></div>
+    <div style="font-size:11px;color:var(--green)">●</div>
+  </div>`).join('');
 }
 
-async function openChat(uid,name,sub,color,tc,avatar) {
+async function openChat(uid,name,sub,color,tc,avatar){
   chatWith=uid;
   const av=document.getElementById('chat-av');
-  av.textContent=avatar; av.style.background=color; av.style.color=tc;
+  av.textContent=avatar;av.style.background=color;av.style.color=tc;
   document.getElementById('chat-nm').textContent=name;
   document.getElementById('chat-sb').textContent=sub;
   await loadMessages();
-  if(msgSub) sb.removeChannel(msgSub);
-  msgSub = sb.channel('msgs-'+[CUP.id,uid].sort().join('-'))
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMessages())
-    .subscribe();
+  if(msgSub)sb.removeChannel(msgSub);
+  msgSub=sb.channel('msgs-'+[CUP.id,uid].sort().join('-'))
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMessages()).subscribe();
   document.getElementById('chat-screen').classList.add('open');
   document.getElementById('bnav').style.display='none';
   document.getElementById('main-content').style.display='none';
 }
-
-function closeChat() {
+function closeChat(){
   document.getElementById('chat-screen').classList.remove('open');
   document.getElementById('bnav').style.display='flex';
   document.getElementById('main-content').style.display='block';
   if(msgSub){sb.removeChannel(msgSub);msgSub=null;}
-  chatWith=null; renderChatList();
+  chatWith=null;renderChatList();
 }
-
-async function loadMessages() {
-  if(!chatWith) return;
+async function loadMessages(){
+  if(!chatWith)return;
   const {data}=await sb.from('messages').select('*')
     .or(`and(from_id.eq.${CUP.id},to_id.eq.${chatWith}),and(from_id.eq.${chatWith},to_id.eq.${CUP.id})`)
     .order('created_at');
   const el=document.getElementById('chat-msgs');
-  el.innerHTML=(data||[]).map(m=>{
-    const isMe=m.from_id===CUP.id;
-    return `<div><div class="bubble ${isMe?'me':'them'}">${m.text}</div><div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;
-  }).join('');
+  el.innerHTML=(data||[]).map(m=>{const isMe=m.from_id===CUP.id;
+    return`<div><div class="bubble ${isMe?'me':'them'}">${m.text}</div><div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;}).join('');
   el.scrollTop=el.scrollHeight;
 }
-
-async function sendMsg() {
+async function sendMsg(){
   const inp=document.getElementById('chat-inp');
   const text=inp.value.trim();
-  if(!text||!chatWith) return;
+  if(!text||!chatWith)return;
   inp.value='';
   await sb.from('messages').insert({from_id:CUP.id,to_id:chatWith,text});
   await loadMessages();
 }
 
-// ===== PROFILE =====
-function renderProfile() {
-  const el=document.getElementById('page-profile'); if(!CUP) return;
-  el.innerHTML=`
-    <div class="profile-header">
-      <div class="profile-avatar" style="background:${CUP.color||'#E1F5EE'};color:${CUP.tc||'#0F6E56'}">${CUP.avatar||'?'}</div>
-      <div style="font-size:20px;font-weight:700">${CUP.name||''}</div>
-      <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${{student:'শিক্ষার্থী',teacher:'শিক্ষক',admin:'অ্যাডমিন'}[CUP.role]||''}</div>
-    </div>
-    <div class="card">
-      <div style="font-size:15px;font-weight:600;margin-bottom:12px">ব্যক্তিগত তথ্য</div>
-      <div class="info-row"><span class="key">📧 ইমেইল</span><span class="val">${CUP.email||CU?.email||''}</span></div>
-      <div class="info-row"><span class="key">📱 মোবাইল</span><span class="val">${CUP.phone||'—'}</span></div>
-      <div class="info-row"><span class="key">📍 এলাকা</span><span class="val">${CUP.area||'—'}</span></div>
-      ${CUP.role==='teacher'?`
-        <div class="info-row"><span class="key">📚 বিষয়</span><span class="val">${CUP.subject||'—'}</span></div>
-        <div class="info-row"><span class="key">🎓 শ্রেণি</span><span class="val">${CUP.class_range||'—'}</span></div>
-        <div class="info-row"><span class="key">💰 মাসিক ফি</span><span class="val" style="color:var(--green)">৳${(CUP.fee||0).toLocaleString()}</span></div>
-        <div class="info-row"><span class="key">⭐ রেটিং</span><span class="val">${CUP.rating||4.5}</span></div>`:''}
-      ${CUP.role==='student'?`<div class="info-row"><span class="key">🏫 শ্রেণি</span><span class="val">${CUP.grade||'—'}</span></div>`:''}
-    </div>
-    ${CUP.role==='teacher'?`<div class="card" style="background:#F0FDF4;border-color:#BBF7D0">
-      <div style="font-size:14px;font-weight:600;color:#166534;margin-bottom:8px">💰 কমিশন হিসাব</div>
-      <div class="info-row"><span class="key" style="color:#166534">মাসিক ফি</span><span class="val">৳${(CUP.fee||0).toLocaleString()}</span></div>
-      <div class="info-row"><span class="key" style="color:#166534">কমিশন (২০%)</span><span class="val" style="color:var(--danger)">-৳${Math.round((CUP.fee||0)*0.2).toLocaleString()}</span></div>
-      <div class="info-row"><span class="key" style="color:#166534">নেট আয়</span><span class="val" style="color:var(--green)">৳${Math.round((CUP.fee||0)*0.8).toLocaleString()}</span></div>
-    </div>`:''}
-    <button class="btn-primary" style="background:var(--danger);margin-top:8px" onclick="doLogout()">লগআউট করুন</button>`;
+function renderProfile(){
+  const el=document.getElementById('page-profile');if(!CUP)return;
+  el.innerHTML=`<div style="text-align:center;padding:24px 16px 16px">
+    <div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;background:${CUP.color||'#E1F5EE'};color:${CUP.tc||'#0F6E56'}">${CUP.avatar||'?'}</div>
+    <div style="font-size:19px;font-weight:700">${CUP.name||''}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${{student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin'}[CUP.role]||''}</div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px">Personal Info / ব্যক্তিগত তথ্য</div>
+    <div class="info-row"><span class="key">📧 Email</span><span class="val" style="font-size:12px">${CUP.email||CU?.email||'—'}</span></div>
+    <div class="info-row"><span class="key">📱 Mobile / মোবাইল</span><span class="val">${CUP.phone||'—'}</span></div>
+    <div class="info-row"><span class="key">🗺️ Division / বিভাগ</span><span class="val">${CUP.division||'—'}</span></div>
+    <div class="info-row"><span class="key">📍 District / জেলা</span><span class="val">${CUP.district||'—'}</span></div>
+    <div class="info-row"><span class="key">🏘️ Upazila / উপজেলা</span><span class="val">${CUP.upazila||'—'}</span></div>
+    ${CUP.role==='teacher'?`
+    <div class="info-row"><span class="key">📚 Subject / বিষয়</span><span class="val">${CUP.subject||'—'}</span></div>
+    <div class="info-row"><span class="key">🎓 Class Range / শ্রেণি</span><span class="val">${CUP.class_range||'—'}</span></div>
+    <div class="info-row"><span class="key">💰 Monthly Fee / মাসিক ফি</span><span class="val" style="color:var(--green)">৳${(CUP.fee||0).toLocaleString()}</span></div>
+    <div class="info-row"><span class="key">💼 Experience / অভিজ্ঞতা</span><span class="val">${CUP.experience||'—'}</span></div>`:''}
+    ${CUP.role==='student'?`<div class="info-row"><span class="key">🏫 Class / শ্রেণি</span><span class="val">${CUP.grade||'—'}</span></div>`:''}
+  </div>
+  ${CUP.role==='teacher'?`<div class="card" style="background:#F0FDF4;border-color:#BBF7D0">
+    <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:8px">💰 Commission Info / কমিশন তথ্য</div>
+    <div class="info-row"><span class="key" style="color:#166534">Monthly Fee / মাসিক ফি</span><span class="val">৳${(CUP.fee||0).toLocaleString()}</span></div>
+    <div class="info-row"><span class="key" style="color:#166534">Commission 20% / কমিশন</span><span class="val" style="color:var(--danger)">-৳${Math.round((CUP.fee||0)*0.2).toLocaleString()}</span></div>
+    <div class="info-row"><span class="key" style="color:#166534">Net Income / নেট আয়</span><span class="val" style="color:var(--green)">৳${Math.round((CUP.fee||0)*0.8).toLocaleString()}</span></div>
+  </div>`:''}
+  <button class="btn-primary" style="background:var(--danger);margin-top:6px" onclick="doLogout()">Logout / লগআউট করুন</button>`;
 }
+
+// ===== LANGUAGE TOGGLE =====
+const T = {
+  en: {
+    home:'Home', search:'Search', messages:'Message', profile:'Profile',
+    homebn:'হোম', searchbn:'খুঁজুন', msgbn:'বার্তা', profilebn:'প্রোফাইল',
+    logout:'Logout', welcome:'Welcome back,', login:'Login', register:'Register',
+    noAccount:"No account?", hasAccount:"Already have account?",
+    loginBtn:'Login', regBtn:'Create Account',
+    searchPlaceholder:'Search name or subject...',
+    allDistricts:'All Districts', allClasses:'All Classes',
+    noTeacher:'No teachers found', noMsg:'No messages yet',
+    sendMsg:'Type a message...',
+  },
+  bn: {
+    home:'হোম', search:'খুঁজুন', messages:'বার্তা', profile:'প্রোফাইল',
+    homebn:'', searchbn:'', msgbn:'', profilebn:'',
+    logout:'বের হন', welcome:'স্বাগতম,', login:'লগইন', register:'নিবন্ধন',
+    noAccount:'অ্যাকাউন্ট নেই?', hasAccount:'ইতিমধ্যে আছে?',
+    loginBtn:'লগইন করুন', regBtn:'অ্যাকাউন্ট তৈরি করুন',
+    searchPlaceholder:'নাম বা বিষয় লিখুন...',
+    allDistricts:'সব জেলা', allClasses:'সব শ্রেণি',
+    noTeacher:'কোনো শিক্ষক পাওয়া যায়নি', noMsg:'এখনো কোনো বার্তা নেই',
+    sendMsg:'বার্তা লিখুন...',
+  }
+};
+let currentLang = 'en';
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'bn' : 'en';
+  const btn = document.getElementById('lang-btn');
+  btn.textContent = currentLang === 'en' ? 'বাংলা' : 'English';
+  applyLang();
+}
+
+function applyLang() {
+  const t = T[currentLang];
+  const isBn = currentLang === 'bn';
+
+  // Topbar
+  document.getElementById('logout-btn').textContent = t.logout;
+
+  // Bottom nav
+  const navBtns = document.querySelectorAll('#bnav button');
+  const navData = [
+    {en:'Home', bn:'হোম', icon:'🏠', sub:'হোম'},
+    {en:'Search', bn:'খুঁজুন', icon:'🔍', sub:'Search'},
+    {en:'Message', bn:'বার্তা', icon:'💬', sub:'বার্তা'},
+    {en:'Profile', bn:'প্রোফাইল', icon:'👤', sub:'Profile'},
+  ];
+  navBtns.forEach((btn, i) => {
+    const d = navData[i];
+    btn.innerHTML = `<span class="nav-icon">${d.icon}</span><span>${isBn ? d.bn : d.en}</span>`;
+  });
+
+  // Auth tabs
+  const tabs = document.querySelectorAll('.tabs button');
+  if (tabs[0]) tabs[0].textContent = isBn ? 'লগইন' : 'Login / লগইন';
+  if (tabs[1]) tabs[1].textContent = isBn ? 'নিবন্ধন' : 'Register / নিবন্ধন';
+
+  // Search placeholder
+  const si = document.getElementById('search-inp');
+  if (si) si.placeholder = isBn ? 'নাম বা বিষয় লিখুন...' : 'Search name or subject...';
+
+  // Filter selects
+  const fd = document.getElementById('f-district');
+  if (fd && fd.options[0]) fd.options[0].text = isBn ? 'সব জেলা' : 'All Districts';
+  const fc = document.getElementById('f-class');
+  if (fc && fc.options[0]) fc.options[0].text = isBn ? 'সব শ্রেণি' : 'All Classes';
+
+  // Chat input
+  const ci = document.getElementById('chat-inp');
+  if (ci) ci.placeholder = isBn ? 'বার্তা লিখুন...' : 'Type a message...';
+
+  // Section titles - update all bilingual small tags
+  document.querySelectorAll('.section-title small').forEach(el => {
+    el.style.display = isBn ? 'none' : 'inline';
+  });
+
+  // Role tag
+  const rt = document.getElementById('top-role');
+  if (rt && CUP) {
+    const roles = {
+      student: isBn ? 'শিক্ষার্থী' : 'Student',
+      teacher: isBn ? 'শিক্ষক' : 'Teacher',
+      admin: 'Admin'
+    };
+    rt.textContent = roles[CUP.role] || '';
+  }
+
+  // Re-render home to apply language
+  renderHome();
+}
+
 </script>
 </body>
 </html>
