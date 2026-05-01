@@ -99,6 +99,20 @@ function applyLang() {
   renderHome();
 }
 
+
+async function approveTeacher(tid){
+  await sb.from('profiles').update({active:true}).eq('id',tid);
+  toast('✅ Teacher approved! / শিক্ষক অনুমোদিত হয়েছে!');
+  await loadTeachers();
+  renderHome();
+}
+async function rejectTeacher(tid){
+  if(!confirm('Are you sure you want to reject this teacher? / এই শিক্ষককে বাতিল করবেন?')) return;
+  await sb.from('profiles').delete().eq('id',tid);
+  toast('❌ Teacher rejected / শিক্ষক বাতিল হয়েছে');
+  renderHome();
+}
+
 </script>
 <style>
 :root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--bg:#F7FAF9;--white:#fff;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#ef4444;--warn:#f59e0b;--radius:14px;--radius-sm:8px}
@@ -484,7 +498,7 @@ async function doRegister(){
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
-    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:true}:{grade:document.getElementById('r-grade').value})};
+    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false}:{grade:document.getElementById('r-grade').value})};
   await sb.from('profiles').insert(profile);
   CUP=profile;
   btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
@@ -591,28 +605,33 @@ async function renderTeacherHome(el){
 }
 
 async function renderAdminHome(el){
-  const {data:teachers}=await sb.from('profiles').select('*').eq('role','teacher').order('created_at',{ascending:false});
+  const {data:allT}=await sb.from('profiles').select('*').eq('role','teacher').order('created_at',{ascending:false});
   const {data:students}=await sb.from('profiles').select('*').eq('role','student').order('created_at',{ascending:false});
   const {data:reqs}=await sb.from('requests').select('*');
-  const tL=teachers||[],sL=students||[],rL=reqs||[];
+  const tL=(allT||[]).filter(t=>t.active===true);
+  const pL=(allT||[]).filter(t=>t.active===false);
+  const sL=students||[],rL=reqs||[];
+  if(pL.length>0) adminTab='pending';
   el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Admin Panel / অ্যাডমিন প্যানেল</p><p style="font-size:20px;font-weight:700">Tuition Master 📊</p></div>
+  ${pL.length>0?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${pL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
   <div class="stat-row">
-    <div class="stat-box"><div class="num">${tL.length}</div><div class="lbl-en">Teachers</div><div class="lbl-bn">শিক্ষক</div></div>
-    <div class="stat-box"><div class="num">${sL.length}</div><div class="lbl-en">Students</div><div class="lbl-bn">শিক্ষার্থী</div></div>
+    <div class="stat-box"><div class="num">${tL.length}</div><div class="lbl-en">Active Teachers</div><div class="lbl-bn">সক্রিয় শিক্ষক</div></div>
+    <div class="stat-box"><div class="num">${pL.length}</div><div class="lbl-en" style="color:var(--warn)">Pending</div><div class="lbl-bn" style="color:var(--warn)">অপেক্ষারত</div></div>
   </div>
   <div class="stat-row">
+    <div class="stat-box"><div class="num">${sL.length}</div><div class="lbl-en">Students</div><div class="lbl-bn">শিক্ষার্থী</div></div>
     <div class="stat-box"><div class="num">${rL.length}</div><div class="lbl-en">Sessions</div><div class="lbl-bn">সেশন</div></div>
-    <div class="stat-box"><div class="num">${tL.length+sL.length}</div><div class="lbl-en">Total Users</div><div class="lbl-bn">মোট ব্যবহারকারী</div></div>
   </div>
   <div class="admin-tabs">
+    <button class="admin-tab ${adminTab==='pending'?'active':''}" onclick="setAdminTab('pending',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">⏳ Pending (${pL.length})</button>
     <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">👨‍🏫 Teachers (${tL.length})</button>
     <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">🎓 Students (${sL.length})</button>
     <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">📋 Sessions (${rL.length})</button>
   </div>
-  <div id="admin-data">${buildAdminTab(tL,sL,rL)}</div>`;
+  <div id="admin-data">${buildAdminTab(tL,sL,rL,pL)}</div>`;
 }
 
-function setAdminTab(tab,tL,sL,rL){
+function setAdminTab(tab,tL,sL,rL,pL=[]){pL=pL||[];
   adminTab=tab;
   document.querySelectorAll('.admin-tab').forEach(b=>{
     b.classList.toggle('active',
@@ -621,11 +640,35 @@ function setAdminTab(tab,tL,sL,rL){
       (tab==='sessions'&&b.textContent.includes('Session'))
     );
   });
-  document.getElementById('admin-data').innerHTML=buildAdminTab(tL,sL,rL);
+  document.getElementById('admin-data').innerHTML=buildAdminTab(tL,sL,rL,pL);
 }
 
-function buildAdminTab(tL,sL,rL){
-  if(adminTab==='teachers'){
+function buildAdminTab(tL,sL,rL,pL=[]){pL=pL||[];
+  if(adminTab==='pending'){
+    if(!pL.length)return`<div class="empty-state"><div class="icon">✅</div><p>No pending teachers! / অপেক্ষারত কোনো শিক্ষক নেই</p></div>`;
+    return pL.map(t=>`<div class="user-card" style="border-left:3px solid var(--warn)">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${t.color};color:${t.tc}">${t.avatar}</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700">${t.name}</div>
+          <span class="chip chip-orange">⏳ Pending Approval</span>
+          <span class="chip chip-green">${t.subject||'—'}</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px;margin-bottom:12px">
+        <div>📍 District: <strong>${t.district||'—'}</strong></div>
+        <div>🏘️ Upazila: <strong>${t.upazila||'—'}</strong></div>
+        <div>📱 Mobile: <strong>${t.phone||'—'}</strong></div>
+        <div>💰 Fee: <strong style="color:var(--green)">৳${(t.fee||0).toLocaleString()}/mo</strong></div>
+        <div>🎓 Class: <strong>${t.class_range||'—'}</strong></div>
+        <div>💼 Exp: <strong>${t.experience||'—'}</strong></div>
+        <div style="grid-column:span 2">📅 Registered: <strong>${t.created_at?fmtDate(t.created_at):'—'}</strong></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-sm btn-green" style="flex:1" onclick="approveTeacher('${t.id}')">✅ Approve / অনুমোদন</button>
+        <button class="btn-sm" style="flex:1;background:#FEF2F2;color:var(--danger);border:1.5px solid var(--danger)" onclick="rejectTeacher('${t.id}')">❌ Reject / বাতিল</button>
+      </div>
+    </div>`).join('');
+  } else if(adminTab==='teachers'){
     if(!tL.length)return`<div class="empty-state"><div class="icon">👨‍🏫</div><p>No teachers yet / এখনো কোনো শিক্ষক নেই</p></div>`;
     return tL.map(t=>`<div class="user-card">
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
@@ -899,6 +942,20 @@ function applyLang() {
   }
 
   // Re-render home to apply language
+  renderHome();
+}
+
+
+async function approveTeacher(tid){
+  await sb.from('profiles').update({active:true}).eq('id',tid);
+  toast('✅ Teacher approved! / শিক্ষক অনুমোদিত হয়েছে!');
+  await loadTeachers();
+  renderHome();
+}
+async function rejectTeacher(tid){
+  if(!confirm('Are you sure you want to reject this teacher? / এই শিক্ষককে বাতিল করবেন?')) return;
+  await sb.from('profiles').delete().eq('id',tid);
+  toast('❌ Teacher rejected / শিক্ষক বাতিল হয়েছে');
   renderHome();
 }
 
