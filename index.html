@@ -474,7 +474,14 @@ async function doLogin(){
   const btn=document.getElementById('login-btn');btn.disabled=true;btn.textContent='Logging in...';
   const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
   btn.disabled=false;btn.textContent='Login / লগইন করুন';
-  if(error){showErr('Wrong email or password! / ইমেইল বা পাসওয়ার্ড ভুল!');return;}
+  if(error){
+    if(error.message.includes('Email not confirmed')||error.message.includes('email_not_confirmed')){
+      showErr('⚠️ Email verify করুন! আপনার email এ একটা link পাঠানো হয়েছে। সেটায় click করুন তারপর login করুন।');
+    } else {
+      showErr('Wrong email or password! / ইমেইল বা পাসওয়ার্ড ভুল!');
+    }
+    return;
+  }
   CU=data.user;
   if(email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};}
   else{await loadProfile();}
@@ -502,8 +509,25 @@ async function doRegister(){
   await sb.from('profiles').insert(profile);
   CUP=profile;
   btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
-  toast('✅ Account created! / অ্যাকাউন্ট তৈরি হয়েছে!');
-  startApp();
+  // Show email verification notice
+  document.getElementById('register-form').innerHTML=`
+    <div style="text-align:center;padding:20px 10px">
+      <div style="font-size:52px;margin-bottom:14px">📧</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">Check your email!</h2>
+      <p style="font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:6px">
+        আমরা <strong style="color:var(--text)">${email}</strong> এ একটা verification link পাঠিয়েছি।
+      </p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:20px">
+        Email খুলে link এ click করলেই account active হয়ে যাবে।<br>
+        <small>Spam/Junk folder ও check করুন।</small>
+      </p>
+      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#166534;text-align:left;line-height:1.8">
+        ✅ Email verify করুন<br>
+        ✅ তারপর Login করুন<br>
+        ✅ Teacher হলে Admin approve করবে
+      </div>
+      <button class="btn-primary" onclick="switchTab('login')">Login করুন →</button>
+    </div>`;
 }
 
 async function loadProfile(){
