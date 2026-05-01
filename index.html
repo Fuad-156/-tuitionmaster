@@ -476,7 +476,7 @@ async function doLogin(){
   btn.disabled=false;btn.textContent='Login / লগইন করুন';
   if(error){showErr('Wrong email or password! / ইমেইল বা পাসওয়ার্ড ভুল!');return;}
   CU=data.user;
-  if(email===ADMIN_EMAIL){CUP={id:CU.id,name:'Fuad',role:'admin',avatar:'FU',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL};}
+  if(email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};}
   else{await loadProfile();}
   startApp();
 }
@@ -508,7 +508,7 @@ async function doRegister(){
 
 async function loadProfile(){
   if(!CU)return;
-  if(CU.email===ADMIN_EMAIL){CUP={id:CU.id,name:'Fuad',role:'admin',avatar:'FU',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL};return;}
+  if(CU.email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};return;}
   const {data}=await sb.from('profiles').select('*').eq('id',CU.id).single();
   CUP=data;
 }
@@ -526,7 +526,7 @@ async function startApp(){
   document.getElementById('app').style.display='block';
   const av=document.getElementById('top-av');
   av.textContent=CUP?.avatar||'?';av.style.background=CUP?.color||'#E1F5EE';av.style.color=CUP?.tc||'#0F6E56';
-  document.getElementById('top-name').textContent=CUP?.name||'';
+  document.getElementById('top-name').textContent=CUP?.nickname||CUP?.name||'';
   document.getElementById('top-role').textContent={student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin'}[CUP?.role]||'';
   await loadTeachers();await loadRequests();
   renderHome();renderProfile();renderChatList();
@@ -827,10 +827,13 @@ function renderProfile(){
   el.innerHTML=`<div style="text-align:center;padding:24px 16px 16px">
     <div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;background:${CUP.color||'#E1F5EE'};color:${CUP.tc||'#0F6E56'}">${CUP.avatar||'?'}</div>
     <div style="font-size:19px;font-weight:700">${CUP.name||''}</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${{student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin'}[CUP.role]||''}</div>
+    ${CUP.nickname?`<div style="font-size:13px;color:var(--green-dark);font-weight:600;margin-top:2px">"${CUP.nickname}"</div>`:''}
+    <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${{student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin 👑'}[CUP.role]||''}</div>
   </div>
   <div class="card">
     <div style="font-size:13px;font-weight:700;margin-bottom:10px">Personal Info / ব্যক্তিগত তথ্য</div>
+    <div class="info-row"><span class="key">👤 Full Name</span><span class="val">${CUP.name||'—'}</span></div>
+    ${CUP.nickname?`<div class="info-row"><span class="key">😊 Nickname</span><span class="val">${CUP.nickname}</span></div>`:''}
     <div class="info-row"><span class="key">📧 Email</span><span class="val" style="font-size:12px">${CUP.email||CU?.email||'—'}</span></div>
     <div class="info-row"><span class="key">📱 Mobile / মোবাইল</span><span class="val">${CUP.phone||'—'}</span></div>
     <div class="info-row"><span class="key">🗺️ Division / বিভাগ</span><span class="val">${CUP.division||'—'}</span></div>
