@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tuition Master</title>
+<meta name="description" content="শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন - Connecting Teachers and Students">
+<meta name="theme-color" content="#1D9E75">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tuition Master">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 // ===== LANGUAGE TOGGLE =====
@@ -184,6 +192,42 @@ async function submitRating() {
   renderHome();
   toast(`✅ Rating দেওয়া হয়েছে! ${ratingLabels[selectedRating]}`);
 }
+
+
+// ===== PWA Service Worker =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'flex';
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((result) => {
+      if (result.outcome === 'accepted') {
+        toast('✅ App install হচ্ছে!');
+      }
+      deferredPrompt = null;
+      document.getElementById('install-btn').style.display = 'none';
+    });
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  toast('🎉 Tuition Master installed successfully!');
+  document.getElementById('install-btn').style.display = 'none';
+});
 
 </script>
 <style>
@@ -437,6 +481,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       </div>
     </div>
     <button class="lang-btn" id="lang-btn" onclick="toggleLang()">বাংলা</button>
+    <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green);color:white;cursor:pointer;font-family:inherit">📲 Install</button>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()">Logout</button>
   </div>
 
@@ -1269,6 +1314,42 @@ async function submitRating() {
   renderHome();
   toast(`✅ Rating দেওয়া হয়েছে! ${ratingLabels[selectedRating]}`);
 }
+
+
+// ===== PWA Service Worker =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'flex';
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((result) => {
+      if (result.outcome === 'accepted') {
+        toast('✅ App install হচ্ছে!');
+      }
+      deferredPrompt = null;
+      document.getElementById('install-btn').style.display = 'none';
+    });
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  toast('🎉 Tuition Master installed successfully!');
+  document.getElementById('install-btn').style.display = 'none';
+});
 
 </script>
 </body>
