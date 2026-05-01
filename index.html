@@ -106,6 +106,19 @@ async function approveTeacher(tid){
   await loadTeachers();
   renderHome();
 }
+
+async function verifyPayment(rid){
+  await sb.from('requests').update({status:'active'}).eq('id',rid);
+  toast('✅ Payment verified! Session activated.');
+  renderHome();
+}
+
+async function rejectPayment(rid){
+  if(!confirm('Reject this payment? / এই payment বাতিল করবেন?')) return;
+  await sb.from('requests').update({status:'payment_rejected'}).eq('id',rid);
+  toast('❌ Payment rejected.');
+  renderHome();
+}
 async function rejectTeacher(tid){
   if(!confirm('Are you sure you want to reject this teacher? / এই শিক্ষককে বাতিল করবেন?')) return;
   await sb.from('profiles').delete().eq('id',tid);
@@ -282,6 +295,20 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .stars-input{display:flex;gap:4px;margin:8px 0}
 .stars-input span{font-size:28px;cursor:pointer;transition:transform 0.1s}
 .stars-input span:hover{transform:scale(1.2)}
+
+.bkash-modal{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:998;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.bkash-box{background:var(--white);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:500px}
+.bkash-header{background:#E2136E;border-radius:16px;padding:16px;text-align:center;margin-bottom:20px;color:white}
+.bkash-header h2{font-size:18px;font-weight:700;margin-bottom:4px}
+.bkash-header p{font-size:12px;opacity:0.9}
+.bkash-num{font-size:24px;font-weight:700;letter-spacing:2px;margin:8px 0}
+.bkash-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;padding:10px;background:var(--bg);border-radius:10px}
+.bkash-step .sn{width:24px;height:24px;border-radius:50%;background:#E2136E;color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bkash-step p{font-size:13px;color:var(--text);line-height:1.5}
+.txn-input{width:100%;padding:12px 14px;border:2px solid #E2136E;border-radius:10px;font-size:15px;font-family:inherit;outline:none;text-align:center;letter-spacing:1px;margin:12px 0}
+.btn-bkash{width:100%;padding:13px;background:#E2136E;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-bkash:disabled{opacity:0.6;cursor:not-allowed}
+
 .rating-modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
 .rating-box{background:var(--white);border-radius:20px;padding:24px;width:100%;max-width:340px;text-align:center}
 
@@ -477,6 +504,45 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
   </div>
 </div>
 <div id="toast"></div>
+
+
+<!-- bKash Payment Modal -->
+<div class="bkash-modal" id="bkash-modal" style="display:none">
+  <div class="bkash-box">
+    <div class="bkash-header">
+      <div style="font-size:28px;margin-bottom:4px">বিকাশ</div>
+      <h2>Service Fee Payment</h2>
+      <p>Teacher request করতে service fee দিন</p>
+    </div>
+
+    <div class="bkash-step">
+      <div class="sn">1</div>
+      <p>তোমার বিকাশ app খোলো → <strong>Send Money</strong> select করো</p>
+    </div>
+    <div class="bkash-step">
+      <div class="sn">2</div>
+      <p>এই নম্বরে টাকা পাঠাও:<br>
+        <strong class="bkash-num">01571505475</strong><br>
+        <span style="font-size:12px;color:var(--text-muted)">Account: Sk. Fuadur Rahman</span>
+      </p>
+    </div>
+    <div class="bkash-step">
+      <div class="sn">3</div>
+      <p>Amount: <strong id="bkash-amount" style="color:#E2136E;font-size:16px"></strong><br>
+        <span style="font-size:12px;color:var(--text-muted)">(10% service fee)</span>
+      </p>
+    </div>
+    <div class="bkash-step">
+      <div class="sn">4</div>
+      <p>Payment করার পর <strong>Transaction ID</strong> নিচে লিখুন</p>
+    </div>
+
+    <input class="txn-input" type="text" id="txn-input" placeholder="Transaction ID (e.g. 8AB12CD345)" maxlength="20">
+
+    <button class="btn-bkash" id="bkash-submit-btn" onclick="submitBkash()">✅ Submit Payment</button>
+    <button style="width:100%;padding:10px;background:none;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:8px;font-family:inherit" onclick="closeBkash()">Cancel / বাতিল করুন</button>
+  </div>
+</div>
 
 <!-- Rating Modal -->
 <div class="rating-modal" id="rating-modal" style="display:none">
@@ -820,11 +886,26 @@ function buildAdminTab(tL,sL,rL,pL=[]){pL=pL||[];
     </div>`).join('');
   } else {
     if(!rL.length)return`<div class="empty-state"><div class="icon">📋</div><p>No sessions yet / এখনো কোনো সেশন নেই</p></div>`;
-    return rL.map(r=>`<div class="user-card" style="display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:13px;font-weight:600">Session #${(r.id||'').slice(0,8)}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:3px">💰 Service fee: <strong style="color:var(--green)">৳${r.service_fee||0}</strong> • 📅 ${r.created_at?fmtDate(r.created_at):'—'}</div>
+    return rL.map(r=>`<div class="user-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700">Session #${(r.id||'').slice(0,8)}</div>
+        <span class="status-badge ${r.status==='active'?'active':r.status==='payment_pending'?'pending':r.status==='payment_rejected'?'':'pending'}"
+          style="${r.status==='payment_rejected'?'background:#FEF2F2;color:#991B1B':''}">
+          ${r.status==='active'?'✅ Active':r.status==='payment_pending'?'⏳ Payment Pending':r.status==='payment_rejected'?'❌ Rejected':'Pending'}
+        </span>
       </div>
-      <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'Active':'Pending'}</span>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">
+        💰 Fee: <strong style="color:var(--green)">৳${r.service_fee||0}</strong> &nbsp;|&nbsp;
+        💳 Method: <strong>${r.payment_method||'—'}</strong> &nbsp;|&nbsp;
+        📅 ${r.created_at?fmtDate(r.created_at):'—'}
+      </div>
+      ${r.txn_id?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">
+        🔖 Transaction ID: <strong style="font-size:14px;letter-spacing:1px">${r.txn_id}</strong>
+      </div>`:''}
+      ${r.status==='payment_pending'?`<div class="btn-row">
+        <button class="btn-sm btn-green" style="flex:1" onclick="verifyPayment('${r.id}')">✅ Verify & Activate</button>
+        <button class="btn-sm" style="flex:1;background:#FEF2F2;color:var(--danger);border:1.5px solid var(--danger)" onclick="rejectPayment('${r.id}')">❌ Reject</button>
+      </div>`:''}
     </div>`).join('');
   }
 }
@@ -870,13 +951,53 @@ function filterSub(el){
   document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');subFilter=el.dataset.s;renderTeachers();
 }
-async function reqTeacher(tid,fee){
+let bkashTeacherId = null;
+let bkashFee = 0;
+
+function reqTeacher(tid, fee) {
   if(CUP?.role!=='student'){toast('Only students can request / শুধু শিক্ষার্থীরা পারবে');return;}
-  const sf=Math.round(parseInt(fee)*0.10);
-  const {error}=await sb.from('requests').insert({student_id:CUP.id,teacher_id:tid,status:'pending',service_fee:sf});
-  if(error){toast('❌ Error occurred');return;}
-  await loadRequests();renderTeachers();renderHome();
-  toast(`✅ Request sent! Service fee: ৳${sf} (10%)`);
+  bkashTeacherId = tid;
+  bkashFee = Math.round(parseInt(fee) * 0.10);
+  document.getElementById('bkash-amount').textContent = '৳' + bkashFee.toLocaleString();
+  document.getElementById('txn-input').value = '';
+  document.getElementById('bkash-modal').style.display = 'flex';
+}
+
+function closeBkash() {
+  document.getElementById('bkash-modal').style.display = 'none';
+  bkashTeacherId = null;
+  bkashFee = 0;
+}
+
+async function submitBkash() {
+  const txn = document.getElementById('txn-input').value.trim();
+  if(!txn || txn.length < 6) {
+    toast('⚠️ Valid Transaction ID দিন! / Please enter valid Transaction ID');
+    return;
+  }
+  const btn = document.getElementById('bkash-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  const {error} = await sb.from('requests').insert({
+    student_id: CUP.id,
+    teacher_id: bkashTeacherId,
+    status: 'payment_pending',
+    service_fee: bkashFee,
+    txn_id: txn,
+    payment_method: 'bkash'
+  });
+
+  btn.disabled = false;
+  btn.textContent = '✅ Submit Payment';
+
+  if(error){toast('❌ Error occurred. Try again.');return;}
+
+  closeBkash();
+  await loadRequests();
+  renderTeachers();
+  renderHome();
+  toast('✅ Request submitted! Admin will verify your payment.');
 }
 async function acceptReq(rid){
   await sb.from('requests').update({status:'active'}).eq('id',rid);
@@ -1068,6 +1189,19 @@ async function approveTeacher(tid){
   await sb.from('profiles').update({active:true}).eq('id',tid);
   toast('✅ Teacher approved! / শিক্ষক অনুমোদিত হয়েছে!');
   await loadTeachers();
+  renderHome();
+}
+
+async function verifyPayment(rid){
+  await sb.from('requests').update({status:'active'}).eq('id',rid);
+  toast('✅ Payment verified! Session activated.');
+  renderHome();
+}
+
+async function rejectPayment(rid){
+  if(!confirm('Reject this payment? / এই payment বাতিল করবেন?')) return;
+  await sb.from('requests').update({status:'payment_rejected'}).eq('id',rid);
+  toast('❌ Payment rejected.');
   renderHome();
 }
 async function rejectTeacher(tid){
