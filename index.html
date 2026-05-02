@@ -135,6 +135,35 @@ async function rejectTeacher(tid){
 }
 
 
+
+// ===== SEARCH LOCATION FILTERS =====
+function updateSearchDistricts() {
+  const div = document.getElementById('f-division').value;
+  const distSel = document.getElementById('f-district');
+  const uzSel = document.getElementById('f-upazila');
+  distSel.innerHTML = '<option value="">All District / সব জেলা</option>';
+  uzSel.innerHTML = '<option value="">All Upazila / সব উপজেলা</option>';
+  if (div && BD[div]) {
+    Object.keys(BD[div]).forEach(d => {
+      distSel.innerHTML += `<option>${d}</option>`;
+    });
+  }
+  renderTeachers();
+}
+
+function updateSearchUpazilas() {
+  const div = document.getElementById('f-division').value;
+  const dist = document.getElementById('f-district').value;
+  const uzSel = document.getElementById('f-upazila');
+  uzSel.innerHTML = '<option value="">All Upazila / সব উপজেলা</option>';
+  if (div && dist && BD[div] && BD[div][dist]) {
+    BD[div][dist].forEach(u => {
+      uzSel.innerHTML += `<option>${u}</option>`;
+    });
+  }
+  renderTeachers();
+}
+
 // ===== RATING SYSTEM =====
 let ratingTeacherId = null;
 let selectedRating = 0;
@@ -490,19 +519,22 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
     <div class="page" id="page-search">
       <div class="section-title">🔍 Find Teachers <small>শিক্ষক খুঁজুন</small></div>
       <div class="search-bar"><input type="text" id="search-inp" placeholder="Search name or subject / নাম বা বিষয় লিখুন..." oninput="renderTeachers()"></div>
-      <div class="filter-row">
-        <select id="f-district" onchange="renderTeachers()">
-          <option value="">All Districts / সব জেলা</option>
-          <option>ঢাকা</option><option>গাজীপুর</option><option>নারায়ণগঞ্জ</option><option>মানিকগঞ্জ</option><option>মুন্সিগঞ্জ</option><option>নরসিংদী</option><option>ফরিদপুর</option><option>গোপালগঞ্জ</option><option>কিশোরগঞ্জ</option><option>টাঙ্গাইল</option>
-          <option>চট্টগ্রাম</option><option>কক্সবাজার</option><option>কুমিল্লা</option><option>ফেনী</option><option>নোয়াখালী</option><option>ব্রাহ্মণবাড়িয়া</option><option>চাঁদপুর</option>
-          <option>রাজশাহী</option><option>নাটোর</option><option>বগুড়া</option><option>পাবনা</option><option>নওগাঁ</option>
-          <option>খুলনা</option><option>বাগেরহাট</option><option>সাতক্ষীরা</option><option>যশোর</option><option>নড়াইল</option><option>মাগুরা</option><option>ঝিনাইদহ</option><option>কুষ্টিয়া</option><option>চুয়াডাঙ্গা</option><option>মেহেরপুর</option>
-          <option>বরিশাল</option><option>ভোলা</option><option>পটুয়াখালী</option><option>বরগুনা</option><option>পিরোজপুর</option>
-          <option>সিলেট</option><option>মৌলভীবাজার</option><option>হবিগঞ্জ</option><option>সুনামগঞ্জ</option>
-          <option>রংপুর</option><option>দিনাজপুর</option><option>গাইবান্ধা</option><option>নীলফামারী</option><option>পঞ্চগড়</option><option>ঠাকুরগাঁও</option>
-          <option>ময়মনসিংহ</option><option>জামালপুর</option><option>শেরপুর</option><option>নেত্রকোণা</option>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <select id="f-division" onchange="updateSearchDistricts()" style="padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-family:inherit;outline:none;background:var(--white)">
+          <option value="">All Division / সব বিভাগ</option>
+          <option>ঢাকা</option><option>চট্টগ্রাম</option><option>রাজশাহী</option>
+          <option>খুলনা</option><option>বরিশাল</option><option>সিলেট</option>
+          <option>রংপুর</option><option>ময়মনসিংহ</option>
         </select>
-        <select id="f-class" onchange="renderTeachers()">
+        <select id="f-district" onchange="updateSearchUpazilas()" style="padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-family:inherit;outline:none;background:var(--white)">
+          <option value="">All District / সব জেলা</option>
+        </select>
+        <select id="f-upazila" onchange="renderTeachers()" style="padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-family:inherit;outline:none;background:var(--white)">
+          <option value="">All Upazila / সব উপজেলা</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px">
+        <select id="f-class" onchange="renderTeachers()" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;outline:none;background:var(--white)">
           <option value="">All Classes / সব শ্রেণি</option>
           <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
           <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
@@ -958,11 +990,15 @@ function buildAdminTab(tL,sL,rL,pL=[]){pL=pL||[];
 function renderTeachers(){
   const el=document.getElementById('teacher-list');if(!el)return;
   const q=(document.getElementById('search-inp')||{value:''}).value.toLowerCase();
+  const fdiv=(document.getElementById('f-division')||{value:''}).value;
   const fd=(document.getElementById('f-district')||{value:''}).value;
+  const fuz=(document.getElementById('f-upazila')||{value:''}).value;
   const fc=(document.getElementById('f-class')||{value:''}).value;
   const list=allTeachers.filter(t=>{
     if(subFilter!=='all'&&t.subject!==subFilter)return false;
+    if(fdiv&&!(t.division||t.area||'').includes(fdiv))return false;
     if(fd&&!(t.district||t.area||'').includes(fd))return false;
+    if(fuz&&!(t.upazila||t.area||'').includes(fuz))return false;
     if(fc&&t.class_range!==fc)return false;
     if(q&&!t.name.toLowerCase().includes(q)&&!(t.subject||'').toLowerCase().includes(q))return false;
     return true;
@@ -1256,6 +1292,35 @@ async function rejectTeacher(tid){
   renderHome();
 }
 
+
+
+// ===== SEARCH LOCATION FILTERS =====
+function updateSearchDistricts() {
+  const div = document.getElementById('f-division').value;
+  const distSel = document.getElementById('f-district');
+  const uzSel = document.getElementById('f-upazila');
+  distSel.innerHTML = '<option value="">All District / সব জেলা</option>';
+  uzSel.innerHTML = '<option value="">All Upazila / সব উপজেলা</option>';
+  if (div && BD[div]) {
+    Object.keys(BD[div]).forEach(d => {
+      distSel.innerHTML += `<option>${d}</option>`;
+    });
+  }
+  renderTeachers();
+}
+
+function updateSearchUpazilas() {
+  const div = document.getElementById('f-division').value;
+  const dist = document.getElementById('f-district').value;
+  const uzSel = document.getElementById('f-upazila');
+  uzSel.innerHTML = '<option value="">All Upazila / সব উপজেলা</option>';
+  if (div && dist && BD[div] && BD[div][dist]) {
+    BD[div][dist].forEach(u => {
+      uzSel.innerHTML += `<option>${u}</option>`;
+    });
+  }
+  renderTeachers();
+}
 
 // ===== RATING SYSTEM =====
 let ratingTeacherId = null;
