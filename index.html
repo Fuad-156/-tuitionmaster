@@ -1136,6 +1136,62 @@ window.addEventListener('appinstalled', () => {
 
 </script>
 <style>
+
+/* DARK MODE */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --white: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --card: #1e293b;
+  --green: #1D9E75;
+  --green-light: #0f2d22;
+  --green-dark: #5DCAA5;
+}
+[data-theme="dark"] .auth-card{background:#1e293b;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select{background:#0f172a;color:#f1f5f9;border-color:#334155}
+[data-theme="dark"] .tabs{background:#0f172a}
+[data-theme="dark"] .tabs button.active{background:#1e293b;color:#5DCAA5}
+[data-theme="dark"] .role-btn{background:#0f172a;color:#94a3b8;border-color:#334155}
+[data-theme="dark"] .role-btn.active{background:#0f2d22;color:#5DCAA5;border-color:#1D9E75}
+[data-theme="dark"] .topbar{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .bottom-nav{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .card,.dash-card,.teacher-card,.user-card,.review-card{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .stat-box,.dash-stat-box{background:#0f172a;border-color:#334155}
+[data-theme="dark"] .chat-messages{background:#0f172a}
+[data-theme="dark"] .bubble.them{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .chat-header,.chat-input-bar{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .chat-input-bar input{background:#0f172a;border-color:#334155;color:#f1f5f9}
+[data-theme="dark"] .bkash-box{background:#1e293b}
+[data-theme="dark"] .rating-box{background:#1e293b}
+[data-theme="dark"] .notif-box{background:#1e293b}
+[data-theme="dark"] .notif-item.read{background:#0f172a;border-color:#334155}
+[data-theme="dark"] .cal-box{background:#1e293b}
+[data-theme="dark"] .cal-day:hover{background:#0f2d22}
+[data-theme="dark"] .tp-body{background:#0f172a}
+[data-theme="dark"] .pill{background:#1e293b;border-color:#334155;color:#94a3b8}
+[data-theme="dark"] .hist-pill{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .hist-pill:hover{background:#0f2d22}
+[data-theme="dark"] .logout-btn{background:#1e293b;border-color:#334155;color:#94a3b8}
+[data-theme="dark"] .lang-btn{background:#0f2d22}
+[data-theme="dark"] .filter-row select{background:#1e293b;border-color:#334155;color:#f1f5f9}
+[data-theme="dark"] #f-division,#f-district,#f-upazila,#f-class{background:#1e293b;color:#f1f5f9}
+[data-theme="dark"] .search-bar input{background:#1e293b;border-color:#334155;color:#f1f5f9}
+[data-theme="dark"] .info-row{border-color:#334155}
+[data-theme="dark"] .admin-tab{background:#1e293b;border-color:#334155;color:#94a3b8}
+[data-theme="dark"] .fp-form .form-group input{background:#0f172a}
+[data-theme="dark"] #auth-screen{background:linear-gradient(135deg,#0a1628,#0f2d22,#1a3a30)}
+
+/* Theme toggle button */
+.theme-toggle{position:fixed;top:12px;right:16px;z-index:9998;width:44px;height:24px;background:var(--border);border-radius:12px;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;transition:background 0.3s}
+.theme-toggle-ball{width:20px;height:20px;border-radius:50%;background:var(--white);transition:transform 0.3s;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+[data-theme="dark"] .theme-toggle{background:var(--green)}
+[data-theme="dark"] .theme-toggle-ball{transform:translateX(20px)}
+.auth-theme-btn{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:700;color:white;backdrop-filter:blur(4px)}
+[data-theme="dark"] .auth-theme-btn{background:rgba(0,0,0,0.3)}
+
 :root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--bg:#F7FAF9;--white:#fff;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#ef4444;--warn:#f59e0b;--radius:14px;--radius-sm:8px;--shadow:0 2px 12px rgba(0,0,0,0.08);--transition:all 0.25s cubic-bezier(.4,0,.2,1)}
 [data-theme="dark"]{--bg:#0f1117;--white:#1a1d27;--text:#e8eaf0;--text-muted:#8b93a8;--border:#2a2d3a;--green-light:#0d2b22;--green-dark:#5DCAA5;--shadow:0 2px 12px rgba(0,0,0,0.4)}
 *{transition:background-color 0.3s ease,color 0.2s ease,border-color 0.2s ease}
@@ -1484,6 +1540,8 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
 
 <div id="auth-screen">
   <div class="auth-card">
+    <!-- Theme toggle on auth -->
+    <button class="auth-theme-btn" id="auth-theme-btn" onclick="toggleTheme()">🌙 Dark</button>
     <div class="auth-logo">
       <div class="icon">📚</div>
       <h1>Tuition Master</h1>
@@ -1602,6 +1660,9 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
 <div id="app">
   <div class="topbar">
     <div class="logo">📚 Tuition Master</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" title="Dark/Light Mode">
+      <div class="theme-toggle-ball" id="theme-ball">🌙</div>
+    </button>
     <div style="display:flex;align-items:center;gap:8px">
       <div class="t-avatar" id="top-av"></div>
       <div>
@@ -3148,6 +3209,36 @@ function renderProfile(){
   <button class="btn-primary" style="background:var(--danger);margin-top:8px" onclick="doLogout()">Logout / লগআউট করুন</button>`;
 }
 
+
+
+// ===== DARK / LIGHT MODE =====
+function initTheme(){
+  const saved = localStorage.getItem('tm_theme') || 'light';
+  applyTheme(saved);
+}
+
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  applyTheme(next);
+  localStorage.setItem('tm_theme', next);
+}
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const isDark = theme === 'dark';
+
+  // Auth button
+  const authBtn = document.getElementById('auth-theme-btn');
+  if(authBtn) authBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+
+  // App toggle ball
+  const ball = document.getElementById('theme-ball');
+  if(ball) ball.textContent = isDark ? '☀️' : '🌙';
+}
+
+// Init on page load
+initTheme();
 
 // ===== FORGOT PASSWORD =====
 function showForgotPassword(){
