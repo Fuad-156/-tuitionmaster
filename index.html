@@ -105,6 +105,13 @@ function applyLang() {
 
   // Re-render home to apply language
   renderHome();
+  // Re-fetch weather to update language
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+      () => loadWeather(22.8456, 89.5403)
+    );
+  } else { loadWeather(22.8456, 89.5403); }
 }
 
 
@@ -235,6 +242,207 @@ async function submitRating() {
 }
 
 
+
+
+// ===== LIVE WEATHER =====
+const WX_KEY = '276ecb4adfa578bb2b296d44c3d52d17';
+
+const WX_ICONS = {
+  'Clear': '☀️', 'Clouds': '☁️', 'Rain': '🌧️',
+  'Drizzle': '🌦️', 'Thunderstorm': '⛈️', 'Snow': '❄️',
+  'Mist': '🌫️', 'Fog': '🌫️', 'Haze': '🌫️',
+  'Smoke': '🌫️', 'Dust': '🌪️', 'Sand': '🌪️',
+  'Tornado': '🌪️', 'Squall': '🌬️'
+};
+
+const WX_DESC_BN = {
+  'clear sky': 'পরিষ্কার আকাশ', 'few clouds': 'সামান্য মেঘ',
+  'scattered clouds': 'ছড়ানো মেঘ', 'broken clouds': 'মাঝারি মেঘ',
+  'overcast clouds': 'মেঘলা আকাশ', 'light rain': 'হালকা বৃষ্টি',
+  'moderate rain': 'মাঝারি বৃষ্টি', 'heavy intensity rain': 'ভারী বৃষ্টি',
+  'thunderstorm': 'বজ্রঝড়', 'drizzle': 'গুঁড়ি বৃষ্টি',
+  'mist': 'কুয়াশা', 'haze': 'ধোঁয়াশা', 'fog': 'ঘন কুয়াশা',
+  'smoke': 'ধোঁয়া', 'light snow': 'হালকা তুষার'
+};
+
+async function loadWeather(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WX_KEY}&units=metric`
+    );
+    const data = await res.json();
+    if (data.cod !== 200) { showWeatherError(); return; }
+
+    const isBn = currentLang === 'bn';
+    const temp = Math.round(data.main.temp);
+    const feels = Math.round(data.main.feels_like);
+    const humidity = data.main.humidity;
+    const wind = Math.round(data.wind.speed * 3.6);
+    const desc = data.weather[0].description;
+    const main = data.weather[0].main;
+    const city = data.name;
+    const country = data.sys.country;
+
+    const icon = WX_ICONS[main] || '🌡️';
+    const descText = isBn ? (WX_DESC_BN[desc] || desc) : desc.charAt(0).toUpperCase() + desc.slice(1);
+    const tempText = isBn ? toBnNum(temp) : temp;
+    const feelsText = isBn ? toBnNum(feels) : feels;
+    const humText = isBn ? toBnNum(humidity) : humidity;
+    const windText = isBn ? toBnNum(wind) : wind;
+
+    document.getElementById('w-icon').textContent = icon;
+    document.getElementById('w-temp').textContent = `${tempText}°C`;
+    document.getElementById('w-desc').textContent = descText;
+    document.getElementById('w-location').textContent = `📍 ${city}, ${country}`;
+    document.getElementById('w-details').innerHTML =
+      `💧 ${humText}% &nbsp;|&nbsp; 💨 ${windText}km/h &nbsp;|&nbsp; 🌡️ Feels ${feelsText}°C`;
+
+  } catch(e) { showWeatherError(); }
+}
+
+function showWeatherError() {
+  document.getElementById('w-desc').textContent = 'Weather unavailable';
+  document.getElementById('w-location').textContent = '📍 Location off';
+}
+
+function initWeather() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+      () => {
+        // Default to Khulna if location denied
+        loadWeather(22.8456, 89.5403);
+      }
+    );
+  } else {
+    loadWeather(22.8456, 89.5403);
+  }
+  // Refresh every 10 minutes
+  setInterval(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+        () => loadWeather(22.8456, 89.5403)
+      );
+    }
+  }, 600000);
+}
+
+// ===== LIVE CLOCK & CALENDAR =====
+const BN_DAYS = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+const EN_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const BN_DAYS_SHORT = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
+const EN_DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const BN_MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const EN_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const BN_NUMS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+
+function toBnNum(n) { return String(n).split('').map(d=>BN_NUMS[+d]||d).join(''); }
+
+function updateClock() {
+  const now = new Date();
+  let h = now.getHours();
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const ampmBn = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  const hStr = String(h).padStart(2,'0');
+
+  const timeEl = document.getElementById('clock-time');
+  const ampmEl = document.getElementById('clock-ampm');
+  const dateEl = document.getElementById('clock-date');
+  if (!timeEl || !dateEl) return;
+
+  const isBn = currentLang === 'bn';
+
+  if (isBn) {
+    timeEl.textContent = `${toBnNum(hStr)}:${toBnNum(m)}:${toBnNum(s)}`;
+    ampmEl.textContent = ampmBn;
+  } else {
+    timeEl.textContent = `${hStr}:${m}:${s}`;
+    ampmEl.textContent = ampm;
+  }
+
+  const day = isBn ? BN_DAYS[now.getDay()] : EN_DAYS[now.getDay()];
+  const month = isBn ? BN_MONTHS[now.getMonth()] : EN_MONTHS_FULL[now.getMonth()];
+  const date = isBn ? toBnNum(now.getDate()) : now.getDate();
+  const year = isBn ? toBnNum(now.getFullYear()) : now.getFullYear();
+
+  dateEl.textContent = isBn
+    ? `${day}, ${date} ${month} ${year}`
+    : `${day}, ${date} ${month} ${year}`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== CALENDAR =====
+let calDate = new Date();
+let calTabCur = 'en';
+
+function openCalendar() {
+  calDate = new Date();
+  document.getElementById('cal-modal').style.display = 'flex';
+  renderCalendar();
+}
+function closeCalendar() {
+  document.getElementById('cal-modal').style.display = 'none';
+}
+function switchCalTab(tab) {
+  calTabCur = tab;
+  document.getElementById('cal-tab-en').classList.toggle('active', tab==='en');
+  document.getElementById('cal-tab-bn').classList.toggle('active', tab==='bn');
+  renderCalendar();
+}
+function changeMonth(dir) {
+  calDate.setMonth(calDate.getMonth() + dir);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const isBn = calTabCur === 'bn';
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  const today = new Date();
+
+  // Title
+  const titleMonth = isBn ? BN_MONTHS[month] : EN_MONTHS_FULL[month];
+  const titleYear = isBn ? toBnNum(year) : year;
+  document.getElementById('cal-title').textContent = `${titleMonth} ${titleYear}`;
+
+  // Day names
+  const dayNames = isBn ? BN_DAYS_SHORT : EN_DAYS_SHORT;
+
+  // First day of month
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+  // Prev month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrev - i;
+    html += `<div class="cal-day other-month">${isBn ? toBnNum(d) : d}</div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const cls = isToday ? 'cal-day today' : 'cal-day';
+    html += `<div class="${cls}">${isBn ? toBnNum(d) : d}</div>`;
+  }
+
+  // Next month days
+  const remaining = 42 - (firstDay + daysInMonth);
+  for (let d = 1; d <= remaining; d++) {
+    html += `<div class="cal-day other-month">${isBn ? toBnNum(d) : d}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
 // ===== PWA Service Worker =====
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -312,6 +520,33 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 
 .lang-btn{padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green-light);color:var(--green-dark);cursor:pointer;font-family:inherit}
 .logout-btn{padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--white);color:var(--text-muted);cursor:pointer;font-family:inherit}
+.weather-bar{background:linear-gradient(135deg,#0F6E56,#1D9E75);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1)}
+.weather-info{display:flex;align-items:center;gap:10px}
+.weather-icon{font-size:22px}
+.weather-temp{font-size:18px;font-weight:700;color:white}
+.weather-desc{font-size:11px;color:rgba(255,255,255,0.85);margin-top:1px}
+.weather-details{text-align:right;font-size:10px;color:rgba(255,255,255,0.8);line-height:1.6}
+.weather-location{font-size:11px;color:rgba(255,255,255,0.9);font-weight:600}
+.cal-modal{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:997;display:flex;align-items:center;justify-content:center;padding:16px}
+.cal-box{background:var(--white);border-radius:20px;padding:20px;width:100%;max-width:360px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-nav{border:none;background:var(--green-light);color:var(--green-dark);border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;font-weight:700}
+.cal-title{font-size:15px;font-weight:700;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-day-name{font-size:10px;font-weight:700;color:var(--text-muted);padding:4px 0}
+.cal-day{font-size:12px;padding:6px 2px;border-radius:8px;cursor:pointer;transition:background 0.15s}
+.cal-day:hover{background:var(--green-light)}
+.cal-day.today{background:var(--green);color:white;font-weight:700}
+.cal-day.other-month{color:var(--border)}
+.cal-day.empty{cursor:default}
+.cal-tabs{display:flex;gap:6px;margin-bottom:14px}
+.cal-tab{flex:1;padding:6px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--white);color:var(--text-muted);font-family:inherit;text-align:center}
+.cal-tab.active{background:var(--green);color:white;border-color:var(--green)}
+.clock-bar{background:var(--green-dark);padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
+.clock-time{font-size:16px;font-weight:700;color:white;letter-spacing:1px;cursor:pointer}
+.clock-ampm{font-size:11px;color:rgba(255,255,255,0.8);margin-left:4px;font-weight:600}
+.clock-date{font-size:11px;color:rgba(255,255,255,0.85);cursor:pointer}
+.clock-date:hover,.clock-time:hover{opacity:0.8}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
 .bottom-nav button{flex:1;padding:8px 4px 12px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--text-muted);font-family:inherit;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bottom-nav button.active{color:var(--green)}
@@ -527,6 +762,53 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
     <button class="lang-btn" id="lang-btn" onclick="toggleLang()">বাংলা</button>
     <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green);color:white;cursor:pointer;font-family:inherit">📲 Install</button>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+
+  <!-- Clock Bar -->
+  <div class="clock-bar" id="clock-bar">
+    <div onclick="openCalendar()" style="cursor:pointer">
+      <div style="display:flex;align-items:baseline;gap:2px">
+        <span class="clock-time" id="clock-time">12:00:00</span>
+        <span class="clock-ampm" id="clock-ampm">AM</span>
+      </div>
+      <div class="clock-date" id="clock-date">Click to open calendar</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:rgba(255,255,255,0.75)" id="clock-hijri"></div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.6)">📅 Tap for Calendar</div>
+    </div>
+  </div>
+
+  <!-- Calendar Modal -->
+  <div class="cal-modal" id="cal-modal" style="display:none">
+    <div class="cal-box">
+      <div class="cal-tabs">
+        <button class="cal-tab active" id="cal-tab-en" onclick="switchCalTab('en')">🇬🇧 English</button>
+        <button class="cal-tab" id="cal-tab-bn" onclick="switchCalTab('bn')">🇧🇩 বাংলা</button>
+      </div>
+      <div class="cal-header">
+        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="cal-nav" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <button style="width:100%;margin-top:14px;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="closeCalendar()">Close / বন্ধ করুন</button>
+    </div>
+  </div>
+
+  <!-- Weather Bar -->
+  <div class="weather-bar" id="weather-bar">
+    <div class="weather-info">
+      <div class="weather-icon" id="w-icon">🌤️</div>
+      <div>
+        <div class="weather-temp" id="w-temp">--°C</div>
+        <div class="weather-desc" id="w-desc">Loading...</div>
+      </div>
+    </div>
+    <div>
+      <div class="weather-location" id="w-location">📍 Detecting...</div>
+      <div class="weather-details" id="w-details">💧 -- &nbsp;|&nbsp; 💨 --</div>
+    </div>
   </div>
 
   <div class="main" id="main-content">
@@ -799,6 +1081,7 @@ async function startApp(){
   document.getElementById('top-role').textContent={student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin'}[CUP?.role]||'';
   await loadTeachers();await loadRequests();
   renderHome();renderProfile();renderChatList();
+  initWeather();
 }
 async function loadTeachers(){const {data}=await sb.from('profiles').select('*').eq('role','teacher').eq('active',true);allTeachers=data||[];}
 async function loadRequests(){
@@ -1278,6 +1561,13 @@ function applyLang() {
 
   // Re-render home to apply language
   renderHome();
+  // Re-fetch weather to update language
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+      () => loadWeather(22.8456, 89.5403)
+    );
+  } else { loadWeather(22.8456, 89.5403); }
 }
 
 
@@ -1407,6 +1697,207 @@ async function submitRating() {
   toast(`✅ Rating দেওয়া হয়েছে! ${ratingLabels[selectedRating]}`);
 }
 
+
+
+
+// ===== LIVE WEATHER =====
+const WX_KEY = '276ecb4adfa578bb2b296d44c3d52d17';
+
+const WX_ICONS = {
+  'Clear': '☀️', 'Clouds': '☁️', 'Rain': '🌧️',
+  'Drizzle': '🌦️', 'Thunderstorm': '⛈️', 'Snow': '❄️',
+  'Mist': '🌫️', 'Fog': '🌫️', 'Haze': '🌫️',
+  'Smoke': '🌫️', 'Dust': '🌪️', 'Sand': '🌪️',
+  'Tornado': '🌪️', 'Squall': '🌬️'
+};
+
+const WX_DESC_BN = {
+  'clear sky': 'পরিষ্কার আকাশ', 'few clouds': 'সামান্য মেঘ',
+  'scattered clouds': 'ছড়ানো মেঘ', 'broken clouds': 'মাঝারি মেঘ',
+  'overcast clouds': 'মেঘলা আকাশ', 'light rain': 'হালকা বৃষ্টি',
+  'moderate rain': 'মাঝারি বৃষ্টি', 'heavy intensity rain': 'ভারী বৃষ্টি',
+  'thunderstorm': 'বজ্রঝড়', 'drizzle': 'গুঁড়ি বৃষ্টি',
+  'mist': 'কুয়াশা', 'haze': 'ধোঁয়াশা', 'fog': 'ঘন কুয়াশা',
+  'smoke': 'ধোঁয়া', 'light snow': 'হালকা তুষার'
+};
+
+async function loadWeather(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WX_KEY}&units=metric`
+    );
+    const data = await res.json();
+    if (data.cod !== 200) { showWeatherError(); return; }
+
+    const isBn = currentLang === 'bn';
+    const temp = Math.round(data.main.temp);
+    const feels = Math.round(data.main.feels_like);
+    const humidity = data.main.humidity;
+    const wind = Math.round(data.wind.speed * 3.6);
+    const desc = data.weather[0].description;
+    const main = data.weather[0].main;
+    const city = data.name;
+    const country = data.sys.country;
+
+    const icon = WX_ICONS[main] || '🌡️';
+    const descText = isBn ? (WX_DESC_BN[desc] || desc) : desc.charAt(0).toUpperCase() + desc.slice(1);
+    const tempText = isBn ? toBnNum(temp) : temp;
+    const feelsText = isBn ? toBnNum(feels) : feels;
+    const humText = isBn ? toBnNum(humidity) : humidity;
+    const windText = isBn ? toBnNum(wind) : wind;
+
+    document.getElementById('w-icon').textContent = icon;
+    document.getElementById('w-temp').textContent = `${tempText}°C`;
+    document.getElementById('w-desc').textContent = descText;
+    document.getElementById('w-location').textContent = `📍 ${city}, ${country}`;
+    document.getElementById('w-details').innerHTML =
+      `💧 ${humText}% &nbsp;|&nbsp; 💨 ${windText}km/h &nbsp;|&nbsp; 🌡️ Feels ${feelsText}°C`;
+
+  } catch(e) { showWeatherError(); }
+}
+
+function showWeatherError() {
+  document.getElementById('w-desc').textContent = 'Weather unavailable';
+  document.getElementById('w-location').textContent = '📍 Location off';
+}
+
+function initWeather() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+      () => {
+        // Default to Khulna if location denied
+        loadWeather(22.8456, 89.5403);
+      }
+    );
+  } else {
+    loadWeather(22.8456, 89.5403);
+  }
+  // Refresh every 10 minutes
+  setInterval(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+        () => loadWeather(22.8456, 89.5403)
+      );
+    }
+  }, 600000);
+}
+
+// ===== LIVE CLOCK & CALENDAR =====
+const BN_DAYS = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+const EN_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const BN_DAYS_SHORT = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
+const EN_DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const BN_MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const EN_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const BN_NUMS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+
+function toBnNum(n) { return String(n).split('').map(d=>BN_NUMS[+d]||d).join(''); }
+
+function updateClock() {
+  const now = new Date();
+  let h = now.getHours();
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const ampmBn = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  const hStr = String(h).padStart(2,'0');
+
+  const timeEl = document.getElementById('clock-time');
+  const ampmEl = document.getElementById('clock-ampm');
+  const dateEl = document.getElementById('clock-date');
+  if (!timeEl || !dateEl) return;
+
+  const isBn = currentLang === 'bn';
+
+  if (isBn) {
+    timeEl.textContent = `${toBnNum(hStr)}:${toBnNum(m)}:${toBnNum(s)}`;
+    ampmEl.textContent = ampmBn;
+  } else {
+    timeEl.textContent = `${hStr}:${m}:${s}`;
+    ampmEl.textContent = ampm;
+  }
+
+  const day = isBn ? BN_DAYS[now.getDay()] : EN_DAYS[now.getDay()];
+  const month = isBn ? BN_MONTHS[now.getMonth()] : EN_MONTHS_FULL[now.getMonth()];
+  const date = isBn ? toBnNum(now.getDate()) : now.getDate();
+  const year = isBn ? toBnNum(now.getFullYear()) : now.getFullYear();
+
+  dateEl.textContent = isBn
+    ? `${day}, ${date} ${month} ${year}`
+    : `${day}, ${date} ${month} ${year}`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== CALENDAR =====
+let calDate = new Date();
+let calTabCur = 'en';
+
+function openCalendar() {
+  calDate = new Date();
+  document.getElementById('cal-modal').style.display = 'flex';
+  renderCalendar();
+}
+function closeCalendar() {
+  document.getElementById('cal-modal').style.display = 'none';
+}
+function switchCalTab(tab) {
+  calTabCur = tab;
+  document.getElementById('cal-tab-en').classList.toggle('active', tab==='en');
+  document.getElementById('cal-tab-bn').classList.toggle('active', tab==='bn');
+  renderCalendar();
+}
+function changeMonth(dir) {
+  calDate.setMonth(calDate.getMonth() + dir);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const isBn = calTabCur === 'bn';
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  const today = new Date();
+
+  // Title
+  const titleMonth = isBn ? BN_MONTHS[month] : EN_MONTHS_FULL[month];
+  const titleYear = isBn ? toBnNum(year) : year;
+  document.getElementById('cal-title').textContent = `${titleMonth} ${titleYear}`;
+
+  // Day names
+  const dayNames = isBn ? BN_DAYS_SHORT : EN_DAYS_SHORT;
+
+  // First day of month
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+  // Prev month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrev - i;
+    html += `<div class="cal-day other-month">${isBn ? toBnNum(d) : d}</div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const cls = isToday ? 'cal-day today' : 'cal-day';
+    html += `<div class="${cls}">${isBn ? toBnNum(d) : d}</div>`;
+  }
+
+  // Next month days
+  const remaining = 42 - (firstDay + daysInMonth);
+  for (let d = 1; d <= remaining; d++) {
+    html += `<div class="cal-day other-month">${isBn ? toBnNum(d) : d}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+}
 
 // ===== PWA Service Worker =====
 if ('serviceWorker' in navigator) {
