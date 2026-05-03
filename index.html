@@ -1445,8 +1445,8 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .sch-subject{font-size:13px;font-weight:600;flex:1}
 .sch-del{border:none;background:none;color:var(--danger);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0}
 flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;right:0;bottom:0;background:#f0f2f5;z-index:100;overflow:hidden}
-.chat-screen{display:none !important}
-.chat-screen.open{display:flex !important}
+.chat-screen{display:none !important;visibility:hidden;pointer-events:none}
+.chat-screen.open{display:flex !important;visibility:visible;pointer-events:all}
 .chat-screen.open{flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200}
 .chat-header{padding:8px 12px;background:var(--green);display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);flex-shrink:0}
 .chat-header button{border:none;background:rgba(255,255,255,0.2);width:34px;height:34px;border-radius:50%;cursor:pointer;color:white;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -2160,6 +2160,14 @@ async function loadRequests(){
 }
 
 function showPage(name,btn){
+  // Always close chat when switching pages
+  const chatScreen=document.getElementById('chat-screen');
+  if(chatScreen&&chatScreen.classList.contains('open')){
+    chatScreen.classList.remove('open');
+    chatScreen.style.height='';
+    if(typeof msgSub!=='undefined'&&msgSub){sb.removeChannel(msgSub);msgSub=null;}
+    chatWith=null;
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pg=document.getElementById('page-'+name);
   pg.classList.add('active');
