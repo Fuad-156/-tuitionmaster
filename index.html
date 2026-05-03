@@ -1639,7 +1639,15 @@ async function startApp(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   const av=document.getElementById('top-av');
-  av.textContent=CUP?.avatar||'?';av.style.background=CUP?.color||'#E1F5EE';av.style.color=CUP?.tc||'#0F6E56';
+  if (CUP?.photo) {
+    av.innerHTML = '';
+    av.style.backgroundImage = `url(${CUP.photo})`;
+    av.style.backgroundSize = 'cover';
+    av.style.backgroundPosition = 'center';
+    av.textContent = '';
+  } else {
+    av.textContent=CUP?.avatar||'?';av.style.background=CUP?.color||'#E1F5EE';av.style.color=CUP?.tc||'#0F6E56';
+  }
   document.getElementById('top-name').textContent=CUP?.nickname||CUP?.name||'';
   document.getElementById('top-role').textContent={student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin'}[CUP?.role]||'';
   await loadTeachers();await loadRequests();
@@ -2091,10 +2099,50 @@ async function sendMsg(){
   addNotification('💬','Message Sent / পাঠানো হয়েছে!',text.slice(0,50),'#E6F1FB');
 }
 
+
+async function uploadProfilePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('❌ Photo too large! Max 2MB'); return; }
+  if (!file.type.startsWith('image/')) { toast('❌ Please select an image file'); return; }
+  toast('📤 Uploading photo...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 300;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+      else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const base64 = canvas.toDataURL('image/jpeg', 0.75);
+      const {error} = await sb.from('profiles').update({ photo: base64 }).eq('id', CUP.id);
+      if (error) { toast('❌ Upload failed! Check Supabase column.'); console.error(error); return; }
+      CUP.photo = base64;
+      toast('✅ Photo updated!');
+      renderProfile();
+      const av = document.getElementById('top-av');
+      if (av) { av.innerHTML = ''; av.style.backgroundImage = `url(${base64})`; av.style.backgroundSize = 'cover'; av.style.backgroundPosition = 'center'; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
 function renderProfile(){
   const el=document.getElementById('page-profile');if(!CUP)return;
   el.innerHTML=`<div style="text-align:center;padding:24px 16px 16px">
-    <div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;background:${CUP.color||'#E1F5EE'};color:${CUP.tc||'#0F6E56'}">${CUP.avatar||'?'}</div>
+    <div style="position:relative;display:inline-block;margin-bottom:10px">
+      \${CUP.photo
+        ? `<img src="\${CUP.photo}" style="width:76px;height:76px;border-radius:22px;object-fit:cover;display:block;border:3px solid var(--green-light)">`
+        : `<div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;background:\${CUP.color||'#E1F5EE'};color:\${CUP.tc||'#0F6E56'}">\${CUP.avatar||'?'}</div>`}
+      <label style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">
+        📷<input type="file" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
+      </label>
+    </div>
     <div style="font-size:19px;font-weight:700">${CUP.name||''}</div>
     ${CUP.nickname?`<div style="font-size:13px;color:var(--green-dark);font-weight:600;margin-top:2px">"${CUP.nickname}"</div>`:''}
     <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${{student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin 👑'}[CUP.role]||''}</div>
