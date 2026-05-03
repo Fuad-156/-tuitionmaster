@@ -1924,6 +1924,26 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
   </div>
 </div>
 
+<!-- Conversation Monitor Modal (Admin) -->
+<div class="notif-modal" id="conv-modal" style="display:none" onclick="if(event.target===this)closeConvModal()">
+  <div class="notif-box" style="max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div style="background:var(--green);padding:14px 16px;flex-shrink:0;border-radius:16px 16px 0 0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div id="conv-header-title" style="color:white">
+          <div style="font-size:13px;font-weight:700">👁️ Conversation Monitor</div>
+        </div>
+        <button onclick="closeConvModal()" style="border:none;background:rgba(255,255,255,0.2);color:white;width:30px;height:30px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+    <div id="conv-body" style="flex:1;overflow-y:auto;padding:16px;background:#f0f2f5;min-height:200px;max-height:70vh">
+      <div style="text-align:center;padding:30px;color:var(--text-muted)">Loading...</div>
+    </div>
+    <div style="padding:10px 14px;background:white;border-top:1px solid var(--border);flex-shrink:0;text-align:center;font-size:11px;color:var(--text-muted);border-radius:0 0 16px 16px">
+      🔒 Admin monitor mode — শুধু পড়া যাবে
+    </div>
+  </div>
+</div>
+
 <!-- bKash Payment Modal -->
 <div class="bkash-modal" id="bkash-modal" style="display:none">
   <div class="bkash-box">
@@ -2514,6 +2534,8 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         ${teacher?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${teacher.id}')">💬 Teacher</button>`:''}
         ${student?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${student.id}')">💬 Student</button>`:''}
       </div>
+      ${teacher&&student?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;font-family:inherit;cursor:pointer" onclick="viewConversation('${teacher.id}','${student.id}')">👁️ Teacher-Student Conversation দেখুন</button>`:''}
+
       ${r.status==='payment_pending'?`<div class="btn-row" style="margin-top:6px">
         <button class="btn-sm btn-green" style="flex:1" onclick="verifyPayment('${r.id}')">✅ Verify & Activate</button>
         <button class="btn-sm" style="flex:1;background:#FEF2F2;color:var(--danger);border:1.5px solid var(--danger)" onclick="rejectPayment('${r.id}')">❌ Reject</button>
@@ -3065,6 +3087,71 @@ function closeChat(){
   if(msgSub){sb.removeChannel(msgSub);msgSub=null;}
   chatWith=null;renderChatList();
 }
+async function viewConversation(teacherId, studentId){
+  // Store IDs for the modal
+  window._convTeacherId = teacherId;
+  window._convStudentId = studentId;
+
+  const modal = document.getElementById('conv-modal');
+  modal.style.display = 'flex';
+  const body = document.getElementById('conv-body');
+  body.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)">Loading...</div>`;
+
+  // Get user info
+  const teacher = (window._chatUsers||{})[teacherId];
+  const student = (window._chatUsers||{})[studentId];
+
+  // Update header
+  document.getElementById('conv-header-title').innerHTML = `
+    <div style="font-size:13px;font-weight:700">👁️ Conversation Monitor</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.8)">
+      ${teacher?teacher.name:'Teacher'} ↔ ${student?student.name:'Student'}
+    </div>`;
+
+  // Fetch messages between teacher and student
+  const {data, error} = await sb.from('messages').select('*')
+    .or(`and(from_id.eq.${teacherId},to_id.eq.${studentId}),and(from_id.eq.${studentId},to_id.eq.${teacherId})`)
+    .order('created_at');
+
+  if(error){
+    body.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px">❌ ${error.message}</div>`;
+    return;
+  }
+  if(!data||data.length===0){
+    body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">💬 এদের মধ্যে কোনো কথোপকথন নেই</div>`;
+    return;
+  }
+
+  body.innerHTML = data.map(m => {
+    const isTeacher = m.from_id === teacherId;
+    const sender = isTeacher ? teacher : student;
+    const senderLabel = isTeacher ? '👨‍🏫' : '🎓';
+    let msgContent = '';
+    if(m.type==='image'){
+      msgContent = `<img src="${m.text}" style="max-width:200px;border-radius:10px;display:block;margin-top:4px">`;
+    } else if(m.type==='voice'){
+      msgContent = `<div style="font-size:12px;color:var(--text-muted)">🎤 Voice message</div>`;
+    } else {
+      msgContent = `<div style="font-size:13px;line-height:1.5">${m.text}</div>`;
+    }
+    return `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start;${isTeacher?'':'flex-direction:row-reverse'}">
+      <div style="width:32px;height:32px;border-radius:50%;background:${sender?.color||'#ddd'};color:${sender?.tc||'#333'};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${sender?.avatar||'?'}</div>
+      <div style="max-width:75%">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;${isTeacher?'':'text-align:right'}">${senderLabel} ${sender?.name||''} • ${fmtTime(m.created_at)}</div>
+        <div style="background:${isTeacher?'#E8F5E9':'#E3F2FD'};padding:8px 12px;border-radius:${isTeacher?'4px 12px 12px 12px':'12px 4px 12px 12px'}">
+          ${msgContent}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  body.scrollTop = body.scrollHeight;
+}
+
+function closeConvModal(){
+  document.getElementById('conv-modal').style.display = 'none';
+}
+
 async function loadMessages(){
   if(!chatWith)return;
   const el=document.getElementById('chat-msgs');
