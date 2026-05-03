@@ -2134,18 +2134,18 @@ async function uploadProfilePhoto(input) {
 
 function renderProfile(){
   const el=document.getElementById('page-profile');if(!CUP)return;
+  const photoEl = CUP.photo
+    ? `<img src="${CUP.photo}" style="width:76px;height:76px;border-radius:22px;object-fit:cover;display:block;border:3px solid var(--green-light)">`
+    : `<div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;background:${CUP.color||'#E1F5EE'};color:${CUP.tc||'#0F6E56'}">${CUP.avatar||'?'}</div>`;
   el.innerHTML=`<div style="text-align:center;padding:24px 16px 16px">
     <div style="position:relative;display:inline-block;margin-bottom:10px">
-      \${CUP.photo
-        ? `<img src="\${CUP.photo}" style="width:76px;height:76px;border-radius:22px;object-fit:cover;display:block;border:3px solid var(--green-light)">`
-        : `<div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;background:\${CUP.color||'#E1F5EE'};color:\${CUP.tc||'#0F6E56'}">\${CUP.avatar||'?'}</div>`}
+      ${photoEl}
       <label style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">
         📷<input type="file" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
       </label>
     </div>
     <div style="font-size:19px;font-weight:700">${CUP.name||''}</div>
     ${CUP.nickname?`<div style="font-size:13px;color:var(--green-dark);font-weight:600;margin-top:2px">"${CUP.nickname}"</div>`:''}
-    <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${{student:'Student / শিক্ষার্থী',teacher:'Teacher / শিক্ষক',admin:'Admin 👑'}[CUP.role]||''}</div>
   </div>
   <div class="card">
     <div style="font-size:13px;font-weight:700;margin-bottom:10px">Personal Info / ব্যক্তিগত তথ্য</div>
