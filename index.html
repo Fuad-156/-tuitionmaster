@@ -550,7 +550,12 @@ async function openTeacherProfile(tid) {
 
     ${isMy ? `<button class="btn-sm" style="width:100%;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D;margin-bottom:16px" onclick="openRating('${teacher.id}','${teacher.name}','${teacher.rating||4.5}');closeTeacherProfile()">⭐ Rate this Teacher</button>` : ''}
 
-    <div style="font-size:14px;font-weight:700;margin-bottom:10px">⭐ Reviews & Ratings</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px">🗓️ Teacher's Schedule <small style="font-size:12px;color:var(--text-muted);font-weight:400">সময়সূচি</small></div>
+    <div id="tp-schedule-wrap">
+      <div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px">Loading...</div>
+    </div>
+
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px;margin-top:16px">⭐ Reviews & Ratings</div>
     <div class="review-card">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="width:32px;height:32px;border-radius:50%;background:#E1F5EE;color:#0F6E56;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">S</div>
@@ -572,6 +577,33 @@ async function openTeacherProfile(tid) {
       <div style="font-size:12px;color:var(--text-muted)">Good experience overall. / ভালো অভিজ্ঞতা।</div>
     </div>
   `;
+
+  // Load this teacher's schedule
+  loadTeacherScheduleForProfile(teacher.id);
+}
+
+async function loadTeacherScheduleForProfile(teacherId) {
+  const wrap = document.getElementById('tp-schedule-wrap');
+  if (!wrap) return;
+  const {data} = await sb.from('schedules').select('*').eq('teacher_id', teacherId).order('day').order('start_time');
+  if (!data || data.length === 0) {
+    wrap.innerHTML = `<div style="text-align:center;padding:10px;color:var(--text-muted);font-size:13px;background:var(--bg);border-radius:10px">কোনো schedule set করা নেই</div>`;
+    return;
+  }
+  const grouped = {};
+  const DAY_ORDER = ['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
+  data.forEach(s => { if(!grouped[s.day])grouped[s.day]=[]; grouped[s.day].push(s); });
+  let html = '';
+  DAY_ORDER.filter(d => grouped[d]).forEach(day => {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:8px 0 4px">${day}</div>`;
+    grouped[day].forEach(s => {
+      const t = formatTime12(s.start_time) + ' – ' + formatTime12(s.end_time);
+      html += `<div class="sch-slot"><div class="sch-day-badge">${s.day.slice(0,3)}</div>
+        <div style="flex:1"><div class="sch-subject">${s.subject||'General'}</div>
+        <div class="sch-time">⏰ ${t}${s.note?' • '+s.note:''}</div></div></div>`;
+    });
+  });
+  wrap.innerHTML = html;
 }
 
 function closeTeacherProfile() {
@@ -1102,7 +1134,12 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .chat-list-item .chat-list-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
 .chat-list-item .chat-list-preview{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat-list-item .chat-list-time{font-size:10px;color:var(--text-muted);flex-shrink:0;margin-left:8px}
-.chat-screen{display:none;flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;right:0;bottom:0;background:#f0f2f5;z-index:100;overflow:hidden}
+.sch-slot{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--border)}
+.sch-day-badge{min-width:64px;padding:4px 8px;border-radius:8px;background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:700;text-align:center}
+.sch-time{font-size:12px;color:var(--text-muted)}
+.sch-subject{font-size:13px;font-weight:600;flex:1}
+.sch-del{border:none;background:none;color:var(--danger);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0}
+flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;right:0;bottom:0;background:#f0f2f5;z-index:100;overflow:hidden}
 .chat-screen.open{display:flex}
 .chat-header{padding:8px 12px;background:var(--green);display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);flex-shrink:0}
 .chat-header button{border:none;background:rgba(255,255,255,0.2);width:34px;height:34px;border-radius:50%;cursor:pointer;color:white;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1466,6 +1503,51 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 </div>
 
 
+<!-- Schedule Modal -->
+<div class="notif-modal" id="schedule-modal" style="display:none" onclick="if(event.target===this)closeScheduleModal()">
+  <div class="notif-box" style="max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700">🗓️ My Schedule <small style="font-size:12px;color:var(--text-muted);font-weight:400">সময়সূচি</small></div>
+      <button onclick="closeScheduleModal()" style="border:none;background:var(--bg);color:var(--text-muted);padding:5px 10px;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
+    </div>
+
+    <!-- Add Slot Form -->
+    <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">➕ নতুন সময় যোগ করুন</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px">দিন</label>
+          <select id="sch-day" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:white">
+            <option>Saturday</option><option>Sunday</option><option>Monday</option>
+            <option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px">বিষয়</label>
+          <input id="sch-subject" type="text" placeholder="যেমন: গণিত, Physics" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px">শুরু</label>
+          <input id="sch-start" type="time" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px">শেষ</label>
+          <input id="sch-end" type="time" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+        </div>
+      </div>
+      <input id="sch-note" type="text" placeholder="Note (optional)..." style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:10px">
+      <button onclick="addScheduleSlot()" style="width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ যোগ করুন</button>
+    </div>
+
+    <!-- Schedule List -->
+    <div id="schedule-list">
+      <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Loading...</div>
+    </div>
+  </div>
+</div>
+
 <!-- bKash Payment Modal -->
 <div class="bkash-modal" id="bkash-modal" style="display:none">
   <div class="bkash-box">
@@ -1805,6 +1887,14 @@ async function renderTeacherHome(el){
     <div class="stat-box"><div class="num">৳${Math.round(earnings*0.8).toLocaleString()}</div><div class="lbl-en">Net Income</div><div class="lbl-bn">নেট আয়</div></div>
     <div class="stat-box"><div class="num">৳${Math.round(earnings*0.2).toLocaleString()}</div><div class="lbl-en">Commission 20%</div><div class="lbl-bn">কমিশন</div></div>
   </div>
+  <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>🗓️ My Schedule <small>আমার সময়সূচি</small></span>
+    <button onclick="openScheduleModal()" style="border:none;background:var(--green);color:white;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">+ Add</button>
+  </div>
+  <div class="dash-card" id="schedule-preview">
+    <div style="text-align:center;padding:10px;color:var(--text-muted);font-size:13px">Loading...</div>
+  </div>
+
   <div class="section-title">Student Requests <small>শিক্ষার্থীর অনুরোধ</small></div>
   ${allRequests.length===0?`<div class="empty-state"><div class="icon">📭</div><p>No requests yet / এখনো কোনো অনুরোধ নেই</p></div>`
   :allRequests.map(r=>{const s=myStudents.find(x=>x.id===r.student_id);if(!s)return'';
@@ -1816,6 +1906,8 @@ async function renderTeacherHome(el){
         <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}')">💬 Message</button>
         ${r.status!=='active'?`<button class="btn-sm btn-outline" style="flex:1" onclick="acceptReq('${r.id}')">✅ Accept / গ্রহণ</button>`:''}
       </div></div>`;}).join('')}`;
+  // Load schedule async after render
+  setTimeout(()=>loadSchedule(), 50);
 }
 
 async function renderAdminHome(el){
@@ -2057,6 +2149,132 @@ async function renderChatList(){
     </div>
     <div style="font-size:10px;color:var(--green);flex-shrink:0">●</div>
   </div>`).join('');
+}
+
+// ===== SCHEDULE / TIMETABLE =====
+let scheduleData = [];
+
+async function loadSchedule() {
+  if (!CUP || CUP.role !== 'teacher') return;
+  const {data, error} = await sb.from('schedules').select('*').eq('teacher_id', CUP.id).order('day').order('start_time');
+  scheduleData = data || [];
+  renderSchedulePreview();
+  renderScheduleList();
+}
+
+const DAY_ORDER = ['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+function renderSchedulePreview() {
+  const el = document.getElementById('schedule-preview');
+  if (!el) return;
+  if (scheduleData.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px">কোনো schedule নেই। "+ Add" করুন</div>`;
+    return;
+  }
+  // Show today's slots first
+  const today = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+  const todaySlots = scheduleData.filter(s => s.day === today);
+  const othersGrouped = {};
+  scheduleData.filter(s => s.day !== today).forEach(s => {
+    if (!othersGrouped[s.day]) othersGrouped[s.day] = [];
+    othersGrouped[s.day].push(s);
+  });
+
+  let html = '';
+  if (todaySlots.length > 0) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--green-dark);margin-bottom:6px">📅 আজকের সময়সূচি (${today})</div>`;
+    html += todaySlots.map(s => slotHTML(s)).join('');
+  }
+  const sortedDays = DAY_ORDER.filter(d => othersGrouped[d] && d !== today);
+  if (sortedDays.length > 0) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:10px 0 6px">অন্যান্য দিন</div>`;
+    sortedDays.forEach(day => {
+      othersGrouped[day].slice(0,2).forEach(s => { html += slotHTML(s); });
+    });
+  }
+  el.innerHTML = html;
+}
+
+function slotHTML(s, withDelete = false) {
+  const t = formatTime12(s.start_time) + ' – ' + formatTime12(s.end_time);
+  return `<div class="sch-slot">
+    <div class="sch-day-badge">${s.day.slice(0,3)}</div>
+    <div style="flex:1">
+      <div class="sch-subject">${s.subject || 'General'}</div>
+      <div class="sch-time">⏰ ${t}${s.note ? ' • ' + s.note : ''}</div>
+    </div>
+    ${withDelete ? `<button class="sch-del" onclick="deleteScheduleSlot('${s.id}')">🗑️</button>` : ''}
+  </div>`;
+}
+
+function formatTime12(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const h12 = hour % 12 || 12;
+  return `${h12}:${m} ${ampm}`;
+}
+
+function renderScheduleList() {
+  const el = document.getElementById('schedule-list');
+  if (!el) return;
+  if (scheduleData.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">এখনো কোনো schedule নেই</div>`;
+    return;
+  }
+  const grouped = {};
+  scheduleData.forEach(s => {
+    if (!grouped[s.day]) grouped[s.day] = [];
+    grouped[s.day].push(s);
+  });
+  let html = '';
+  DAY_ORDER.filter(d => grouped[d]).forEach(day => {
+    html += `<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.5px">${day}</div>`;
+    grouped[day].forEach(s => { html += slotHTML(s, true); });
+  });
+  el.innerHTML = html;
+}
+
+function openScheduleModal() {
+  document.getElementById('schedule-modal').style.display = 'flex';
+  loadSchedule();
+}
+
+function closeScheduleModal() {
+  document.getElementById('schedule-modal').style.display = 'none';
+}
+
+async function addScheduleSlot() {
+  const day = document.getElementById('sch-day').value;
+  const start = document.getElementById('sch-start').value;
+  const end = document.getElementById('sch-end').value;
+  const subject = document.getElementById('sch-subject').value.trim();
+  const note = document.getElementById('sch-note').value.trim();
+
+  if (!start || !end) { toast('⚠️ শুরু ও শেষ সময় দিন'); return; }
+  if (start >= end) { toast('⚠️ শেষ সময় শুরুর পরে হতে হবে'); return; }
+
+  const {error} = await sb.from('schedules').insert({
+    teacher_id: CUP.id, day, start_time: start, end_time: end,
+    subject: subject || CUP.subject || '', note
+  });
+  if (error) { toast('❌ Error: ' + error.message); return; }
+
+  // Reset form
+  document.getElementById('sch-start').value = '';
+  document.getElementById('sch-end').value = '';
+  document.getElementById('sch-note').value = '';
+
+  toast('✅ Schedule যোগ হয়েছে!');
+  await loadSchedule();
+}
+
+async function deleteScheduleSlot(id) {
+  const {error} = await sb.from('schedules').delete().eq('id', id);
+  if (error) { toast('❌ Error'); return; }
+  toast('🗑️ Slot মুছে ফেলা হয়েছে');
+  await loadSchedule();
 }
 
 // ===== KEYBOARD / VIEWPORT FIX FOR MOBILE CHAT =====
