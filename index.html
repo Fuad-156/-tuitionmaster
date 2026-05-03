@@ -1975,34 +1975,37 @@ async function renderTeacherHome(el){
   setTimeout(()=>loadSchedule(), 50);
 }
 
+// Global admin data store - avoids JSON.stringify issues with Bengali text
+let _aTL=[],_aSL=[],_aRL=[],_aPL=[];
+
 async function renderAdminHome(el){
   const {data:allT}=await sb.from('profiles').select('*').eq('role','teacher').order('created_at',{ascending:false});
   const {data:students}=await sb.from('profiles').select('*').eq('role','student').order('created_at',{ascending:false});
   const {data:reqs}=await sb.from('requests').select('*');
-  const tL=(allT||[]).filter(t=>t.active===true);
-  const pL=(allT||[]).filter(t=>t.active===false);
-  const sL=students||[],rL=reqs||[];
-  if(pL.length>0) adminTab='pending';
+  _aTL=(allT||[]).filter(t=>t.active===true);
+  _aPL=(allT||[]).filter(t=>t.active===false);
+  _aSL=students||[];_aRL=reqs||[];
+  if(_aPL.length>0) adminTab='pending';
   el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Admin Panel / অ্যাডমিন প্যানেল</p><p style="font-size:20px;font-weight:700">Tuition Master 📊</p></div>
-  ${pL.length>0?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${pL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
+  ${_aPL.length>0?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${_aPL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
   <div class="stat-row">
-    <div class="stat-box"><div class="num">${tL.length}</div><div class="lbl-en">Active Teachers</div><div class="lbl-bn">সক্রিয় শিক্ষক</div></div>
-    <div class="stat-box"><div class="num">${pL.length}</div><div class="lbl-en" style="color:var(--warn)">Pending</div><div class="lbl-bn" style="color:var(--warn)">অপেক্ষারত</div></div>
+    <div class="stat-box"><div class="num">${_aTL.length}</div><div class="lbl-en">Active Teachers</div><div class="lbl-bn">সক্রিয় শিক্ষক</div></div>
+    <div class="stat-box"><div class="num">${_aPL.length}</div><div class="lbl-en" style="color:var(--warn)">Pending</div><div class="lbl-bn" style="color:var(--warn)">অপেক্ষারত</div></div>
   </div>
   <div class="stat-row">
-    <div class="stat-box"><div class="num">${sL.length}</div><div class="lbl-en">Students</div><div class="lbl-bn">শিক্ষার্থী</div></div>
-    <div class="stat-box"><div class="num">${rL.length}</div><div class="lbl-en">Sessions</div><div class="lbl-bn">সেশন</div></div>
+    <div class="stat-box"><div class="num">${_aSL.length}</div><div class="lbl-en">Students</div><div class="lbl-bn">শিক্ষার্থী</div></div>
+    <div class="stat-box"><div class="num">${_aRL.length}</div><div class="lbl-en">Sessions</div><div class="lbl-bn">সেশন</div></div>
   </div>
   <div class="admin-tabs">
-    <button class="admin-tab ${adminTab==='pending'?'active':''}" onclick="setAdminTab('pending',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">⏳ Pending (${pL.length})</button>
-    <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">👨‍🏫 Teachers (${tL.length})</button>
-    <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">🎓 Students (${sL.length})</button>
-    <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">📋 Sessions (${rL.length})</button>
+    <button class="admin-tab ${adminTab==='pending'?'active':''}" onclick="setAdminTab('pending')">⏳ Pending (${_aPL.length})</button>
+    <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers')">👨‍🏫 Teachers (${_aTL.length})</button>
+    <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students')">🎓 Students (${_aSL.length})</button>
+    <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions')">📋 Sessions (${_aRL.length})</button>
   </div>
-  <div id="admin-data">${buildAdminTab(tL,sL,rL,pL)}</div>`;
+  <div id="admin-data">${buildAdminTab()}</div>`;
 }
 
-function setAdminTab(tab,tL,sL,rL,pL=[]){pL=pL||[];
+function setAdminTab(tab){
   adminTab=tab;
   document.querySelectorAll('.admin-tab').forEach(b=>{
     b.classList.toggle('active',
@@ -2012,10 +2015,10 @@ function setAdminTab(tab,tL,sL,rL,pL=[]){pL=pL||[];
       (tab==='sessions'&&b.textContent.includes('Session'))
     );
   });
-  document.getElementById('admin-data').innerHTML=buildAdminTab(tL,sL,rL,pL);
+  document.getElementById('admin-data').innerHTML=buildAdminTab();
 }
 
-function buildAdminTab(tL,sL,rL,pL=[]){pL=pL||[];
+function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
   if(adminTab==='pending'){
     if(!pL.length)return`<div class="empty-state"><div class="icon">✅</div><p>No pending teachers! / অপেক্ষারত কোনো শিক্ষক নেই</p></div>`;
     return pL.map(t=>`<div class="user-card" style="border-left:3px solid var(--warn)">
