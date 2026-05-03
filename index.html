@@ -2073,9 +2073,9 @@ async function loadMessages(){
   const el=document.getElementById('chat-msgs');
   el.innerHTML=(data||[]).map(m=>{const isMe=m.from_id===CUP.id;
     let body='';
-    if(m.msg_type==='image'){
+    if(m.type==='image'){
       body=`<img class="chat-img" src="${m.text}" onclick="openImgPreview('${m.text}')" alt="Image">`;
-    } else if(m.msg_type==='voice'){
+    } else if(m.type==='voice'){
       const waves=Array.from({length:12},(_,i)=>`<span style="height:${8+Math.sin(i*0.8)*8}px"></span>`).join('');
       body=`<div class="voice-bubble ${isMe?'me':'them'}">
         <button class="voice-play-btn ${isMe?'me':'them'}" onclick="playVoice('${m.text}',this)">▶️</button>
