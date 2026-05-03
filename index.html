@@ -872,26 +872,39 @@ function changeMonth(dir) {
   renderCalendar();
 }
 
+function gregorianToBangla(gYear, gMonth, gDay) {
+  // Approximate Bangla calendar conversion
+  const BN_CAL_MONTHS = ['বৈশাখ','জ্যৈষ্ঠ','আষাঢ়','শ্রাবণ','ভাদ্র','আশ্বিন','কার্তিক','অগ্রহায়ণ','পৌষ','মাঘ','ফাল্গুন','চৈত্র'];
+  const gDate = new Date(gYear, gMonth, gDay);
+  // Bangla year = Gregorian year - 593 (approx, April 14 offset)
+  const bnYear = gMonth > 3 || (gMonth === 3 && gDay >= 14) ? gYear - 593 : gYear - 594;
+  // Rough month mapping
+  const bnMonthIdx = ((gMonth + 9) % 12);
+  return { year: bnYear, month: BN_CAL_MONTHS[bnMonthIdx] };
+}
+
 function renderCalendar() {
   const isBn = calTabCur === 'bn';
   const year = calDate.getFullYear();
   const month = calDate.getMonth();
   const today = new Date();
 
-  // Title
   const titleMonth = isBn ? BN_MONTHS[month] : EN_MONTHS_FULL[month];
   const titleYear = isBn ? toBnNum(year) : year;
   document.getElementById('cal-title').textContent = `${titleMonth} ${titleYear}`;
 
-  // Day names
-  const dayNames = isBn ? BN_DAYS_SHORT : EN_DAYS_SHORT;
+  // Show Bangla equivalent year in subtitle
+  if(isBn) {
+    const bnInfo = gregorianToBangla(year, month, 1);
+    document.getElementById('cal-title').textContent = `${titleMonth} ${titleYear} (${bnInfo.month} ${toBnNum(bnInfo.year)})`;
+  }
 
-  // First day of month
+  const dayNames = isBn ? BN_DAYS_SHORT : EN_DAYS_SHORT;
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
 
-  let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  let html = dayNames.map((d,i) => `<div class="cal-day-name" style="${i===5||i===6?'color:var(--green)':''}">${d}</div>`).join('');
 
   // Prev month days
   for (let i = firstDay - 1; i >= 0; i--) {
@@ -902,8 +915,11 @@ function renderCalendar() {
   // Current month days
   for (let d = 1; d <= daysInMonth; d++) {
     const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const dayOfWeek = new Date(year, month, d).getDay();
+    const isFriday = dayOfWeek === 5;
     const cls = isToday ? 'cal-day today' : 'cal-day';
-    html += `<div class="${cls}">${isBn ? toBnNum(d) : d}</div>`;
+    const style = isToday ? '' : isFriday ? 'color:var(--green);font-weight:700' : '';
+    html += `<div class="${cls}" style="${style}">${isBn ? toBnNum(d) : d}</div>`;
   }
 
   // Next month days
@@ -1410,22 +1426,7 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
     </div>
   </div>
 
-  <!-- Calendar Modal -->
-  <div class="cal-modal" id="cal-modal" style="display:none">
-    <div class="cal-box">
-      <div class="cal-tabs">
-        <button class="cal-tab active" id="cal-tab-en" onclick="switchCalTab('en')">🇬🇧 English</button>
-        <button class="cal-tab" id="cal-tab-bn" onclick="switchCalTab('bn')">🇧🇩 বাংলা</button>
-      </div>
-      <div class="cal-header">
-        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
-        <div class="cal-title" id="cal-title"></div>
-        <button class="cal-nav" onclick="changeMonth(1)">›</button>
-      </div>
-      <div class="cal-grid" id="cal-grid"></div>
-      <button style="width:100%;margin-top:14px;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="closeCalendar()">Close / বন্ধ করুন</button>
-    </div>
-  </div>
+  <!-- Calendar Modal moved to body level -->
 
   <!-- Weather Bar -->
   <div class="weather-bar" id="weather-bar">
@@ -2879,5 +2880,22 @@ function renderProfile(){
 }
 
 </script>
+
+<!-- Calendar Modal -->
+<div class="cal-modal" id="cal-modal" style="display:none" onclick="if(event.target===this)closeCalendar()">
+  <div class="cal-box" style="animation:scaleIn 0.25s ease both">
+    <div class="cal-tabs">
+      <button class="cal-tab active" id="cal-tab-en" onclick="switchCalTab('en')">🇬🇧 English</button>
+      <button class="cal-tab" id="cal-tab-bn" onclick="switchCalTab('bn')">🇧🇩 বাংলা</button>
+    </div>
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-title" id="cal-title"></div>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <button style="width:100%;margin-top:14px;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="closeCalendar()">Close / বন্ধ করুন</button>
+  </div>
+</div>
 </body>
 </html>
