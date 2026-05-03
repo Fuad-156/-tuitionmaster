@@ -1095,21 +1095,37 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .filter-pills::-webkit-scrollbar{display:none}
 .pill{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;background:var(--white);color:var(--text-muted);transition:all 0.2s}
 .pill.active{background:var(--green);color:var(--white);border-color:var(--green)}
-.chat-list-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;cursor:pointer}
-.chat-screen{display:none;flex-direction:column;height:calc(100vh - 56px);position:fixed;top:56px;left:0;right:0;bottom:0;background:var(--bg);z-index:50}
+.chat-list-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--white);border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;position:relative}
+.chat-list-item:hover{background:#f8fffe}
+.chat-list-item:active{background:var(--green-light)}
+.chat-list-item .chat-list-info{flex:1;min-width:0}
+.chat-list-item .chat-list-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.chat-list-item .chat-list-preview{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-list-item .chat-list-time{font-size:10px;color:var(--text-muted);flex-shrink:0;margin-left:8px}
+.chat-screen{display:none;flex-direction:column;height:100vh;position:fixed;top:0;left:0;right:0;bottom:0;background:#f0f2f5;z-index:100}
 .chat-screen.open{display:flex}
-.chat-header{padding:12px 14px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.chat-header button{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-muted)}
-.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:6px}
-.bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5;word-break:break-word}
-.bubble.them{background:var(--white);border:1px solid var(--border);border-bottom-left-radius:3px;align-self:flex-start}
-.bubble.me{background:var(--green);color:var(--white);border-bottom-right-radius:3px;align-self:flex-end}
-.btime{font-size:10px;color:var(--text-muted);margin-top:2px}
-.btime.r{text-align:right}
-.chat-input-bar{padding:10px 14px;background:var(--white);border-top:1px solid var(--border);display:flex;gap:8px}
-.chat-input-bar input{flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-family:inherit;outline:none}
-.chat-input-bar input:focus{border-color:var(--green)}
-.send-btn{width:38px;height:38px;background:var(--green);border:none;border-radius:50%;cursor:pointer;color:white;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-header{padding:10px 14px;background:var(--green);display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.chat-header button{border:none;background:rgba(255,255,255,0.2);width:34px;height:34px;border-radius:50%;cursor:pointer;color:white;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-header-info{flex:1}
+.chat-header-info .ch-name{font-size:14px;font-weight:700;color:white}
+.chat-header-info .ch-sub{font-size:11px;color:rgba(255,255,255,0.8)}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:4px;background:#f0f2f5}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:4px}
+.msg-wrap{display:flex;flex-direction:column;margin-bottom:2px}
+.msg-wrap.me{align-items:flex-end}
+.msg-wrap.them{align-items:flex-start}
+.bubble{max-width:78%;padding:8px 12px;font-size:13.5px;line-height:1.5;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.1)}
+.bubble.them{background:white;border-radius:0 16px 16px 16px;color:var(--text)}
+.bubble.me{background:var(--green);color:white;border-radius:16px 16px 0 16px}
+.btime{font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 4px}
+.btime.r{text-align:right;color:rgba(255,255,255,0.6)}
+.chat-date-divider{text-align:center;margin:10px 0;font-size:11px;color:var(--text-muted);background:rgba(0,0,0,0.06);display:inline-block;padding:3px 12px;border-radius:10px;align-self:center}
+.chat-input-bar{padding:8px 12px;background:white;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,0.06)}
+.chat-input-wrap{flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:24px;padding:6px 12px;gap:6px}
+.chat-input-wrap input{flex:1;border:none;background:transparent;font-size:14px;font-family:inherit;outline:none;color:var(--text)}
+.send-btn{width:42px;height:42px;background:var(--green);border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(29,158,117,0.4);transition:transform 0.1s}
+.send-btn:active{transform:scale(0.92)}
 .section-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .section-title small{font-size:11px;color:var(--text-muted);font-weight:400}
 .empty-state{text-align:center;padding:36px 20px;color:var(--text-muted)}
@@ -1381,17 +1397,24 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
   <div class="chat-screen" id="chat-screen">
     <div class="chat-header">
       <button onclick="closeChat()">←</button>
-      <div class="t-avatar" id="chat-av" style="width:34px;height:34px"></div>
-      <div><div style="font-size:13px;font-weight:700" id="chat-nm"></div><div style="font-size:11px;color:var(--text-muted)" id="chat-sb"></div></div>
+      <div class="t-avatar" id="chat-av" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,0.4)"></div>
+      <div class="chat-header-info">
+        <div class="ch-name" id="chat-nm"></div>
+        <div class="ch-sub" id="chat-sb"></div>
+      </div>
     </div>
     <div class="chat-messages" id="chat-msgs"></div>
     <div class="chat-input-bar">
-      <button class="chat-attach-btn" onclick="document.getElementById('img-upload').click()" title="Send Image">🖼️</button>
+      <button class="chat-attach-btn" onclick="document.getElementById('img-upload').click()" title="Send Image" style="width:38px;height:38px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0">📎</button>
       <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="sendImage(this)">
-      <input type="text" id="chat-inp" placeholder="Type a message / বার্তা লিখুন..." onkeydown="if(event.key==='Enter')sendMsg()">
-      <div id="record-timer" class="record-timer" style="display:none">0:00</div>
-      <button class="record-btn" id="record-btn" onclick="toggleRecording()" title="Voice Message">🎤</button>
-      <button class="send-btn" onclick="sendMsg()">➤</button>
+      <div class="chat-input-wrap">
+        <input type="text" id="chat-inp" placeholder="বার্তা লিখুন..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="document.getElementById('img-upload').click()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:0;line-height:1">🖼️</button>
+        <button class="record-btn" id="record-btn" onclick="toggleRecording()" style="width:28px;height:28px;background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;padding:0">🎤</button>
+      </div>
+      <button class="send-btn" onclick="sendMsg()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
     </div>
   </div>
 
@@ -2027,9 +2050,11 @@ async function renderChatList(){
   if(!ids.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>No messages yet / এখনো কোনো বার্তা নেই</p></div>`;return;}
   const {data:users}=await sb.from('profiles').select('*').in('id',ids);
   el.innerHTML=(users||[]).map(u=>`<div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
-    <div class="tc-avatar" style="width:44px;height:44px;font-size:16px;border-radius:12px;background:${u.color};color:${u.tc}">${u.avatar}</div>
-    <div style="flex:1"><div style="font-size:14px;font-weight:700">${u.name}</div><div style="font-size:12px;color:var(--text-muted)">${u.subject||u.grade||''} • ${u.district||u.area||''}</div></div>
-    <div style="font-size:11px;color:var(--green)">●</div>
+    <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
+      <div class="chat-list-name">${u.name}</div>
+      <div class="chat-list-preview">${u.subject||u.grade||u.role||''} ${u.district?'• '+u.district:''}</div>
+    </div>
+    <div style="font-size:10px;color:var(--green);flex-shrink:0">●</div>
   </div>`).join('');
 }
 
@@ -2063,18 +2088,17 @@ async function loadMessages(){
   el.innerHTML=(data||[]).map(m=>{const isMe=m.from_id===CUP.id;
     let body='';
     if(m.type==='image'){
-      body=`<img class="chat-img" src="${m.text}" onclick="openImgPreview('${m.text}')" alt="Image">`;
+      body=`<img class="chat-img" src="${m.text}" onclick="openImgPreview('${m.text}')" alt="Image" style="max-width:220px;border-radius:${isMe?'16px 16px 0 16px':'0 16px 16px 16px'};display:block;box-shadow:0 1px 3px rgba(0,0,0,0.15)">`;
     } else if(m.type==='voice'){
-      const waves=Array.from({length:12},(_,i)=>`<span style="height:${8+Math.sin(i*0.8)*8}px"></span>`).join('');
-      body=`<div class="voice-bubble ${isMe?'me':'them'}">
-        <button class="voice-play-btn ${isMe?'me':'them'}" onclick="playVoice('${m.text}',this)">▶️</button>
-        <div class="voice-wave" style="color:${isMe?'rgba(255,255,255,0.7)':'var(--text-muted)'}">${waves}</div>
-        <span style="font-size:11px;opacity:0.8">${m.duration||'0:05'}</span>
+      body=`<div class="voice-bubble ${isMe?'me':'them'}" style="background:${isMe?'var(--green)':'white'};border-radius:${isMe?'16px 16px 0 16px':'0 16px 16px 16px'}">
+        <button onclick="playVoice('${m.text}',this)" style="background:${isMe?'rgba(255,255,255,0.3)':'var(--green-light)'};border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center">▶</button>
+        <div style="flex:1;height:28px;display:flex;align-items:center;gap:2px">${Array.from({length:18},(_,i)=>`<span style="display:inline-block;width:3px;height:${6+Math.abs(Math.sin(i*0.7))*14}px;background:${isMe?'rgba(255,255,255,0.7)':'var(--green)'};border-radius:2px"></span>`).join('')}</div>
+        <span style="font-size:11px;opacity:0.8;flex-shrink:0">${m.duration||'0:05'}</span>
       </div>`;
     } else {
       body=`<div class="bubble ${isMe?'me':'them'}">${m.text}</div>`;
     }
-    return`<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">${body}<div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;
+    return`<div class="msg-wrap ${isMe?'me':'them'}">${body}<div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;
   }).join('');
   el.scrollTop=el.scrollHeight;
 }
