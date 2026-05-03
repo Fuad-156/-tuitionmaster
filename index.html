@@ -2358,6 +2358,9 @@ function setAdminTab(tab){
 }
 
 function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
+  // Store all users globally for safe onclick
+  window._chatUsers = window._chatUsers || {};
+  [...tL,...sL,...pL].forEach(u=>{window._chatUsers[u.id]=u;});
   if(adminTab==='pending'){
     if(!pL.length)return`<div class="empty-state"><div class="icon">✅</div><p>No pending teachers! / অপেক্ষারত কোনো শিক্ষক নেই</p></div>`;
     return pL.map(t=>`<div class="user-card" style="border-left:3px solid var(--warn)">
@@ -2381,7 +2384,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <button class="btn-sm btn-green" style="flex:1" onclick="approveTeacher('${t.id}')">✅ Approve / অনুমোদন</button>
         <button class="btn-sm" style="flex:1;background:#FEF2F2;color:var(--danger);border:1.5px solid var(--danger)" onclick="rejectTeacher('${t.id}')">❌ Reject / বাতিল</button>
       </div>
-      <button class="btn-sm btn-outline" style="width:100%;margin-top:6px" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message করুন</button>
+      <button class="btn-sm btn-outline" style="width:100%;margin-top:6px" onclick="openChatById('${t.id}')">💬 Message করুন</button>
     </div>`).join('');
   } else if(adminTab==='teachers'){
     if(!tL.length)return`<div class="empty-state"><div class="icon">👨‍🏫</div><p>No teachers yet / এখনো কোনো শিক্ষক নেই</p></div>`;
@@ -2402,7 +2405,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <div>⭐ Rating: <strong>${t.rating||4.5}</strong></div>
         <div style="grid-column:span 2">📅 Joined: <strong>${t.created_at?fmtDate(t.created_at):'—'}</strong></div>
       </div>
-      <button class="btn-sm btn-outline" style="width:100%" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message করুন</button>
+      <button class="btn-sm btn-outline" style="width:100%" onclick="openChatById('${t.id}')">💬 Message করুন</button>
     </div>`).join('');
   } else if(adminTab==='students'){
     if(!sL.length)return`<div class="empty-state"><div class="icon">🎓</div><p>No students yet / এখনো কোনো শিক্ষার্থী নেই</p></div>`;
@@ -2419,7 +2422,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <div>📱 Mobile: <strong>${s.phone||'—'}</strong></div>
         <div>📅 Joined: <strong>${s.created_at?fmtDate(s.created_at):'—'}</strong></div>
       </div>
-      <button class="btn-sm btn-outline" style="width:100%" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}')">💬 Message করুন</button>
+      <button class="btn-sm btn-outline" style="width:100%" onclick="openChatById('${s.id}')">💬 Message করুন</button>
     </div>`).join('');
   } else if(adminTab==='revenue'){
     // Build monthly revenue from requests
@@ -2508,8 +2511,8 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         🔖 TXN: <strong style="font-size:13px;letter-spacing:1px">${r.txn_id}</strong>
       </div>`:''}
       <div class="btn-row">
-        ${teacher?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${teacher.id}','${teacher.name}','${teacher.subject||''}','${teacher.color}','${teacher.tc}','${teacher.avatar}')">💬 Teacher</button>`:''}
-        ${student?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${student.id}','${student.name}','${student.grade||''}','${student.color}','${student.tc}','${student.avatar}')">💬 Student</button>`:''}
+        ${teacher?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${teacher.id}')">💬 Teacher</button>`:''}
+        ${student?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${student.id}')">💬 Student</button>`:''}
       </div>
       ${r.status==='payment_pending'?`<div class="btn-row" style="margin-top:6px">
         <button class="btn-sm btn-green" style="flex:1" onclick="verifyPayment('${r.id}')">✅ Verify & Activate</button>
@@ -2624,22 +2627,23 @@ async function renderChatList(){
   const {data:recv}=await sb.from('messages').select('from_id').eq('to_id',CUP.id);
   const ids=[...new Set([...(sent||[]).map(x=>x.to_id),...(recv||[]).map(x=>x.from_id)])];
 
-  // Admin: also show quick access to all teachers & students
   if(CUP.role==='admin'){
     const {data:allUsers}=await sb.from('profiles').select('*').in('role',['teacher','student']).order('role').order('name');
     const users=allUsers||[];
+    window._chatUsers={};
+    users.forEach(u=>{window._chatUsers[u.id]=u;});
     if(!users.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>কোনো user নেই</p></div>`;return;}
     el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 2px">সব User — Message করুন</div>`
     +users.map(u=>{
       const hasMsg=ids.includes(u.id);
       const roleLabel=u.role==='teacher'?'👨‍🏫 Teacher':'🎓 Student';
-      return`<div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
-        <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
+      return`<div class="chat-list-item" onclick="openChatById('${u.id}')">
+        <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0;display:flex;align-items:center;justify-content:center">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
         <div style="flex:1;min-width:0">
           <div class="chat-list-name">${u.name}</div>
           <div class="chat-list-preview">${roleLabel} ${u.district?'• '+u.district:''}</div>
         </div>
-        <div style="font-size:10px;color:${hasMsg?'var(--green)':'var(--border)'};flex-shrink:0">${hasMsg?'●  চ্যাট আছে':'○'}</div>
+        <div style="font-size:10px;color:${hasMsg?'var(--green)':'var(--border)'};flex-shrink:0">${hasMsg?'●':'○'}</div>
       </div>`;
     }).join('');
     return;
@@ -2647,13 +2651,22 @@ async function renderChatList(){
 
   if(!ids.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>No messages yet / এখনো কোনো বার্তা নেই</p></div>`;return;}
   const {data:users}=await sb.from('profiles').select('*').in('id',ids);
-  el.innerHTML=(users||[]).map(u=>`<div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
-    <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
+  window._chatUsers={};
+  (users||[]).forEach(u=>{window._chatUsers[u.id]=u;});
+  el.innerHTML=(users||[]).map(u=>`<div class="chat-list-item" onclick="openChatById('${u.id}')">
+    <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0;display:flex;align-items:center;justify-content:center">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
+    <div style="flex:1;min-width:0">
       <div class="chat-list-name">${u.name}</div>
       <div class="chat-list-preview">${u.subject||u.grade||u.role||''} ${u.district?'• '+u.district:''}</div>
     </div>
     <div style="font-size:10px;color:var(--green);flex-shrink:0">●</div>
   </div>`).join('');
+}
+
+function openChatById(uid){
+  const u=(window._chatUsers||{})[uid];
+  if(!u){console.error('User not found:',uid);return;}
+  openChat(u.id,u.name,u.subject||u.grade||'',u.color,u.tc,u.avatar);
 }
 
 // ===== SCHEDULE / TIMETABLE =====
