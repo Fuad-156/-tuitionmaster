@@ -2381,6 +2381,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <button class="btn-sm btn-green" style="flex:1" onclick="approveTeacher('${t.id}')">✅ Approve / অনুমোদন</button>
         <button class="btn-sm" style="flex:1;background:#FEF2F2;color:var(--danger);border:1.5px solid var(--danger)" onclick="rejectTeacher('${t.id}')">❌ Reject / বাতিল</button>
       </div>
+      <button class="btn-sm btn-outline" style="width:100%;margin-top:6px" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message করুন</button>
     </div>`).join('');
   } else if(adminTab==='teachers'){
     if(!tL.length)return`<div class="empty-state"><div class="icon">👨‍🏫</div><p>No teachers yet / এখনো কোনো শিক্ষক নেই</p></div>`;
@@ -2392,7 +2393,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
           <span class="chip chip-blue">${t.class_range||'—'}</span>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px;margin-bottom:12px">
         <div>📍 District: <strong>${t.district||'—'}</strong></div>
         <div>🏘️ Upazila: <strong>${t.upazila||'—'}</strong></div>
         <div>📱 Mobile: <strong>${t.phone||'—'}</strong></div>
@@ -2401,6 +2402,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <div>⭐ Rating: <strong>${t.rating||4.5}</strong></div>
         <div style="grid-column:span 2">📅 Joined: <strong>${t.created_at?fmtDate(t.created_at):'—'}</strong></div>
       </div>
+      <button class="btn-sm btn-outline" style="width:100%" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message করুন</button>
     </div>`).join('');
   } else if(adminTab==='students'){
     if(!sL.length)return`<div class="empty-state"><div class="icon">🎓</div><p>No students yet / এখনো কোনো শিক্ষার্থী নেই</p></div>`;
@@ -2411,12 +2413,13 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
           <span class="chip chip-blue">${s.grade||'—'}</span>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px;margin-bottom:12px">
         <div>📍 District: <strong>${s.district||'—'}</strong></div>
         <div>🏘️ Upazila: <strong>${s.upazila||'—'}</strong></div>
         <div>📱 Mobile: <strong>${s.phone||'—'}</strong></div>
         <div>📅 Joined: <strong>${s.created_at?fmtDate(s.created_at):'—'}</strong></div>
       </div>
+      <button class="btn-sm btn-outline" style="width:100%" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}')">💬 Message করুন</button>
     </div>`).join('');
   } else if(adminTab==='revenue'){
     // Build monthly revenue from requests
@@ -2475,27 +2478,44 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
     // chart drawn after render via setTimeout
   } else {
     if(!rL.length)return`<div class="empty-state"><div class="icon">📋</div><p>No sessions yet / এখনো কোনো সেশন নেই</p></div>`;
-    return rL.map(r=>`<div class="user-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:700">Session #${(r.id||'').slice(0,8)}</div>
+    return rL.map(r=>{
+      const teacher = tL.find(t=>t.id===r.teacher_id) || pL.find(t=>t.id===r.teacher_id);
+      const student = sL.find(s=>s.id===r.student_id);
+      return`<div class="user-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted)">Session #${(r.id||'').slice(0,8)}</div>
         <span class="status-badge ${r.status==='active'?'active':r.status==='payment_pending'?'pending':r.status==='payment_rejected'?'':'pending'}"
           style="${r.status==='payment_rejected'?'background:#FEF2F2;color:#991B1B':''}">
           ${r.status==='active'?'✅ Active':r.status==='payment_pending'?'⏳ Payment Pending':r.status==='payment_rejected'?'❌ Rejected':'Pending'}
         </span>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        ${teacher?`<div style="flex:1;background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px">
+          <div style="width:32px;height:32px;border-radius:8px;background:${teacher.color};color:${teacher.tc};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${teacher.avatar}</div>
+          <div style="min-width:0"><div style="font-size:11px;color:var(--text-muted)">👨‍🏫 Teacher</div><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${teacher.name}</div></div>
+        </div>`:''}
+        ${student?`<div style="flex:1;background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px">
+          <div style="width:32px;height:32px;border-radius:8px;background:${student.color};color:${student.tc};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${student.avatar}</div>
+          <div style="min-width:0"><div style="font-size:11px;color:var(--text-muted)">🎓 Student</div><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${student.name}</div></div>
+        </div>`:''}
+      </div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">
         💰 Fee: <strong style="color:var(--green)">৳${r.service_fee||0}</strong> &nbsp;|&nbsp;
-        💳 Method: <strong>${r.payment_method||'—'}</strong> &nbsp;|&nbsp;
+        💳 ${r.payment_method||'—'} &nbsp;|&nbsp;
         📅 ${r.created_at?fmtDate(r.created_at):'—'}
       </div>
       ${r.txn_id?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">
-        🔖 Transaction ID: <strong style="font-size:14px;letter-spacing:1px">${r.txn_id}</strong>
+        🔖 TXN: <strong style="font-size:13px;letter-spacing:1px">${r.txn_id}</strong>
       </div>`:''}
-      ${r.status==='payment_pending'?`<div class="btn-row">
+      <div class="btn-row">
+        ${teacher?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${teacher.id}','${teacher.name}','${teacher.subject||''}','${teacher.color}','${teacher.tc}','${teacher.avatar}')">💬 Teacher</button>`:''}
+        ${student?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${student.id}','${student.name}','${student.grade||''}','${student.color}','${student.tc}','${student.avatar}')">💬 Student</button>`:''}
+      </div>
+      ${r.status==='payment_pending'?`<div class="btn-row" style="margin-top:6px">
         <button class="btn-sm btn-green" style="flex:1" onclick="verifyPayment('${r.id}')">✅ Verify & Activate</button>
         <button class="btn-sm" style="flex:1;background:#FEF2F2;color:var(--danger);border:1.5px solid var(--danger)" onclick="rejectPayment('${r.id}')">❌ Reject</button>
       </div>`:''}
-    </div>`).join('');
+    </div>`}).join('');
   }
 }
 
@@ -2603,6 +2623,28 @@ async function renderChatList(){
   const {data:sent}=await sb.from('messages').select('to_id').eq('from_id',CUP.id);
   const {data:recv}=await sb.from('messages').select('from_id').eq('to_id',CUP.id);
   const ids=[...new Set([...(sent||[]).map(x=>x.to_id),...(recv||[]).map(x=>x.from_id)])];
+
+  // Admin: also show quick access to all teachers & students
+  if(CUP.role==='admin'){
+    const {data:allUsers}=await sb.from('profiles').select('*').in('role',['teacher','student']).order('role').order('name');
+    const users=allUsers||[];
+    if(!users.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>কোনো user নেই</p></div>`;return;}
+    el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 2px">সব User — Message করুন</div>`
+    +users.map(u=>{
+      const hasMsg=ids.includes(u.id);
+      const roleLabel=u.role==='teacher'?'👨‍🏫 Teacher':'🎓 Student';
+      return`<div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
+        <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
+        <div style="flex:1;min-width:0">
+          <div class="chat-list-name">${u.name}</div>
+          <div class="chat-list-preview">${roleLabel} ${u.district?'• '+u.district:''}</div>
+        </div>
+        <div style="font-size:10px;color:${hasMsg?'var(--green)':'var(--border)'};flex-shrink:0">${hasMsg?'●  চ্যাট আছে':'○'}</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
   if(!ids.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>No messages yet / এখনো কোনো বার্তা নেই</p></div>`;return;}
   const {data:users}=await sb.from('profiles').select('*').in('id',ids);
   el.innerHTML=(users||[]).map(u=>`<div class="chat-list-item" onclick="openChat('${u.id}','${u.name}','${u.subject||u.grade||''}','${u.color}','${u.tc}','${u.avatar}')">
