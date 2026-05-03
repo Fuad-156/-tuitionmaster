@@ -157,6 +157,296 @@ function togglePass(id, btn) {
 
 
 
+
+// ===== MESSAGE BADGE =====
+let unreadMsgCount = 0;
+
+function showMsgBadge(count) {
+  const badge = document.getElementById('msg-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = count > 9 ? '9+' : count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function clearMsgBadge() {
+  unreadMsgCount = 0;
+  showMsgBadge(0);
+  localStorage.setItem('tm_last_msg_seen', new Date().toISOString());
+}
+
+async function checkUnreadMessages() {
+  if (!CUP) return;
+  try {
+    const lastSeen = localStorage.getItem('tm_last_msg_seen') || '2000-01-01';
+    const {data} = await sb.from('messages').select('id')
+      .eq('to_id', CUP.id)
+      .gt('created_at', lastSeen);
+    if (data && data.length > 0) {
+      unreadMsgCount = data.length;
+      showMsgBadge(unreadMsgCount);
+    }
+  } catch(e) {}
+}
+
+// ===== IMAGE SEND IN CHAT =====
+function openImgPreview(src) {
+  document.getElementById('img-preview-full').src = src;
+  document.getElementById('img-preview-modal').style.display = 'flex';
+}
+
+async function sendImage(input) {
+  const file = input.files[0];
+  if (!file || !chatWith) return;
+  if (file.size > 2 * 1024 * 1024) { toast('❌ Image too large! Max 2MB'); return; }
+
+  toast('📤 Uploading image...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    await sb.from('messages').insert({
+      from_id: CUP.id,
+      to_id: chatWith,
+      text: base64,
+      msg_type: 'image'
+    });
+    await loadMessages();
+    toast('✅ Image sent!');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+// ===== VOICE MESSAGE =====
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isRecording = false;
+
+async function toggleRecording() {
+  if (!isRecording) {
+    await startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    isRecording = true;
+    recordingSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const duration = recordingSeconds;
+      const mins = Math.floor(duration / 60);
+      const secs = duration % 60;
+      const durStr = `${mins}:${String(secs).padStart(2,'0')}`;
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        await sb.from('messages').insert({
+          from_id: CUP.id,
+          to_id: chatWith,
+          text: e.target.result,
+          msg_type: 'voice',
+          duration: durStr
+        });
+        await loadMessages();
+        toast('✅ Voice message sent!');
+      };
+      reader.readAsDataURL(blob);
+
+      // Stop stream
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    mediaRecorder.start();
+
+    // Update UI
+    document.getElementById('record-btn').classList.add('recording');
+    document.getElementById('record-btn').textContent = '⏹️';
+    document.getElementById('record-timer').style.display = 'block';
+
+    // Timer
+    recordingTimer = setInterval(() => {
+      recordingSeconds++;
+      const mins = Math.floor(recordingSeconds / 60);
+      const secs = recordingSeconds % 60;
+      document.getElementById('record-timer').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
+      if (recordingSeconds >= 60) stopRecording(); // Max 1 minute
+    }, 1000);
+
+    toast('🎤 Recording... tap ⏹️ to stop');
+  } catch(e) {
+    toast('❌ Microphone access denied!');
+  }
+}
+
+function stopRecording() {
+  if (!mediaRecorder) return;
+  isRecording = false;
+  mediaRecorder.stop();
+  clearInterval(recordingTimer);
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('record-btn').textContent = '🎤';
+  document.getElementById('record-timer').style.display = 'none';
+  document.getElementById('record-timer').textContent = '0:00';
+}
+
+function playVoice(src, btn) {
+  const audio = new Audio(src);
+  btn.textContent = '⏸️';
+  audio.play();
+  audio.onended = () => { btn.textContent = '▶️'; };
+  audio.onerror = () => { btn.textContent = '▶️'; toast('❌ Cannot play audio'); };
+}
+
+
+// ===== MESSAGE NOTIFICATION BADGE =====
+let lastMsgCount = 0;
+async function updateMsgBadge() {
+  if(!CUP) return;
+  try {
+    const lastSeen = localStorage.getItem('tm_msg_seen_'+CUP.id) || '2000-01-01';
+    const {data} = await sb.from('messages').select('id')
+      .eq('to_id', CUP.id).gt('created_at', lastSeen);
+    const count = (data||[]).length;
+    const badge = document.getElementById('msg-badge');
+    if(!badge) return;
+    if(count > 0){
+      badge.style.display = 'flex';
+      badge.textContent = count > 9 ? '9+' : count;
+    } else {
+      badge.style.display = 'none';
+    }
+    lastMsgCount = count;
+  } catch(e){}
+}
+function clearMsgBadge(){
+  localStorage.setItem('tm_msg_seen_'+CUP.id, new Date().toISOString());
+  const badge = document.getElementById('msg-badge');
+  if(badge) badge.style.display = 'none';
+}
+
+// ===== IMAGE IN CHAT =====
+async function sendImage(input) {
+  if(!input.files||!input.files[0]||!chatWith) return;
+  const file = input.files[0];
+  if(file.size > 3*1024*1024){ toast('⚠️ Image too large! Max 3MB'); return; }
+  toast('📤 Sending image...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    await sb.from('messages').insert({
+      from_id: CUP.id, to_id: chatWith,
+      text: base64, type: 'image'
+    });
+    await loadMessages();
+    addNotification('🖼️','Image Sent / ছবি পাঠানো হয়েছে!','You sent a photo in chat.','#E6F1FB');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function previewImg(src){
+  document.getElementById('img-preview-img').src = src;
+  document.getElementById('img-preview-modal').style.display = 'flex';
+}
+
+// ===== VOICE MESSAGE =====
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingInterval = null;
+let recordSeconds = 0;
+let isRecording = false;
+
+async function toggleRecording(){
+  if(!isRecording){
+    await startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording(){
+  if(!chatWith){ toast('Open a chat first!'); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    recordSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, {type:'audio/webm'});
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dur = recordSeconds >= 60
+          ? Math.floor(recordSeconds/60)+':'+(recordSeconds%60+'').padStart(2,'0')
+          : '0:'+(recordSeconds+'').padStart(2,'0');
+        await sb.from('messages').insert({
+          from_id: CUP.id, to_id: chatWith,
+          text: e.target.result, type: 'voice', duration: dur
+        });
+        await loadMessages();
+        addNotification('🎤','Voice Sent / ভয়েস পাঠানো হয়েছে!','You sent a voice message.','#E6F1FB');
+      };
+      reader.readAsDataURL(blob);
+      stream.getTracks().forEach(t=>t.stop());
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+
+    // UI
+    document.getElementById('record-btn').className = 'record-btn recording';
+    document.getElementById('record-btn').textContent = '⏹';
+    document.getElementById('chat-inp').style.display = 'none';
+    document.getElementById('rec-indicator').classList.add('active');
+
+    recordingInterval = setInterval(()=>{
+      recordSeconds++;
+      const m = Math.floor(recordSeconds/60);
+      const s = recordSeconds % 60;
+      document.getElementById('rec-timer').textContent = m+':'+(s+'').padStart(2,'0');
+      if(recordSeconds >= 120) stopRecording(); // max 2 min
+    }, 1000);
+
+  } catch(e){
+    toast('⚠️ Microphone access denied / মাইক্রোফোন অনুমতি দিন');
+  }
+}
+
+function stopRecording(){
+  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  clearInterval(recordingInterval);
+  isRecording = false;
+
+  // UI reset
+  document.getElementById('record-btn').className = 'record-btn idle';
+  document.getElementById('record-btn').textContent = '🎤';
+  document.getElementById('chat-inp').style.display = '';
+  document.getElementById('rec-indicator').classList.remove('active');
+}
+
+function playVoice(src, btn){
+  const audio = new Audio(src);
+  btn.textContent = '⏸';
+  audio.play();
+  audio.onended = () => btn.textContent = '▶';
+  audio.onerror = () => { btn.textContent = '▶'; toast('Cannot play audio'); };
+}
+
 // ===== SEARCH HISTORY =====
 function getSearchHistory() {
   return JSON.parse(localStorage.getItem('tm_search_hist') || '[]');
@@ -808,6 +1098,58 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .logout-btn{padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--white);color:var(--text-muted);cursor:pointer;font-family:inherit}
 
 
+
+/* MESSAGE BADGE */
+.nav-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.msg-badge{position:absolute;top:-2px;right:18px;background:#ef4444;color:white;font-size:8px;font-weight:700;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;display:none}
+
+/* IMAGE IN CHAT */
+.chat-img{max-width:200px;max-height:200px;border-radius:12px;cursor:pointer;object-fit:cover}
+.img-preview-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center}
+.img-preview-modal img{max-width:95vw;max-height:90vh;border-radius:8px;object-fit:contain}
+
+/* VOICE MESSAGE */
+.voice-bubble{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:16px;min-width:160px}
+.voice-bubble.me{background:var(--green);color:white}
+.voice-bubble.them{background:var(--white);border:1px solid var(--border)}
+.voice-play-btn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.voice-play-btn.me{background:rgba(255,255,255,0.3);color:white}
+.voice-play-btn.them{background:var(--green-light);color:var(--green-dark)}
+.voice-wave{flex:1;height:24px;display:flex;align-items:center;gap:2px}
+.voice-wave span{display:inline-block;width:3px;border-radius:2px;background:currentColor;opacity:0.6}
+.record-btn{width:40px;height:40px;background:var(--danger);border:none;border-radius:50%;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s}
+.record-btn.recording{background:#ff6b6b;animation:pulse 1s infinite}
+.record-timer{font-size:11px;color:var(--danger);font-weight:700;min-width:32px;text-align:center}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.chat-attach-btn{width:36px;height:36px;background:var(--green-light);border:none;border-radius:50%;cursor:pointer;color:var(--green-dark);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+
+/* MESSAGE BADGE */
+.nav-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.msg-badge{position:absolute;top:-2px;right:calc(50% - 18px);background:#ef4444;color:white;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:none;align-items:center;justify-content:center;border:2px solid white;padding:0 2px}
+
+/* IMAGE IN CHAT */
+.chat-img{max-width:200px;border-radius:12px;margin-top:4px;cursor:pointer}
+.img-preview-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;display:flex;align-items:center;justify-content:center}
+.img-preview-modal img{max-width:95vw;max-height:90vh;border-radius:12px}
+
+/* VOICE MESSAGE */
+.voice-bubble{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:16px;min-width:160px}
+.voice-bubble.me{background:var(--green);color:white}
+.voice-bubble.them{background:var(--white);border:1px solid var(--border)}
+.voice-play{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.voice-play.me{background:rgba(255,255,255,0.2);color:white}
+.voice-play.them{background:var(--green-light);color:var(--green-dark)}
+.voice-wave{flex:1;height:24px;border-radius:4px;overflow:hidden;display:flex;align-items:center;gap:2px}
+.voice-bar{width:3px;border-radius:2px;flex-shrink:0}
+.record-btn{width:40px;height:40px;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all 0.2s}
+.record-btn.idle{background:var(--bg);color:var(--text-muted)}
+.record-btn.recording{background:#ef4444;color:white;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.recording-indicator{display:none;align-items:center;gap:6px;font-size:12px;color:#ef4444;font-weight:600;flex:1}
+.recording-indicator.active{display:flex}
+.rec-dot{width:8px;height:8px;background:#ef4444;border-radius:50%;animation:pulse 1s infinite}
+
 /* STUDENT DASHBOARD */
 .dash-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
 .dash-stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
@@ -1197,7 +1539,11 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
     </div>
     <div class="chat-messages" id="chat-msgs"></div>
     <div class="chat-input-bar">
+      <button class="chat-attach-btn" onclick="document.getElementById('img-upload').click()" title="Send Image">🖼️</button>
+      <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="sendImage(this)">
       <input type="text" id="chat-inp" placeholder="Type a message / বার্তা লিখুন..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <div id="record-timer" class="record-timer" style="display:none">0:00</div>
+      <button class="record-btn" id="record-btn" onclick="toggleRecording()" title="Voice Message">🎤</button>
       <button class="send-btn" onclick="sendMsg()">➤</button>
     </div>
   </div>
@@ -1205,11 +1551,23 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
   <div class="bottom-nav" id="bnav">
     <button class="active" onclick="showPage('home',this)"><span class="nav-icon">🏠</span><span>Home<br><small>হোম</small></span></button>
     <button onclick="showPage('search',this)"><span class="nav-icon">🔍</span><span>Search<br><small>খুঁজুন</small></span></button>
-    <button onclick="showPage('msg',this)"><span class="nav-icon">💬</span><span>Message<br><small>বার্তা</small></span></button>
+    <button onclick="showPage('msg',this);clearMsgBadge()" style="position:relative">
+      <span class="nav-icon">💬</span>
+      <span>Message<br><small>বার্তা</small></span>
+      <div class="msg-badge" id="msg-badge">0</div>
+    </button>
     <button onclick="showPage('profile',this)"><span class="nav-icon">👤</span><span>Profile<br><small>প্রোফাইল</small></span></button>
   </div>
 </div>
 <div id="toast"></div>
+<div class="img-preview-modal" id="img-preview-modal" style="display:none" onclick="this.style.display='none'">
+  <img id="img-preview-img" src="">
+</div>
+
+<!-- Image Preview Modal -->
+<div class="img-preview-modal" id="img-preview-modal" style="display:none" onclick="this.style.display='none'">
+  <img id="img-preview-full" src="" alt="Preview">
+</div>
 
 <!-- Notification Modal -->
 <div class="notif-modal" id="notif-modal" style="display:none" onclick="if(event.target===this)closeNotifications()">
@@ -1441,6 +1799,10 @@ async function startApp(){
   renderHome();renderProfile();renderChatList();
   initWeather();
   startNotifPolling();
+  updateMsgBadge();
+  setInterval(updateMsgBadge, 15000);
+  checkUnreadMessages();
+  setInterval(checkUnreadMessages, 30000);
 }
 async function loadTeachers(){const {data}=await sb.from('profiles').select('*').eq('role','teacher').eq('active',true);allTeachers=data||[];}
 async function loadRequests(){
@@ -1836,7 +2198,7 @@ async function openChat(uid,name,sub,color,tc,avatar){
   await loadMessages();
   if(msgSub)sb.removeChannel(msgSub);
   msgSub=sb.channel('msgs-'+[CUP.id,uid].sort().join('-'))
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMessages()).subscribe();
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},(payload)=>{loadMessages();if(payload.new&&payload.new.to_id===CUP.id){unreadMsgCount++;showMsgBadge(unreadMsgCount);addNotification('💬','New Message!',payload.new.text?.slice(0,50)||'Image/Voice','#E6F1FB');}}).subscribe();
   document.getElementById('chat-screen').classList.add('open');
   document.getElementById('bnav').style.display='none';
   document.getElementById('main-content').style.display='none';
@@ -1855,7 +2217,21 @@ async function loadMessages(){
     .order('created_at');
   const el=document.getElementById('chat-msgs');
   el.innerHTML=(data||[]).map(m=>{const isMe=m.from_id===CUP.id;
-    return`<div><div class="bubble ${isMe?'me':'them'}">${m.text}</div><div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;}).join('');
+    let body='';
+    if(m.msg_type==='image'){
+      body=`<img class="chat-img" src="${m.text}" onclick="openImgPreview('${m.text}')" alt="Image">`;
+    } else if(m.msg_type==='voice'){
+      const waves=Array.from({length:12},(_,i)=>`<span style="height:${8+Math.sin(i*0.8)*8}px"></span>`).join('');
+      body=`<div class="voice-bubble ${isMe?'me':'them'}">
+        <button class="voice-play-btn ${isMe?'me':'them'}" onclick="playVoice('${m.text}',this)">▶️</button>
+        <div class="voice-wave" style="color:${isMe?'rgba(255,255,255,0.7)':'var(--text-muted)'}">${waves}</div>
+        <span style="font-size:11px;opacity:0.8">${m.duration||'0:05'}</span>
+      </div>`;
+    } else {
+      body=`<div class="bubble ${isMe?'me':'them'}">${m.text}</div>`;
+    }
+    return`<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">${body}<div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;
+  }).join('');
   el.scrollTop=el.scrollHeight;
 }
 async function sendMsg(){
@@ -1863,7 +2239,7 @@ async function sendMsg(){
   const text=inp.value.trim();
   if(!text||!chatWith)return;
   inp.value='';
-  await sb.from('messages').insert({from_id:CUP.id,to_id:chatWith,text});
+  await sb.from('messages').insert({from_id:CUP.id,to_id:chatWith,text,type:'text'});
   await loadMessages();
   addNotification('💬','Message Sent / পাঠানো হয়েছে!',text.slice(0,50),'#E6F1FB');
 }
@@ -2043,6 +2419,296 @@ function togglePass(id, btn) {
 }
 
 
+
+
+// ===== MESSAGE BADGE =====
+let unreadMsgCount = 0;
+
+function showMsgBadge(count) {
+  const badge = document.getElementById('msg-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = count > 9 ? '9+' : count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function clearMsgBadge() {
+  unreadMsgCount = 0;
+  showMsgBadge(0);
+  localStorage.setItem('tm_last_msg_seen', new Date().toISOString());
+}
+
+async function checkUnreadMessages() {
+  if (!CUP) return;
+  try {
+    const lastSeen = localStorage.getItem('tm_last_msg_seen') || '2000-01-01';
+    const {data} = await sb.from('messages').select('id')
+      .eq('to_id', CUP.id)
+      .gt('created_at', lastSeen);
+    if (data && data.length > 0) {
+      unreadMsgCount = data.length;
+      showMsgBadge(unreadMsgCount);
+    }
+  } catch(e) {}
+}
+
+// ===== IMAGE SEND IN CHAT =====
+function openImgPreview(src) {
+  document.getElementById('img-preview-full').src = src;
+  document.getElementById('img-preview-modal').style.display = 'flex';
+}
+
+async function sendImage(input) {
+  const file = input.files[0];
+  if (!file || !chatWith) return;
+  if (file.size > 2 * 1024 * 1024) { toast('❌ Image too large! Max 2MB'); return; }
+
+  toast('📤 Uploading image...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    await sb.from('messages').insert({
+      from_id: CUP.id,
+      to_id: chatWith,
+      text: base64,
+      msg_type: 'image'
+    });
+    await loadMessages();
+    toast('✅ Image sent!');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+// ===== VOICE MESSAGE =====
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isRecording = false;
+
+async function toggleRecording() {
+  if (!isRecording) {
+    await startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    isRecording = true;
+    recordingSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const duration = recordingSeconds;
+      const mins = Math.floor(duration / 60);
+      const secs = duration % 60;
+      const durStr = `${mins}:${String(secs).padStart(2,'0')}`;
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        await sb.from('messages').insert({
+          from_id: CUP.id,
+          to_id: chatWith,
+          text: e.target.result,
+          msg_type: 'voice',
+          duration: durStr
+        });
+        await loadMessages();
+        toast('✅ Voice message sent!');
+      };
+      reader.readAsDataURL(blob);
+
+      // Stop stream
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    mediaRecorder.start();
+
+    // Update UI
+    document.getElementById('record-btn').classList.add('recording');
+    document.getElementById('record-btn').textContent = '⏹️';
+    document.getElementById('record-timer').style.display = 'block';
+
+    // Timer
+    recordingTimer = setInterval(() => {
+      recordingSeconds++;
+      const mins = Math.floor(recordingSeconds / 60);
+      const secs = recordingSeconds % 60;
+      document.getElementById('record-timer').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
+      if (recordingSeconds >= 60) stopRecording(); // Max 1 minute
+    }, 1000);
+
+    toast('🎤 Recording... tap ⏹️ to stop');
+  } catch(e) {
+    toast('❌ Microphone access denied!');
+  }
+}
+
+function stopRecording() {
+  if (!mediaRecorder) return;
+  isRecording = false;
+  mediaRecorder.stop();
+  clearInterval(recordingTimer);
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('record-btn').textContent = '🎤';
+  document.getElementById('record-timer').style.display = 'none';
+  document.getElementById('record-timer').textContent = '0:00';
+}
+
+function playVoice(src, btn) {
+  const audio = new Audio(src);
+  btn.textContent = '⏸️';
+  audio.play();
+  audio.onended = () => { btn.textContent = '▶️'; };
+  audio.onerror = () => { btn.textContent = '▶️'; toast('❌ Cannot play audio'); };
+}
+
+
+// ===== MESSAGE NOTIFICATION BADGE =====
+let lastMsgCount = 0;
+async function updateMsgBadge() {
+  if(!CUP) return;
+  try {
+    const lastSeen = localStorage.getItem('tm_msg_seen_'+CUP.id) || '2000-01-01';
+    const {data} = await sb.from('messages').select('id')
+      .eq('to_id', CUP.id).gt('created_at', lastSeen);
+    const count = (data||[]).length;
+    const badge = document.getElementById('msg-badge');
+    if(!badge) return;
+    if(count > 0){
+      badge.style.display = 'flex';
+      badge.textContent = count > 9 ? '9+' : count;
+    } else {
+      badge.style.display = 'none';
+    }
+    lastMsgCount = count;
+  } catch(e){}
+}
+function clearMsgBadge(){
+  localStorage.setItem('tm_msg_seen_'+CUP.id, new Date().toISOString());
+  const badge = document.getElementById('msg-badge');
+  if(badge) badge.style.display = 'none';
+}
+
+// ===== IMAGE IN CHAT =====
+async function sendImage(input) {
+  if(!input.files||!input.files[0]||!chatWith) return;
+  const file = input.files[0];
+  if(file.size > 3*1024*1024){ toast('⚠️ Image too large! Max 3MB'); return; }
+  toast('📤 Sending image...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    await sb.from('messages').insert({
+      from_id: CUP.id, to_id: chatWith,
+      text: base64, type: 'image'
+    });
+    await loadMessages();
+    addNotification('🖼️','Image Sent / ছবি পাঠানো হয়েছে!','You sent a photo in chat.','#E6F1FB');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function previewImg(src){
+  document.getElementById('img-preview-img').src = src;
+  document.getElementById('img-preview-modal').style.display = 'flex';
+}
+
+// ===== VOICE MESSAGE =====
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingInterval = null;
+let recordSeconds = 0;
+let isRecording = false;
+
+async function toggleRecording(){
+  if(!isRecording){
+    await startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording(){
+  if(!chatWith){ toast('Open a chat first!'); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    recordSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, {type:'audio/webm'});
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dur = recordSeconds >= 60
+          ? Math.floor(recordSeconds/60)+':'+(recordSeconds%60+'').padStart(2,'0')
+          : '0:'+(recordSeconds+'').padStart(2,'0');
+        await sb.from('messages').insert({
+          from_id: CUP.id, to_id: chatWith,
+          text: e.target.result, type: 'voice', duration: dur
+        });
+        await loadMessages();
+        addNotification('🎤','Voice Sent / ভয়েস পাঠানো হয়েছে!','You sent a voice message.','#E6F1FB');
+      };
+      reader.readAsDataURL(blob);
+      stream.getTracks().forEach(t=>t.stop());
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+
+    // UI
+    document.getElementById('record-btn').className = 'record-btn recording';
+    document.getElementById('record-btn').textContent = '⏹';
+    document.getElementById('chat-inp').style.display = 'none';
+    document.getElementById('rec-indicator').classList.add('active');
+
+    recordingInterval = setInterval(()=>{
+      recordSeconds++;
+      const m = Math.floor(recordSeconds/60);
+      const s = recordSeconds % 60;
+      document.getElementById('rec-timer').textContent = m+':'+(s+'').padStart(2,'0');
+      if(recordSeconds >= 120) stopRecording(); // max 2 min
+    }, 1000);
+
+  } catch(e){
+    toast('⚠️ Microphone access denied / মাইক্রোফোন অনুমতি দিন');
+  }
+}
+
+function stopRecording(){
+  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  clearInterval(recordingInterval);
+  isRecording = false;
+
+  // UI reset
+  document.getElementById('record-btn').className = 'record-btn idle';
+  document.getElementById('record-btn').textContent = '🎤';
+  document.getElementById('chat-inp').style.display = '';
+  document.getElementById('rec-indicator').classList.remove('active');
+}
+
+function playVoice(src, btn){
+  const audio = new Audio(src);
+  btn.textContent = '⏸';
+  audio.play();
+  audio.onended = () => btn.textContent = '▶';
+  audio.onerror = () => { btn.textContent = '▶'; toast('Cannot play audio'); };
+}
 
 // ===== SEARCH HISTORY =====
 function getSearchHistory() {
