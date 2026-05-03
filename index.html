@@ -1994,10 +1994,10 @@ async function renderAdminHome(el){
     <div class="stat-box"><div class="num">${rL.length}</div><div class="lbl-en">Sessions</div><div class="lbl-bn">সেশন</div></div>
   </div>
   <div class="admin-tabs">
-    <button class="admin-tab ${adminTab==='pending'?'active':''}" onclick="setAdminTab('pending',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">⏳ Pending (${pL.length})</button>
-    <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">👨‍🏫 Teachers (${tL.length})</button>
-    <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">🎓 Students (${sL.length})</button>
-    <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)})">📋 Sessions (${rL.length})</button>
+    <button class="admin-tab ${adminTab==='pending'?'active':''}" onclick="setAdminTab('pending',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">⏳ Pending (${pL.length})</button>
+    <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">👨‍🏫 Teachers (${tL.length})</button>
+    <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">🎓 Students (${sL.length})</button>
+    <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions',${JSON.stringify(tL)},${JSON.stringify(sL)},${JSON.stringify(rL)},${JSON.stringify(pL)})">📋 Sessions (${rL.length})</button>
   </div>
   <div id="admin-data">${buildAdminTab(tL,sL,rL,pL)}</div>`;
 }
@@ -2006,6 +2006,7 @@ function setAdminTab(tab,tL,sL,rL,pL=[]){pL=pL||[];
   adminTab=tab;
   document.querySelectorAll('.admin-tab').forEach(b=>{
     b.classList.toggle('active',
+      (tab==='pending'&&b.textContent.includes('Pending'))||
       (tab==='teachers'&&b.textContent.includes('Teacher'))||
       (tab==='students'&&b.textContent.includes('Student'))||
       (tab==='sessions'&&b.textContent.includes('Session'))
