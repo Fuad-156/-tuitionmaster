@@ -971,6 +971,10 @@ window.addEventListener('appinstalled', () => {
 .animate-slide-right{animation:slideInRight 0.4s cubic-bezier(.4,0,.2,1) both}
 .card-hover{transition:transform 0.2s,box-shadow 0.2s}
 .card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(29,158,117,0.15)}
+.edit-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;box-sizing:border-box}
+.edit-input:focus{border-color:var(--green)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 #loading-screen{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
@@ -2733,6 +2737,106 @@ async function uploadProfilePhoto(input) {
   input.value = '';
 }
 
+async function saveProfile(){
+  const btn=document.getElementById('save-profile-btn');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+  const updates={
+    name:document.getElementById('ep-name')?.value||CUP.name,
+    phone:document.getElementById('ep-phone')?.value||CUP.phone,
+    division:document.getElementById('ep-division')?.value||CUP.division,
+    district:document.getElementById('ep-district')?.value||CUP.district,
+    upazila:document.getElementById('ep-upazila')?.value||CUP.upazila,
+  };
+  if(CUP.role==='teacher'){
+    updates.subject=document.getElementById('ep-subject')?.value||CUP.subject;
+    updates.class_range=document.getElementById('ep-class')?.value||CUP.class_range;
+    updates.fee=parseInt(document.getElementById('ep-fee')?.value)||CUP.fee;
+    updates.experience=document.getElementById('ep-exp')?.value||CUP.experience;
+  }
+  if(CUP.role==='student'){
+    updates.grade=document.getElementById('ep-grade')?.value||CUP.grade;
+  }
+  // Generate new avatar from name
+  const words=(updates.name||'').trim().split(' ');
+  updates.avatar=words.length>=2?(words[0][0]+words[words.length-1][0]).toUpperCase():(updates.name||'?').substring(0,2).toUpperCase();
+
+  const {error}=await sb.from('profiles').update(updates).eq('id',CUP.id);
+  if(error){toast('❌ Update failed: '+error.message);if(btn){btn.disabled=false;btn.textContent='Save Changes';}return;}
+  Object.assign(CUP,updates);
+  toast('✅ Profile updated! / প্রোফাইল আপডেট হয়েছে!');
+  // Update topbar name
+  const tn=document.getElementById('top-name');if(tn)tn.textContent=CUP.name;
+  renderProfile();
+}
+
+function showEditProfile(){
+  const el=document.getElementById('page-profile');
+  const divs=['ঢাকা','চট্টগ্রাম','রাজশাহী','খুলনা','বরিশাল','সিলেট','রংপুর','ময়মনসিংহ'];
+  const teacherFields=CUP.role==='teacher'?`
+    <div class="form-group">
+      <label>📚 Subject / বিষয়</label>
+      <input id="ep-subject" class="edit-input" value="${CUP.subject||''}" placeholder="e.g. Physics, Math...">
+    </div>
+    <div class="form-group">
+      <label>🎓 Class Range / শ্রেণি</label>
+      <select id="ep-class" class="edit-input">
+        ${['Class 1–5 (Primary)','Class 6–8 (Junior)','Class 9–10 (SSC)','Class 11–12 (HSC)','Admission','University'].map(c=>`<option ${CUP.class_range===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>💰 Monthly Fee / মাসিক ফি (৳)</label>
+      <input id="ep-fee" class="edit-input" type="number" value="${CUP.fee||''}" placeholder="e.g. 3000">
+    </div>
+    <div class="form-group">
+      <label>💼 Experience / অভিজ্ঞতা</label>
+      <select id="ep-exp" class="edit-input">
+        ${['<1 year / ১ বছরের কম','1–2 years / ১–২ বছর','3–5 years / ৩–৫ বছর','5–10 years / ৫–১০ বছর','10+ years / ১০+ বছর'].map(e=>`<option ${CUP.experience===e?'selected':''}>${e}</option>`).join('')}
+      </select>
+    </div>`:'';
+  const studentFields=CUP.role==='student'?`
+    <div class="form-group">
+      <label>🏫 Class / শ্রেণি</label>
+      <select id="ep-grade" class="edit-input">
+        ${['Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'].map(g=>`<option ${CUP.grade===g?'selected':''}>${g}</option>`).join('')}
+      </select>
+    </div>`:'';
+
+  el.innerHTML=`
+  <div style="background:var(--green);padding:20px 16px 40px;margin:-16px -16px 0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="renderProfile()" style="background:rgba(255,255,255,0.2);border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;color:white;font-size:18px">←</button>
+      <div style="font-size:17px;font-weight:700;color:white">Edit Profile / প্রোফাইল সম্পাদনা</div>
+    </div>
+  </div>
+  <div style="background:var(--white);border-radius:20px;margin:-20px 0 0;padding:24px 16px;min-height:100%">
+    <div class="form-group">
+      <label>👤 Full Name / পুরো নাম</label>
+      <input id="ep-name" class="edit-input" value="${CUP.name||''}" placeholder="Your full name">
+    </div>
+    <div class="form-group">
+      <label>📱 Mobile / মোবাইল</label>
+      <input id="ep-phone" class="edit-input" type="tel" value="${CUP.phone||''}" placeholder="01XXXXXXXXX">
+    </div>
+    <div class="form-group">
+      <label>🗺️ Division / বিভাগ</label>
+      <select id="ep-division" class="edit-input">
+        ${divs.map(d=>`<option ${CUP.division===d?'selected':''}>${d}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>📍 District / জেলা</label>
+      <input id="ep-district" class="edit-input" value="${CUP.district||''}" placeholder="Your district">
+    </div>
+    <div class="form-group">
+      <label>🏘️ Upazila / উপজেলা</label>
+      <input id="ep-upazila" class="edit-input" value="${CUP.upazila||''}" placeholder="Your upazila">
+    </div>
+    ${teacherFields}
+    ${studentFields}
+    <button id="save-profile-btn" class="btn-primary" onclick="saveProfile()" style="margin-top:8px">💾 Save Changes / সংরক্ষণ করুন</button>
+  </div>`;
+}
+
 function renderProfile(){
   const el=document.getElementById('page-profile');if(!CUP)return;
   const photoEl = CUP.photo
@@ -2770,7 +2874,8 @@ function renderProfile(){
     <div class="info-row"><span class="key" style="color:#166534">Commission 20% / কমিশন</span><span class="val" style="color:var(--danger)">-৳${Math.round((CUP.fee||0)*0.2).toLocaleString()}</span></div>
     <div class="info-row"><span class="key" style="color:#166534">Net Income / নেট আয়</span><span class="val" style="color:var(--green)">৳${Math.round((CUP.fee||0)*0.8).toLocaleString()}</span></div>
   </div>`:''}
-  <button class="btn-primary" style="background:var(--danger);margin-top:6px" onclick="doLogout()">Logout / লগআউট করুন</button>`;
+  <button class="btn-primary" style="margin-top:6px" onclick="showEditProfile()">✏️ Edit Profile / প্রোফাইল সম্পাদনা</button>
+  <button class="btn-primary" style="background:var(--danger);margin-top:8px" onclick="doLogout()">Logout / লগআউট করুন</button>`;
 }
 
 </script>
