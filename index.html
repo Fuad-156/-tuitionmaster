@@ -3054,11 +3054,34 @@ function closeChat(){
 }
 async function loadMessages(){
   if(!chatWith)return;
-  const {data}=await sb.from('messages').select('*')
-    .or(`and(from_id.eq.${CUP.id},to_id.eq.${chatWith}),and(from_id.eq.${chatWith},to_id.eq.${CUP.id})`)
-    .order('created_at');
   const el=document.getElementById('chat-msgs');
-  el.innerHTML=(data||[]).map(m=>{const isMe=m.from_id===CUP.id;
+  el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Loading...</div>`;
+
+  // Admin পড়বে: chatWith এর সব messages (যেখানে admin নিজেও থাকতে পারে)
+  let query;
+  if(CUP.role==='admin'){
+    query=sb.from('messages').select('*')
+      .or(`and(from_id.eq.${CUP.id},to_id.eq.${chatWith}),and(from_id.eq.${chatWith},to_id.eq.${CUP.id})`)
+      .order('created_at');
+  } else {
+    query=sb.from('messages').select('*')
+      .or(`and(from_id.eq.${CUP.id},to_id.eq.${chatWith}),and(from_id.eq.${chatWith},to_id.eq.${CUP.id})`)
+      .order('created_at');
+  }
+
+  const {data, error}=await query;
+
+  if(error){
+    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px">❌ Messages load হয়নি।<br><small>${error.message}</small></div>`;
+    return;
+  }
+
+  if(!data||data.length===0){
+    el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">💬 এখনো কোনো message নেই</div>`;
+    return;
+  }
+
+  el.innerHTML=data.map(m=>{const isMe=m.from_id===CUP.id;
     let body='';
     if(m.type==='image'){
       body=`<img class="chat-img" src="${m.text}" onclick="openImgPreview('${m.text}')" alt="Image" style="max-width:220px;border-radius:${isMe?'16px 16px 0 16px':'0 16px 16px 16px'};display:block;box-shadow:0 1px 3px rgba(0,0,0,0.15)">`;
