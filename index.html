@@ -1596,34 +1596,23 @@ async function doRegister(){
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
     ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false}:{grade:document.getElementById('r-grade').value})};
-  await sb.from('profiles').insert(profile);
+  const {error: insertError} = await sb.from('profiles').insert(profile);
+  if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
   CUP=profile;
   btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
-  // Show email verification notice
-  document.getElementById('register-form').innerHTML=`
-    <div style="text-align:center;padding:20px 10px">
-      <div style="font-size:52px;margin-bottom:14px">📧</div>
-      <h2 style="font-size:18px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">Check your email!</h2>
-      <p style="font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:6px">
-        আমরা <strong style="color:var(--text)">${email}</strong> এ একটা verification link পাঠিয়েছি।
-      </p>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:20px">
-        Email খুলে link এ click করলেই account active হয়ে যাবে।<br>
-        <small>Spam/Junk folder ও check করুন।</small>
-      </p>
-      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#166534;text-align:left;line-height:1.8">
-        ✅ Email verify করুন<br>
-        ✅ তারপর Login করুন<br>
-        ✅ Teacher হলে Admin approve করবে
-      </div>
-      <button class="btn-primary" onclick="switchTab('login')">Login করুন →</button>
-    </div>`;
+  toast('✅ Account created! / অ্যাকাউন্ট তৈরি হয়েছে!');
+  startApp();
 }
 
 async function loadProfile(){
   if(!CU)return;
   if(CU.email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};return;}
-  const {data}=await sb.from('profiles').select('*').eq('id',CU.id).single();
+  const {data,error}=await sb.from('profiles').select('*').eq('id',CU.id).single();
+  if(error||!data){
+    toast('⚠️ Profile load failed! Check Supabase RLS policy.');
+    console.error('Profile load error:',error);
+    return;
+  }
   CUP=data;
 }
 async function doLogout(){
