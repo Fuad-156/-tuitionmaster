@@ -42,6 +42,23 @@ const T = {
 };
 let currentLang = 'en';
 
+function toggleDark(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',isDark?'light':'dark');
+  const btn=document.getElementById('dark-btn');
+  if(btn) btn.textContent=isDark?'🌙':'☀️';
+  localStorage.setItem('tm_theme',isDark?'light':'dark');
+}
+// Apply saved theme on load
+(function(){
+  const t=localStorage.getItem('tm_theme')||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  if(t==='dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    setTimeout(()=>{const b=document.getElementById('dark-btn');if(b)b.textContent='☀️';},100);
+  }
+})();
+
 function toggleLang() {
   currentLang = currentLang === 'en' ? 'bn' : 'en';
   const btn = document.getElementById('lang-btn');
@@ -935,7 +952,25 @@ window.addEventListener('appinstalled', () => {
 
 </script>
 <style>
-:root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--bg:#F7FAF9;--white:#fff;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#ef4444;--warn:#f59e0b;--radius:14px;--radius-sm:8px}
+:root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--bg:#F7FAF9;--white:#fff;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#ef4444;--warn:#f59e0b;--radius:14px;--radius-sm:8px;--shadow:0 2px 12px rgba(0,0,0,0.08);--transition:all 0.25s cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"]{--bg:#0f1117;--white:#1a1d27;--text:#e8eaf0;--text-muted:#8b93a8;--border:#2a2d3a;--green-light:#0d2b22;--green-dark:#5DCAA5;--shadow:0 2px 12px rgba(0,0,0,0.4)}
+*{transition:background-color 0.3s ease,color 0.2s ease,border-color 0.2s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes bounceIn{0%{opacity:0;transform:scale(0.3)}50%{transform:scale(1.08)}70%{transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}
+@keyframes splashLogo{0%{opacity:0;transform:scale(0.5) rotate(-10deg)}60%{transform:scale(1.1) rotate(3deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
+@keyframes splashText{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes splashBar{0%{width:0}100%{width:100%}}
+@keyframes ripple{0%{transform:scale(0);opacity:0.4}100%{transform:scale(4);opacity:0}}
+.animate-fadeup{animation:fadeInUp 0.45s cubic-bezier(.4,0,.2,1) both}
+.animate-fadein{animation:fadeIn 0.35s ease both}
+.animate-scalein{animation:scaleIn 0.35s cubic-bezier(.4,0,.2,1) both}
+.animate-slide-right{animation:slideInRight 0.4s cubic-bezier(.4,0,.2,1) both}
+.card-hover{transition:transform 0.2s,box-shadow 0.2s}
+.card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(29,158,117,0.15)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 #loading-screen{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
@@ -960,6 +995,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .role-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
 .btn-primary{width:100%;padding:12px;background:var(--green);color:var(--white);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.2s;margin-top:4px}
 .btn-primary:hover{background:var(--green-dark)}
+.btn-primary:active{transform:scale(0.97)}
 .btn-primary:disabled{opacity:0.6;cursor:not-allowed}
 .hint{font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px}
 .hint span{color:var(--green);cursor:pointer;font-weight:600}
@@ -1098,9 +1134,11 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
 .bottom-nav button{flex:1;padding:8px 4px 12px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--text-muted);font-family:inherit;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bottom-nav button.active{color:var(--green)}
+.bottom-nav button{transition:color 0.2s,transform 0.15s}
+.bottom-nav button:active{transform:scale(0.88)}
 .nav-icon{font-size:18px}
 .main{padding:14px 14px 78px;max-width:500px;margin:0 auto}
-.page{display:none}
+.page{display:none;animation:fadeInUp 0.35s cubic-bezier(.4,0,.2,1) both}
 .page.active{display:block}
 .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px}
 .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -1221,9 +1259,16 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
 <body>
 
 <div id="loading-screen">
-  <div style="font-size:56px">📚</div>
-  <h1>Tuition Master</h1>
-  <p>শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+    <div style="font-size:72px;animation:splashLogo 0.8s cubic-bezier(.4,0,.2,1) both;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.2))">📚</div>
+    <h1 style="animation:splashText 0.6s 0.3s ease both;margin-top:14px;font-size:28px;letter-spacing:-0.5px">Tuition Master</h1>
+    <p style="animation:splashText 0.6s 0.5s ease both;font-size:13px;margin-top:6px;opacity:0.85">শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
+    <div style="width:180px;height:3px;background:rgba(255,255,255,0.2);border-radius:99px;margin-top:32px;overflow:hidden;animation:splashText 0.1s 0.7s ease both">
+      <div style="height:100%;background:white;border-radius:99px;animation:splashBar 1.5s 0.7s cubic-bezier(.4,0,.2,1) both"></div>
+    </div>
+    <p style="animation:splashText 0.6s 0.9s ease both;font-size:11px;margin-top:10px;opacity:0.6;letter-spacing:0.5px">Loading...</p>
+  </div>
+  <div style="position:absolute;bottom:32px;font-size:11px;color:rgba(255,255,255,0.4);animation:splashText 0.6s 1s ease both">v1.0 • Made with ❤️</div>
 </div>
 
 <div id="auth-screen">
@@ -1342,6 +1387,7 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
       <div class="notif-badge" id="notif-badge" style="display:none">0</div>
     </div>
     <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green);color:white;cursor:pointer;font-family:inherit">📲 Install</button>
+    <button id="dark-btn" onclick="toggleDark()" style="width:32px;height:32px;border:1.5px solid var(--border);border-radius:50%;background:var(--white);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Dark Mode">🌙</button>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()">Logout</button>
   </div>
 
@@ -1813,7 +1859,12 @@ async function loadRequests(){
 
 function showPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
+  const pg=document.getElementById('page-'+name);
+  pg.classList.add('active');
+  // Re-trigger animation
+  pg.style.animation='none';
+  pg.offsetHeight;
+  pg.style.animation='';
   document.querySelectorAll('#bnav button').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   if(name==='search'){renderTeachers();renderSearchHistory();}
