@@ -1134,6 +1134,14 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .chat-list-item .chat-list-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
 .chat-list-item .chat-list-preview{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat-list-item .chat-list-time{font-size:10px;color:var(--text-muted);flex-shrink:0;margin-left:8px}
+.att-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--border)}
+.att-btns{display:flex;gap:4px;flex-shrink:0}
+.att-btn{border:2px solid var(--border);background:white;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;opacity:0.4}
+.att-btn.active{opacity:1;transform:scale(1.1)}
+.att-btn.present.active{background:#D1FAE5;border-color:#6EE7B7}
+.att-btn.absent.active{background:#FEE2E2;border-color:#FCA5A5}
+.att-btn.late.active{background:#FEF3C7;border-color:#FCD34D}
+.material-card{background:white;border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1.5px solid var(--border)}
 .sch-slot{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--border)}
 .sch-day-badge{min-width:64px;padding:4px 8px;border-radius:8px;background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:700;text-align:center}
 .sch-time{font-size:12px;color:var(--text-muted)}
@@ -1548,6 +1556,46 @@ flex-direction:column;height:100vh;height:100dvh;position:fixed;top:0;left:0;rig
   </div>
 </div>
 
+<!-- Attendance Modal -->
+<div class="notif-modal" id="att-modal" style="display:none" onclick="if(event.target===this)closeAttendanceModal()">
+  <div class="notif-box" style="max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700">✅ Attendance Tracker</div>
+      <button onclick="closeAttendanceModal()" style="border:none;background:var(--bg);color:var(--text-muted);padding:5px 10px;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
+    </div>
+    <div id="att-body">
+      <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Study Materials Modal -->
+<div class="notif-modal" id="materials-modal" style="display:none" onclick="if(event.target===this)closeMaterialsModal()">
+  <div class="notif-box" style="max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700">📚 Study Materials</div>
+      <button onclick="closeMaterialsModal()" style="border:none;background:var(--bg);color:var(--text-muted);padding:5px 10px;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
+    </div>
+
+    ${CUP?.role === 'teacher' ? `<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">⬆️ নতুন Material Upload</div>
+      <input id="mat-title" type="text" placeholder="Title *" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <input id="mat-subject" type="text" placeholder="বিষয় (যেমন: গণিত)" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+        <input id="mat-desc" type="text" placeholder="Description" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+      </div>
+      <label id="mat-file-label" onclick="document.getElementById('mat-file').click()" style="display:block;padding:10px;border:2px dashed var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;margin-bottom:10px;font-weight:600">📁 File select করুন<br><small style="font-weight:400">PDF, Word, Image (max 10MB)</small></label>
+      <input id="mat-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none" onchange="document.getElementById('mat-file-label').textContent='✅ '+this.files[0]?.name">
+      <button id="mat-upload-btn" onclick="uploadMaterial()" style="width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⬆️ Upload করুন</button>
+    </div>` : ''}
+
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px">📋 সব Materials</div>
+    <div id="materials-list">
+      <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
+    </div>
+  </div>
+</div>
+
 <!-- bKash Payment Modal -->
 <div class="bkash-modal" id="bkash-modal" style="display:none">
   <div class="bkash-box">
@@ -1868,7 +1916,11 @@ async function renderStudentHome(el){
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
         </div>`).join('')}
-  </div>`;
+  </div>
+
+  <button onclick="openMaterialsModal()" style="width:100%;margin-top:4px;padding:14px;background:white;border:1.5px solid var(--border);border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px">
+    📚 Study Materials দেখুন <span style="font-size:12px;font-weight:400;color:var(--text-muted)">Notes & PDFs</span>
+  </button>`;
 }
 
 async function renderTeacherHome(el){
@@ -1893,6 +1945,19 @@ async function renderTeacherHome(el){
   </div>
   <div class="dash-card" id="schedule-preview">
     <div style="text-align:center;padding:10px;color:var(--text-muted);font-size:13px">Loading...</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px">
+    <button onclick="openAttendanceModal()" style="padding:14px 10px;background:white;border:1.5px solid var(--border);border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:24px">✅</span>
+      <span>Attendance</span>
+      <span style="font-size:11px;font-weight:400;color:var(--text-muted)">উপস্থিতি</span>
+    </button>
+    <button onclick="openMaterialsModal()" style="padding:14px 10px;background:white;border:1.5px solid var(--border);border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:24px">📚</span>
+      <span>Materials</span>
+      <span style="font-size:11px;font-weight:400;color:var(--text-muted)">Study Notes</span>
+    </button>
   </div>
 
   <div class="section-title">Student Requests <small>শিক্ষার্থীর অনুরোধ</small></div>
@@ -2275,6 +2340,232 @@ async function deleteScheduleSlot(id) {
   if (error) { toast('❌ Error'); return; }
   toast('🗑️ Slot মুছে ফেলা হয়েছে');
   await loadSchedule();
+}
+
+// ===== ATTENDANCE TRACKER =====
+let attendanceStudents = [];
+
+async function openAttendanceModal() {
+  document.getElementById('att-modal').style.display = 'flex';
+  await loadAttendanceStudents();
+}
+function closeAttendanceModal() {
+  document.getElementById('att-modal').style.display = 'none';
+}
+
+async function loadAttendanceStudents() {
+  const wrap = document.getElementById('att-body');
+  wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>`;
+
+  // Get active students
+  const {data: reqs} = await sb.from('requests').select('student_id').eq('teacher_id', CUP.id).eq('status', 'active');
+  if (!reqs || reqs.length === 0) {
+    wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">কোনো active student নেই</div>`;
+    return;
+  }
+  const ids = reqs.map(r => r.student_id);
+  const {data: students} = await sb.from('profiles').select('*').in('id', ids);
+  attendanceStudents = students || [];
+
+  // Get today's attendance
+  const today = new Date().toISOString().split('T')[0];
+  const {data: todayAtt} = await sb.from('attendance').select('*').eq('teacher_id', CUP.id).eq('date', today);
+  const attMap = {};
+  (todayAtt || []).forEach(a => { attMap[a.student_id] = a.status; });
+
+  const dateStr = new Date().toLocaleDateString('bn-BD', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  wrap.innerHTML = `
+    <div style="background:var(--green-light);color:var(--green-dark);padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:14px;text-align:center">
+      📅 ${dateStr}
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button onclick="markAllAttendance('present')" style="flex:1;padding:8px;border:none;background:#D1FAE5;color:#065F46;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✅ সবাই Present</button>
+      <button onclick="markAllAttendance('absent')" style="flex:1;padding:8px;border:none;background:#FEE2E2;color:#991B1B;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">❌ সবাই Absent</button>
+    </div>
+    ${attendanceStudents.map(s => {
+      const status = attMap[s.id] || 'unmarked';
+      return `<div class="att-row" id="att-row-${s.id}">
+        <div class="tc-avatar" style="width:38px;height:38px;font-size:13px;border-radius:10px;background:${s.color};color:${s.tc};flex-shrink:0">${s.avatar}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${s.name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${s.grade||''}</div>
+        </div>
+        <div class="att-btns">
+          <button onclick="markAttendance('${s.id}','present')" class="att-btn present ${status==='present'?'active':''}" title="Present">✅</button>
+          <button onclick="markAttendance('${s.id}','late')" class="att-btn late ${status==='late'?'active':''}" title="Late">⏰</button>
+          <button onclick="markAttendance('${s.id}','absent')" class="att-btn absent ${status==='absent'?'active':''}" title="Absent">❌</button>
+        </div>
+      </div>`;
+    }).join('')}
+    <button onclick="viewAttendanceHistory()" style="width:100%;margin-top:14px;padding:10px;border:1.5px solid var(--border);background:white;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text-muted)">📊 History দেখুন</button>
+  `;
+}
+
+async function markAttendance(studentId, status) {
+  const today = new Date().toISOString().split('T')[0];
+  // Upsert
+  await sb.from('attendance').upsert({
+    teacher_id: CUP.id, student_id: studentId, date: today, status
+  }, {onConflict: 'teacher_id,student_id,date'});
+
+  // Update UI
+  const row = document.getElementById(`att-row-${studentId}`);
+  if (row) {
+    row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = row.querySelector(`.att-btn.${status}`);
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+  toast(status === 'present' ? '✅ Present' : status === 'late' ? '⏰ Late' : '❌ Absent');
+}
+
+async function markAllAttendance(status) {
+  const today = new Date().toISOString().split('T')[0];
+  const rows = attendanceStudents.map(s => ({
+    teacher_id: CUP.id, student_id: s.id, date: today, status
+  }));
+  await sb.from('attendance').upsert(rows, {onConflict: 'teacher_id,student_id,date'});
+  await loadAttendanceStudents();
+  toast(status === 'present' ? '✅ সবাইকে Present করা হয়েছে' : '❌ সবাইকে Absent করা হয়েছে');
+}
+
+async function viewAttendanceHistory() {
+  const wrap = document.getElementById('att-body');
+  wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>`;
+  const {data} = await sb.from('attendance').select('*,profiles!attendance_student_id_fkey(name,avatar,color,tc)')
+    .eq('teacher_id', CUP.id).order('date', {ascending: false}).limit(100);
+
+  if (!data || data.length === 0) {
+    wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">কোনো attendance record নেই</div>`;
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  data.forEach(a => {
+    if (!grouped[a.date]) grouped[a.date] = [];
+    grouped[a.date].push(a);
+  });
+
+  let html = `<button onclick="loadAttendanceStudents()" style="width:100%;margin-bottom:14px;padding:9px;border:1.5px solid var(--border);background:white;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">← আজকের Attendance</button>`;
+  Object.keys(grouped).forEach(date => {
+    const d = new Date(date);
+    const dateLabel = d.toLocaleDateString('bn-BD', {weekday:'short', month:'short', day:'numeric'});
+    const records = grouped[date];
+    const p = records.filter(r=>r.status==='present').length;
+    const a = records.filter(r=>r.status==='absent').length;
+    const l = records.filter(r=>r.status==='late').length;
+    html += `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;display:flex;justify-content:space-between">
+        <span>📅 ${dateLabel}</span>
+        <span style="color:var(--green)">✅${p} ❌${a} ⏰${l}</span>
+      </div>
+      ${records.map(r => {
+        const s = r.profiles;
+        const bg = r.status==='present'?'#D1FAE5':r.status==='absent'?'#FEE2E2':'#FEF3C7';
+        const tc = r.status==='present'?'#065F46':r.status==='absent'?'#991B1B':'#92400E';
+        const icon = r.status==='present'?'✅':r.status==='absent'?'❌':'⏰';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:white;border-radius:8px;margin-bottom:4px;border:1px solid var(--border)">
+          <div style="width:28px;height:28px;border-radius:8px;background:${s?.color||'#ddd'};color:${s?.tc||'#333'};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${s?.avatar||'?'}</div>
+          <div style="flex:1;font-size:12px;font-weight:600">${s?.name||'Unknown'}</div>
+          <span style="background:${bg};color:${tc};padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">${icon} ${r.status}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+// ===== STUDY MATERIALS =====
+async function openMaterialsModal() {
+  document.getElementById('materials-modal').style.display = 'flex';
+  await loadMaterials();
+}
+function closeMaterialsModal() {
+  document.getElementById('materials-modal').style.display = 'none';
+}
+
+async function loadMaterials() {
+  const wrap = document.getElementById('materials-list');
+  wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>`;
+  const query = CUP.role === 'teacher'
+    ? sb.from('study_materials').select('*').eq('teacher_id', CUP.id).order('created_at', {ascending: false})
+    : sb.from('study_materials').select('*,profiles!study_materials_teacher_id_fkey(name,avatar,color,tc)').order('created_at', {ascending: false}).limit(50);
+  const {data} = await query;
+  if (!data || data.length === 0) {
+    wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">কোনো material নেই</div>`;
+    return;
+  }
+  wrap.innerHTML = data.map(m => {
+    const isTeacher = CUP.role === 'teacher';
+    const icon = m.file_type?.includes('pdf') ? '📄' : m.file_type?.includes('image') ? '🖼️' : '📁';
+    return `<div class="material-card">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:28px;flex-shrink:0">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">${m.title}</div>
+          ${m.subject ? `<div style="font-size:11px;color:var(--green-dark);font-weight:600">📚 ${m.subject}</div>` : ''}
+          ${m.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.description}</div>` : ''}
+          ${!isTeacher && m.profiles ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👨‍🏫 ${m.profiles.name}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-muted);margin-top:3px">${new Date(m.created_at).toLocaleDateString('bn-BD')}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        ${m.file_url ? `<a href="${m.file_url}" target="_blank" style="flex:1;display:block;text-align:center;padding:8px;background:var(--green);color:white;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none">⬇️ Download</a>` : ''}
+        ${isTeacher ? `<button onclick="deleteMaterial('${m.id}','${m.file_url||''}')" style="padding:8px 12px;border:1.5px solid #FCA5A5;background:#FEE2E2;color:#991B1B;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">🗑️</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function uploadMaterial() {
+  const title = document.getElementById('mat-title').value.trim();
+  const subject = document.getElementById('mat-subject').value.trim();
+  const desc = document.getElementById('mat-desc').value.trim();
+  const fileInput = document.getElementById('mat-file');
+  const file = fileInput.files[0];
+
+  if (!title) { toast('⚠️ Title দিন'); return; }
+  if (!file) { toast('⚠️ File select করুন'); return; }
+  if (file.size > 10 * 1024 * 1024) { toast('⚠️ File 10MB এর বেশি হবে না'); return; }
+
+  const btn = document.getElementById('mat-upload-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Uploading...';
+
+  const ext = file.name.split('.').pop();
+  const path = `${CUP.id}/${Date.now()}.${ext}`;
+  const {data: uploadData, error: upErr} = await sb.storage.from('study-materials').upload(path, file);
+  if (upErr) { toast('❌ Upload failed: ' + upErr.message); btn.disabled=false; btn.textContent='⬆️ Upload করুন'; return; }
+
+  const {data: urlData} = sb.storage.from('study-materials').getPublicUrl(path);
+  const {error} = await sb.from('study_materials').insert({
+    teacher_id: CUP.id, title, subject, description: desc,
+    file_url: urlData.publicUrl, file_name: file.name, file_type: file.type
+  });
+
+  btn.disabled = false;
+  btn.textContent = '⬆️ Upload করুন';
+  if (error) { toast('❌ Error: ' + error.message); return; }
+
+  document.getElementById('mat-title').value = '';
+  document.getElementById('mat-subject').value = '';
+  document.getElementById('mat-desc').value = '';
+  fileInput.value = '';
+  document.getElementById('mat-file-label').textContent = '📁 File select করুন';
+
+  toast('✅ Material upload হয়েছে!');
+  await loadMaterials();
+}
+
+async function deleteMaterial(id, fileUrl) {
+  if (!confirm('এই material মুছে ফেলবেন?')) return;
+  if (fileUrl) {
+    const path = fileUrl.split('/study-materials/')[1];
+    if (path) await sb.storage.from('study-materials').remove([path]);
+  }
+  await sb.from('study_materials').delete().eq('id', id);
+  toast('🗑️ Material মুছে ফেলা হয়েছে');
+  await loadMaterials();
 }
 
 // ===== KEYBOARD / VIEWPORT FIX FOR MOBILE CHAT =====
