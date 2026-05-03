@@ -159,6 +159,112 @@ async function rejectTeacher(tid){
   renderHome();
 }
 
+// ===== REVENUE CHART =====
+function drawRevenueChart(){
+  const canvas=document.getElementById('revenue-chart');
+  if(!canvas)return;
+  const activeR=_aRL.filter(r=>r.status==='active');
+  if(!activeR.length)return;
+  // Group by month
+  const byMonth={};
+  activeR.forEach(r=>{
+    if(!r.created_at)return;
+    const d=new Date(r.created_at);
+    const key=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+    if(!byMonth[key])byMonth[key]={amount:0,label:d.toLocaleString('bn-BD',{month:'short'})+' '+d.getFullYear()};
+    byMonth[key].amount+=(r.service_fee||0);
+  });
+  const months=Object.keys(byMonth).sort();
+  if(!months.length)return;
+  const labels=months.map(k=>byMonth[k].label);
+  const data=months.map(k=>byMonth[k].amount);
+  const maxVal=Math.max(...data,1);
+  const W=canvas.offsetWidth||300;
+  const H=200;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const pad={l:50,r:16,t:16,b:40};
+  const chartW=W-pad.l-pad.r;
+  const chartH=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  // Grid lines
+  ctx.strokeStyle='#E2E8F0';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+chartH-(i/4)*chartH;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillStyle='#94A3B8';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText('৳'+(Math.round(maxVal*i/4)).toLocaleString(),pad.l-4,y+4);
+  }
+  const barW=Math.min(36,chartW/months.length*0.55);
+  const gap=chartW/months.length;
+  // Draw bars with gradient
+  months.forEach((m,i)=>{
+    const x=pad.l+gap*i+gap/2-barW/2;
+    const barH=Math.max(4,(data[i]/maxVal)*chartH);
+    const y=pad.t+chartH-barH;
+    const grad=ctx.createLinearGradient(0,y,0,y+barH);
+    grad.addColorStop(0,'#1D9E75');grad.addColorStop(1,'#A7F3D0');
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.roundRect(x,y,barW,barH,4);
+    ctx.fill();
+    // Value label on bar
+    ctx.fillStyle='#166534';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+    ctx.fillText('৳'+data[i].toLocaleString(),x+barW/2,y-4);
+    // Month label
+    ctx.fillStyle='#64748B';ctx.font='9px sans-serif';
+    ctx.fillText(labels[i],x+barW/2,H-pad.b+14);
+  });
+}
+
+// ===== EXPORT TO EXCEL =====
+async function exportAllToExcel(){
+  toast('⏳ Excel তৈরি হচ্ছে...');
+  try{
+    const {data:teachers}=await sb.from('profiles').select('*').eq('role','teacher').order('created_at',{ascending:false});
+    const {data:students}=await sb.from('profiles').select('*').eq('role','student').order('created_at',{ascending:false});
+    const {data:sessions}=await sb.from('requests').select('*').order('created_at',{ascending:false});
+
+    // Build CSV content for each sheet, merged into one workbook-style CSV with separators
+    const now=new Date();
+    const dateStr=now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear();
+
+    // Teachers sheet
+    let csv='=== TEACHERS / শিক্ষক তালিকা ===\n';
+    csv+='Name,Email/Phone,Subject,Class Range,Fee (৳),District,Upazila,Experience,Rating,Status,Joined\n';
+    (teachers||[]).forEach(t=>{
+      csv+=`"${t.name||''}","${t.phone||''}","${t.subject||''}","${t.class_range||''}","${t.fee||0}","${t.district||''}","${t.upazila||''}","${t.experience||''}","${t.rating||4.5}","${t.active?'Active':'Pending'}","${t.created_at?fmtDate(t.created_at):''}"\n`;
+    });
+
+    csv+='\n=== STUDENTS / শিক্ষার্থী তালিকা ===\n';
+    csv+='Name,Phone,Grade/Class,District,Upazila,Division,Joined\n';
+    (students||[]).forEach(s=>{
+      csv+=`"${s.name||''}","${s.phone||''}","${s.grade||''}","${s.district||''}","${s.upazila||''}","${s.division||''}","${s.created_at?fmtDate(s.created_at):''}"\n`;
+    });
+
+    csv+='\n=== SESSIONS & COMMISSION / সেশন ও কমিশন ===\n';
+    csv+='Session ID,Student ID,Teacher ID,Fee (৳),Commission,Payment Method,TXN ID,Status,Date\n';
+    const activeS=(sessions||[]).filter(r=>r.status==='active');
+    const totalCom=activeS.reduce((s,r)=>s+(r.service_fee||0),0);
+    (sessions||[]).forEach(r=>{
+      csv+=`"${(r.id||'').slice(0,8)}","${r.student_id||''}","${r.teacher_id||''}","${r.service_fee||0}","${r.service_fee||0}","${r.payment_method||''}","${r.txn_id||''}","${r.status||''}","${r.created_at?fmtDate(r.created_at):''}"\n`;
+    });
+    csv+=`\n"","","","মোট Commission:","৳${totalCom.toLocaleString()}","","","","Exported: ${dateStr}"\n`;
+
+    // Download
+    const BOM='\uFEFF'; // UTF-8 BOM for Bengali in Excel
+    const blob=new Blob([BOM+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='TuitionMaster_Data_'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate()+'.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('✅ Excel (CSV) download হয়েছে!');
+  }catch(e){
+    toast('❌ Export failed: '+e.message);
+  }
+}
+
 
 
 
@@ -2135,11 +2241,15 @@ async function renderAdminHome(el){
     <div class="stat-box"><div class="num">${_aSL.length}</div><div class="lbl-en">Students</div><div class="lbl-bn">শিক্ষার্থী</div></div>
     <div class="stat-box"><div class="num">${_aRL.length}</div><div class="lbl-en">Sessions</div><div class="lbl-bn">সেশন</div></div>
   </div>
-  <div class="admin-tabs">
+  <div class="admin-tabs" style="flex-wrap:wrap;gap:4px">
     <button class="admin-tab ${adminTab==='pending'?'active':''}" onclick="setAdminTab('pending')">⏳ Pending (${_aPL.length})</button>
     <button class="admin-tab ${adminTab==='teachers'?'active':''}" onclick="setAdminTab('teachers')">👨‍🏫 Teachers (${_aTL.length})</button>
     <button class="admin-tab ${adminTab==='students'?'active':''}" onclick="setAdminTab('students')">🎓 Students (${_aSL.length})</button>
     <button class="admin-tab ${adminTab==='sessions'?'active':''}" onclick="setAdminTab('sessions')">📋 Sessions (${_aRL.length})</button>
+    <button class="admin-tab ${adminTab==='revenue'?'active':''}" onclick="setAdminTab('revenue')" style="background:${adminTab==='revenue'?'var(--green)':'#F0FDF4'};color:${adminTab==='revenue'?'white':'#166534'};border-color:#BBF7D0">📊 Revenue</button>
+  </div>
+  <div style="display:flex;gap:8px;margin:10px 0 4px;flex-wrap:wrap">
+    <button onclick="exportAllToExcel()" style="flex:1;padding:10px 12px;background:#166534;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">📥 Export Excel — সব User Data</button>
   </div>
   <div id="admin-data">${buildAdminTab()}</div>`;
 }
@@ -2151,10 +2261,12 @@ function setAdminTab(tab){
       (tab==='pending'&&b.textContent.includes('Pending'))||
       (tab==='teachers'&&b.textContent.includes('Teacher'))||
       (tab==='students'&&b.textContent.includes('Student'))||
-      (tab==='sessions'&&b.textContent.includes('Session'))
+      (tab==='sessions'&&b.textContent.includes('Session'))||
+      (tab==='revenue'&&b.textContent.includes('Revenue'))
     );
   });
   document.getElementById('admin-data').innerHTML=buildAdminTab();
+  if(tab==='revenue') setTimeout(drawRevenueChart, 50);
 }
 
 function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
@@ -2218,6 +2330,61 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <div>📅 Joined: <strong>${s.created_at?fmtDate(s.created_at):'—'}</strong></div>
       </div>
     </div>`).join('');
+  } else if(adminTab==='revenue'){
+    // Build monthly revenue from requests
+    const activeR = rL.filter(r=>r.status==='active');
+    const totalCommission = activeR.reduce((s,r)=>s+(r.service_fee||0),0);
+    const totalFees = activeR.reduce((s,r)=>s+(r.service_fee||0),0);
+    // Group by month
+    const byMonth={};
+    activeR.forEach(r=>{
+      if(!r.created_at)return;
+      const d=new Date(r.created_at);
+      const key=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+      if(!byMonth[key])byMonth[key]={count:0,amount:0,label:d.toLocaleString('default',{month:'short',year:'numeric'})};
+      byMonth[key].count++;
+      byMonth[key].amount+=(r.service_fee||0);
+    });
+    const months=Object.keys(byMonth).sort();
+    const monthData=months.map(k=>byMonth[k]);
+    return`<div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:10px">💰 Revenue Summary / আয়ের সারসংক্ষেপ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:white;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--green)">৳${totalCommission.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">মোট Commission / Total Commission</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#166534">${activeR.length}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Paid Sessions / পেইড সেশন</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Monthly Commission Chart / মাসিক কমিশন গ্রাফ</div>
+      ${months.length===0?`<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">এখনো কোনো paid session নেই</div>`
+      :`<canvas id="revenue-chart" style="width:100%;max-height:220px"></canvas>`}
+      ${months.length>0?`<div style="margin-top:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#F0FDF4">
+            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px;color:#166534">Month / মাস</th>
+            <th style="padding:6px 8px;text-align:center;color:#166534">Sessions</th>
+            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0;color:#166534">Commission</th>
+          </tr></thead>
+          <tbody>${monthData.map((m,i)=>`<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:7px 8px;font-weight:600">${m.label}</td>
+            <td style="padding:7px 8px;text-align:center;color:var(--text-muted)">${m.count}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:700;color:var(--green)">৳${m.amount.toLocaleString()}</td>
+          </tr>`).join('')}</tbody>
+          <tfoot><tr style="background:#F0FDF4">
+            <td style="padding:7px 8px;font-weight:700;border-radius:0 0 0 6px">মোট Total</td>
+            <td style="padding:7px 8px;text-align:center;font-weight:700">${activeR.length}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:800;color:#166534;font-size:14px;border-radius:0 0 6px 0">৳${totalCommission.toLocaleString()}</td>
+          </tr></tfoot>
+        </table>
+      </div>`:''}
+    </div>`;
+    // chart drawn after render via setTimeout
   } else {
     if(!rL.length)return`<div class="empty-state"><div class="icon">📋</div><p>No sessions yet / এখনো কোনো সেশন নেই</p></div>`;
     return rL.map(r=>`<div class="user-card">
