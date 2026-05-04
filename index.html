@@ -186,13 +186,26 @@ function drawRevenueChart(){
   const pad={l:50,r:16,t:16,b:40};
   const chartW=W-pad.l-pad.r;
   const chartH=H-pad.t-pad.b;
+  // Dark mode aware colors
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor   = isDark ? '#2a2d3a' : '#E2E8F0';
+  const labelColor  = isDark ? '#8b93a8' : '#64748B';
+  const valueColor  = isDark ? '#5DCAA5' : '#166534';
+  const barTop      = isDark ? '#5DCAA5' : '#1D9E75';
+  const barBottom   = isDark ? '#0d2b22' : '#A7F3D0';
+  const bgColor     = isDark ? '#1a1d27' : '#ffffff';
+
+  // Background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, W, H);
   ctx.clearRect(0,0,W,H);
+
   // Grid lines
-  ctx.strokeStyle='#E2E8F0';ctx.lineWidth=1;
+  ctx.strokeStyle = gridColor; ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+chartH-(i/4)*chartH;
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle='#94A3B8';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillStyle=labelColor;ctx.font='10px sans-serif';ctx.textAlign='right';
     ctx.fillText('৳'+(Math.round(maxVal*i/4)).toLocaleString(),pad.l-4,y+4);
   }
   const barW=Math.min(36,chartW/months.length*0.55);
@@ -203,16 +216,16 @@ function drawRevenueChart(){
     const barH=Math.max(4,(data[i]/maxVal)*chartH);
     const y=pad.t+chartH-barH;
     const grad=ctx.createLinearGradient(0,y,0,y+barH);
-    grad.addColorStop(0,'#1D9E75');grad.addColorStop(1,'#A7F3D0');
+    grad.addColorStop(0,barTop);grad.addColorStop(1,barBottom);
     ctx.fillStyle=grad;
     ctx.beginPath();
     ctx.roundRect(x,y,barW,barH,4);
     ctx.fill();
     // Value label on bar
-    ctx.fillStyle='#166534';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+    ctx.fillStyle=valueColor;ctx.font='bold 9px sans-serif';ctx.textAlign='center';
     ctx.fillText('৳'+data[i].toLocaleString(),x+barW/2,y-4);
     // Month label
-    ctx.fillStyle='#64748B';ctx.font='9px sans-serif';
+    ctx.fillStyle=labelColor;ctx.font='9px sans-serif';
     ctx.fillText(labels[i],x+barW/2,H-pad.b+14);
   });
 }
@@ -2475,39 +2488,39 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
     });
     const months=Object.keys(byMonth).sort();
     const monthData=months.map(k=>byMonth[k]);
-    return`<div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:14px;padding:14px;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:10px">💰 Revenue Summary / আয়ের সারসংক্ষেপ</div>
+    return`<div style="background:var(--green-light);border:1.5px solid var(--green);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:10px">💰 Revenue Summary / আয়ের সারসংক্ষেপ</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:white;border-radius:10px;padding:12px;text-align:center">
+        <div style="background:var(--white);border-radius:10px;padding:12px;text-align:center">
           <div style="font-size:20px;font-weight:800;color:var(--green)">৳${totalCommission.toLocaleString()}</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">মোট Commission / Total Commission</div>
         </div>
-        <div style="background:white;border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:#166534">${activeR.length}</div>
+        <div style="background:var(--white);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--green-dark)">${activeR.length}</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Paid Sessions / পেইড সেশন</div>
         </div>
       </div>
     </div>
-    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Monthly Commission Chart / মাসিক কমিশন গ্রাফ</div>
       ${months.length===0?`<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">এখনো কোনো paid session নেই</div>`
       :`<canvas id="revenue-chart" style="width:100%;max-height:220px"></canvas>`}
       ${months.length>0?`<div style="margin-top:10px">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#F0FDF4">
-            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px;color:#166534">Month / মাস</th>
-            <th style="padding:6px 8px;text-align:center;color:#166534">Sessions</th>
-            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0;color:#166534">Commission</th>
+          <thead><tr style="background:var(--green-light)">
+            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px;color:var(--green-dark)">Month / মাস</th>
+            <th style="padding:6px 8px;text-align:center;color:var(--green-dark)">Sessions</th>
+            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0;color:var(--green-dark)">Commission</th>
           </tr></thead>
           <tbody>${monthData.map((m,i)=>`<tr style="border-bottom:1px solid var(--border)">
             <td style="padding:7px 8px;font-weight:600">${m.label}</td>
             <td style="padding:7px 8px;text-align:center;color:var(--text-muted)">${m.count}</td>
             <td style="padding:7px 8px;text-align:right;font-weight:700;color:var(--green)">৳${m.amount.toLocaleString()}</td>
           </tr>`).join('')}</tbody>
-          <tfoot><tr style="background:#F0FDF4">
+          <tfoot><tr style="background:var(--green-light)">
             <td style="padding:7px 8px;font-weight:700;border-radius:0 0 0 6px">মোট Total</td>
             <td style="padding:7px 8px;text-align:center;font-weight:700">${activeR.length}</td>
-            <td style="padding:7px 8px;text-align:right;font-weight:800;color:#166534;font-size:14px;border-radius:0 0 6px 0">৳${totalCommission.toLocaleString()}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:800;color:var(--green-dark);font-size:14px;border-radius:0 0 6px 0">৳${totalCommission.toLocaleString()}</td>
           </tr></tfoot>
         </table>
       </div>`:''}
