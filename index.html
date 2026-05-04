@@ -186,26 +186,13 @@ function drawRevenueChart(){
   const pad={l:50,r:16,t:16,b:40};
   const chartW=W-pad.l-pad.r;
   const chartH=H-pad.t-pad.b;
-  // Dark mode aware colors
-  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-  const gridColor   = isDark ? '#2a2d3a' : '#E2E8F0';
-  const labelColor  = isDark ? '#8b93a8' : '#64748B';
-  const valueColor  = isDark ? '#5DCAA5' : '#166534';
-  const barTop      = isDark ? '#5DCAA5' : '#1D9E75';
-  const barBottom   = isDark ? '#0d2b22' : '#A7F3D0';
-  const bgColor     = isDark ? '#1a1d27' : '#ffffff';
-
-  // Background
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, W, H);
   ctx.clearRect(0,0,W,H);
-
   // Grid lines
-  ctx.strokeStyle = gridColor; ctx.lineWidth=1;
+  ctx.strokeStyle='#E2E8F0';ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+chartH-(i/4)*chartH;
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle=labelColor;ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillStyle='#94A3B8';ctx.font='10px sans-serif';ctx.textAlign='right';
     ctx.fillText('৳'+(Math.round(maxVal*i/4)).toLocaleString(),pad.l-4,y+4);
   }
   const barW=Math.min(36,chartW/months.length*0.55);
@@ -216,16 +203,16 @@ function drawRevenueChart(){
     const barH=Math.max(4,(data[i]/maxVal)*chartH);
     const y=pad.t+chartH-barH;
     const grad=ctx.createLinearGradient(0,y,0,y+barH);
-    grad.addColorStop(0,barTop);grad.addColorStop(1,barBottom);
+    grad.addColorStop(0,'#1D9E75');grad.addColorStop(1,'#A7F3D0');
     ctx.fillStyle=grad;
     ctx.beginPath();
     ctx.roundRect(x,y,barW,barH,4);
     ctx.fill();
     // Value label on bar
-    ctx.fillStyle=valueColor;ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+    ctx.fillStyle='#166534';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
     ctx.fillText('৳'+data[i].toLocaleString(),x+barW/2,y-4);
     // Month label
-    ctx.fillStyle=labelColor;ctx.font='9px sans-serif';
+    ctx.fillStyle='#64748B';ctx.font='9px sans-serif';
     ctx.fillText(labels[i],x+barW/2,H-pad.b+14);
   });
 }
@@ -1182,9 +1169,6 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .notif-box{background:#1e293b}
 [data-theme="dark"] .notif-item.read{background:#0f172a;border-color:#334155}
 [data-theme="dark"] .cal-box{background:#1e293b}
-[data-theme="dark"] #conv-body{background:#0f1117}
-[data-theme="dark"] #conv-body div[style*="#dbeafe"]{background:#1e3a5f!important;color:#e8eaf0!important}
-[data-theme="dark"] #conv-body div[style*="green-light"]{color:#e8eaf0}
 [data-theme="dark"] .cal-day:hover{background:#0f2d22}
 [data-theme="dark"] .tp-body{background:#0f172a}
 [data-theme="dark"] .pill{background:#1e293b;border-color:#334155;color:#94a3b8}
@@ -1192,13 +1176,12 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .hist-pill:hover{background:#0f2d22}
 [data-theme="dark"] .logout-btn{background:#1e293b;border-color:#334155;color:#94a3b8}
 [data-theme="dark"] .lang-btn{background:#0f2d22}
-[data-theme="dark"] .filter-sel{padding:7px 10px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.filter-sel:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+[data-theme="dark"] .filter-sel{padding:7px 10px 7px 26px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.filter-sel:focus{border-color:var(--green);outline:none}
 .filter-sel.has-value{border-color:var(--green);background-color:var(--green-light);color:var(--green-dark);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%230F6E56'/%3E%3C/svg%3E")}
 [data-theme="dark"] .filter-sel{background:transparent;color:#e8eaf0;border-color:#2a2d3a;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b93a8'/%3E%3C/svg%3E")}
 [data-theme="dark"] .filter-sel.has-value{background-color:var(--green-light);color:var(--green-dark)}
-.filter-row select{background:#1e293b;border-color:#334155;color:#f1f5f9}
-[data-theme="dark"] #f-division,#f-district,#f-upazila,#f-class{background:#1e293b;color:#f1f5f9}
+[data-theme='dark'] .filter-row select{background:#1e293b;border-color:#334155;color:#f1f5f9}
 [data-theme="dark"] .search-bar input{background:#1e293b;border-color:#334155;color:#f1f5f9}
 [data-theme="dark"] .info-row{border-color:#334155}
 [data-theme="dark"] .admin-tab{background:#1e293b;border-color:#334155;color:#94a3b8}
@@ -1433,8 +1416,8 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .search-bar input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none}
 .search-bar input:focus{border-color:var(--green)}
 .filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.filter-sel{padding:7px 10px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.filter-sel:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+.filter-sel{padding:7px 10px 7px 26px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.filter-sel:focus{border-color:var(--green);outline:none}
 .filter-sel.has-value{border-color:var(--green);background-color:var(--green-light);color:var(--green-dark);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%230F6E56'/%3E%3C/svg%3E")}
 [data-theme="dark"] .filter-sel{background:transparent;color:#e8eaf0;border-color:#2a2d3a;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b93a8'/%3E%3C/svg%3E")}
 [data-theme="dark"] .filter-sel.has-value{background-color:var(--green-light);color:var(--green-dark)}
@@ -1533,11 +1516,6 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .bilingual{display:flex;flex-direction:column}
 .bilingual .en{font-size:13px;font-weight:600}
 .bilingual .bn{font-size:11px;color:var(--text-muted)}
-[data-theme="dark"] .bkash-step{background:#0f172a}
-[data-theme="dark"] .bkash-step p{color:#e8eaf0}
-[data-theme="dark"] div[style*="#FEF3C7"]{background:#2d2006!important;color:#fcd34d!important}
-[data-theme="dark"] div[style*="#FCD34D"]{border-color:#854d0e!important}
-[data-theme="dark"] .user-card div[style*="green-light"]{background:var(--green-light)}
 </style>
 </head>
 <body>
@@ -1748,39 +1726,27 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
     <div class="page" id="page-search">
       <div class="section-title">🔍 Find Teachers <small>শিক্ষক খুঁজুন</small></div>
       <div class="search-bar"><input type="text" id="search-inp" placeholder="Search name or subject / নাম বা বিষয় লিখুন..." oninput="renderTeachers();if(this.value.length>1)addSearchHistory(this.value.trim())"></div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-          <div style="position:relative">
-            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">📍</div>
-            <select id="f-division" onchange="updateSearchDistricts();markFilter(this)" class="filter-sel" style="padding-left:26px">
-              <option value="">বিভাগ</option>
-              <option>ঢাকা</option><option>চট্টগ্রাম</option><option>রাজশাহী</option>
-              <option>খুলনা</option><option>বরিশাল</option><option>সিলেট</option>
-              <option>রংপুর</option><option>ময়মনসিংহ</option>
-            </select>
-          </div>
-          <div style="position:relative">
-            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">🏘️</div>
-            <select id="f-district" onchange="updateSearchUpazilas();markFilter(this)" class="filter-sel" style="padding-left:26px">
-              <option value="">জেলা</option>
-            </select>
-          </div>
-          <div style="position:relative">
-            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">🗺️</div>
-            <select id="f-upazila" onchange="renderTeachers();markFilter(this)" class="filter-sel" style="padding-left:26px">
-              <option value="">উপজেলা</option>
-            </select>
-          </div>
-        </div>
-        <div style="position:relative">
-          <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">🎓</div>
-          <select id="f-class" onchange="renderTeachers();markFilter(this)" class="filter-sel" style="width:100%;padding-left:26px">
-            <option value="">শ্রেণি বেছে নিন</option>
-            <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
-            <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
-            <option>University / বিশ্ববিদ্যালয়</option>
-          </select>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <select id="f-division" onchange="updateSearchDistricts()" class="filter-sel">
+          <option value="">All Division</option>
+          <option>ঢাকা</option><option>চট্টগ্রাম</option><option>রাজশাহী</option>
+          <option>খুলনা</option><option>বরিশাল</option><option>সিলেট</option>
+          <option>রংপুর</option><option>ময়মনসিংহ</option>
+        </select>
+        <select id="f-district" onchange="updateSearchUpazilas()" class="filter-sel">
+          <option value="">All District</option>
+        </select>
+        <select id="f-upazila" onchange="renderTeachers()" class="filter-sel">
+          <option value="">All Upazila</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px">
+        <select id="f-class" onchange="renderTeachers()" class="filter-sel" style="width:100%">
+          <option value="">All Classes / সব শ্রেণি</option>
+          <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
+          <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
+          <option>University / বিশ্ববিদ্যালয়</option>
+        </select>
       </div>
       <div class="filter-pills">
         <div class="pill active" data-s="all" onclick="filterSub(this)">All / সব</div>
@@ -1940,7 +1906,17 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       <button onclick="closeMaterialsModal()" style="border:none;background:var(--bg);color:var(--text-muted);padding:5px 10px;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
     </div>
 
-    <div id="mat-upload-section"></div>
+    ${CUP?.role === 'teacher' ? `<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">⬆️ নতুন Material Upload</div>
+      <input id="mat-title" type="text" placeholder="Title *" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <input id="mat-subject" type="text" placeholder="বিষয় (যেমন: গণিত)" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+        <input id="mat-desc" type="text" placeholder="Description" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+      </div>
+      <label id="mat-file-label" onclick="document.getElementById('mat-file').click()" style="display:block;padding:10px;border:2px dashed var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;margin-bottom:10px;font-weight:600">📁 File select করুন<br><small style="font-weight:400">PDF, Word, Image (max 10MB)</small></label>
+      <input id="mat-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none" onchange="document.getElementById('mat-file-label').textContent='✅ '+this.files[0]?.name">
+      <button id="mat-upload-btn" onclick="uploadMaterial()" style="width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⬆️ Upload করুন</button>
+    </div>` : ''}
 
     <div style="font-size:13px;font-weight:700;margin-bottom:10px">📋 সব Materials</div>
     <div id="materials-list">
@@ -1960,10 +1936,10 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
         <button onclick="closeConvModal()" style="border:none;background:rgba(255,255,255,0.2);color:white;width:30px;height:30px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
       </div>
     </div>
-    <div id="conv-body" style="flex:1;overflow-y:auto;padding:16px;background:var(--bg);min-height:200px;max-height:70vh">
+    <div id="conv-body" style="flex:1;overflow-y:auto;padding:16px;background:#f0f2f5;min-height:200px;max-height:70vh">
       <div style="text-align:center;padding:30px;color:var(--text-muted)">Loading...</div>
     </div>
-    <div style="padding:10px 14px;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;text-align:center;font-size:11px;color:var(--text-muted);border-radius:0 0 16px 16px">
+    <div style="padding:10px 14px;background:white;border-top:1px solid var(--border);flex-shrink:0;text-align:center;font-size:11px;color:var(--text-muted);border-radius:0 0 16px 16px">
       🔒 Admin monitor mode — শুধু পড়া যাবে
     </div>
   </div>
@@ -2373,7 +2349,7 @@ async function renderAdminHome(el){
   _aSL=students||[];_aRL=reqs||[];
   if(_aPL.length>0) adminTab='pending';
   el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Admin Panel / অ্যাডমিন প্যানেল</p><p style="font-size:20px;font-weight:700">Tuition Master 📊</p></div>
-  ${_aPL.length>0?`<div style="background:var(--warn-bg,#FEF3C7);border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${_aPL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
+  ${_aPL.length>0?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${_aPL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
   <div class="stat-row">
     <div class="stat-box"><div class="num">${_aTL.length}</div><div class="lbl-en">Active Teachers</div><div class="lbl-bn">সক্রিয় শিক্ষক</div></div>
     <div class="stat-box"><div class="num">${_aPL.length}</div><div class="lbl-en" style="color:var(--warn)">Pending</div><div class="lbl-bn" style="color:var(--warn)">অপেক্ষারত</div></div>
@@ -2494,39 +2470,39 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
     });
     const months=Object.keys(byMonth).sort();
     const monthData=months.map(k=>byMonth[k]);
-    return`<div style="background:var(--green-light);border:1.5px solid var(--green);border-radius:14px;padding:14px;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:10px">💰 Revenue Summary / আয়ের সারসংক্ষেপ</div>
+    return`<div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:10px">💰 Revenue Summary / আয়ের সারসংক্ষেপ</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:var(--white);border-radius:10px;padding:12px;text-align:center">
+        <div style="background:white;border-radius:10px;padding:12px;text-align:center">
           <div style="font-size:20px;font-weight:800;color:var(--green)">৳${totalCommission.toLocaleString()}</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">মোট Commission / Total Commission</div>
         </div>
-        <div style="background:var(--white);border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:var(--green-dark)">${activeR.length}</div>
+        <div style="background:white;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#166534">${activeR.length}</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Paid Sessions / পেইড সেশন</div>
         </div>
       </div>
     </div>
-    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Monthly Commission Chart / মাসিক কমিশন গ্রাফ</div>
       ${months.length===0?`<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">এখনো কোনো paid session নেই</div>`
       :`<canvas id="revenue-chart" style="width:100%;max-height:220px"></canvas>`}
       ${months.length>0?`<div style="margin-top:10px">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:var(--green-light)">
-            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px;color:var(--green-dark)">Month / মাস</th>
-            <th style="padding:6px 8px;text-align:center;color:var(--green-dark)">Sessions</th>
-            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0;color:var(--green-dark)">Commission</th>
+          <thead><tr style="background:#F0FDF4">
+            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px;color:#166534">Month / মাস</th>
+            <th style="padding:6px 8px;text-align:center;color:#166534">Sessions</th>
+            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0;color:#166534">Commission</th>
           </tr></thead>
           <tbody>${monthData.map((m,i)=>`<tr style="border-bottom:1px solid var(--border)">
             <td style="padding:7px 8px;font-weight:600">${m.label}</td>
             <td style="padding:7px 8px;text-align:center;color:var(--text-muted)">${m.count}</td>
             <td style="padding:7px 8px;text-align:right;font-weight:700;color:var(--green)">৳${m.amount.toLocaleString()}</td>
           </tr>`).join('')}</tbody>
-          <tfoot><tr style="background:var(--green-light)">
+          <tfoot><tr style="background:#F0FDF4">
             <td style="padding:7px 8px;font-weight:700;border-radius:0 0 0 6px">মোট Total</td>
             <td style="padding:7px 8px;text-align:center;font-weight:700">${activeR.length}</td>
-            <td style="padding:7px 8px;text-align:right;font-weight:800;color:var(--green-dark);font-size:14px;border-radius:0 0 6px 0">৳${totalCommission.toLocaleString()}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:800;color:#166534;font-size:14px;border-radius:0 0 6px 0">৳${totalCommission.toLocaleString()}</td>
           </tr></tfoot>
         </table>
       </div>`:''}
@@ -2560,14 +2536,14 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         💳 ${r.payment_method||'—'} &nbsp;|&nbsp;
         📅 ${r.created_at?fmtDate(r.created_at):'—'}
       </div>
-      ${r.txn_id?`<div style="background:var(--green-light);border:1px solid var(--green);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:var(--text)">
-        🔖 TXN: <strong style="font-size:13px;letter-spacing:1px;color:var(--green-dark)">${r.txn_id}</strong>
+      ${r.txn_id?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">
+        🔖 TXN: <strong style="font-size:13px;letter-spacing:1px">${r.txn_id}</strong>
       </div>`:''}
       <div class="btn-row">
         ${teacher?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${teacher.id}')">💬 Teacher</button>`:''}
         ${student?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${student.id}')">💬 Student</button>`:''}
       </div>
-      ${teacher&&student?`<button class="btn-sm" style="width:100%;margin-top:6px;background:var(--green-light);color:var(--green-dark);border:1.5px solid var(--green);font-family:inherit;cursor:pointer" onclick="viewConversation('${teacher.id}','${student.id}')">👁️ Teacher-Student Conversation দেখুন</button>`:''}
+      ${teacher&&student?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;font-family:inherit;cursor:pointer" onclick="viewConversation('${teacher.id}','${student.id}')">👁️ Teacher-Student Conversation দেখুন</button>`:''}
 
       ${r.status==='payment_pending'?`<div class="btn-row" style="margin-top:6px">
         <button class="btn-sm btn-green" style="flex:1" onclick="verifyPayment('${r.id}')">✅ Verify & Activate</button>
@@ -2617,11 +2593,6 @@ function renderTeachers(){
       </div>
       ${CUP?.role==='student'&&isMy?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D" onclick="openRating('${t.id}','${t.name}','${t.rating||4.5}')">⭐ Rate this Teacher</button>`:''}
     </div>`;}).join('');
-}
-
-function markFilter(sel){
-  if(sel.value) sel.classList.add('has-value');
-  else sel.classList.remove('has-value');
 }
 
 function filterSub(el){
@@ -2991,28 +2962,6 @@ async function viewAttendanceHistory() {
 // ===== STUDY MATERIALS =====
 async function openMaterialsModal() {
   document.getElementById('materials-modal').style.display = 'flex';
-
-  // Dynamically show upload section only for teachers
-  const uploadSection = document.getElementById('mat-upload-section');
-  if (uploadSection) {
-    if (CUP?.role === 'teacher') {
-      uploadSection.innerHTML = `
-        <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:16px">
-          <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">⬆️ নতুন Material Upload</div>
-          <input id="mat-title" type="text" placeholder="Title *" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px;background:var(--white);color:var(--text);box-sizing:border-box">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-            <input id="mat-subject" type="text" placeholder="বিষয় (যেমন: গণিত)" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--text)">
-            <input id="mat-desc" type="text" placeholder="Description" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--text)">
-          </div>
-          <label id="mat-file-label" onclick="document.getElementById('mat-file').click()" style="display:block;padding:10px;border:2px dashed var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;margin-bottom:10px;font-weight:600">📁 File select করুন<br><small style="font-weight:400">PDF, Word, Image (max 10MB)</small></label>
-          <input id="mat-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none" onchange="document.getElementById('mat-file-label').textContent='✅ '+this.files[0]?.name">
-          <button id="mat-upload-btn" onclick="uploadMaterial()" style="width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⬆️ Upload করুন</button>
-        </div>`;
-    } else {
-      uploadSection.innerHTML = '';
-    }
-  }
-
   await loadMaterials();
 }
 function closeMaterialsModal() {
@@ -3194,15 +3143,11 @@ async function viewConversation(teacherId, studentId){
     } else {
       msgContent = `<div style="font-size:13px;line-height:1.5">${m.text}</div>`;
     }
-    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-    const teacherBg = isDark ? '#0d2b22' : '#E8F5E9';
-    const studentBg = isDark ? '#1e3a5f' : '#E3F2FD';
-    const textColor = isDark ? '#e8eaf0' : '#1a1a1a';
     return `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start;${isTeacher?'':'flex-direction:row-reverse'}">
-      <div style="width:32px;height:32px;border-radius:50%;background:${sender?.color||'#ddd'};color:${sender?.tc||'#333'};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;flex-shrink:0">${sender?.avatar||'?'}</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:${sender?.color||'#ddd'};color:${sender?.tc||'#333'};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${sender?.avatar||'?'}</div>
       <div style="max-width:75%">
         <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;${isTeacher?'':'text-align:right'}">${senderLabel} ${sender?.name||''} • ${fmtTime(m.created_at)}</div>
-        <div style="background:${isTeacher?teacherBg:studentBg};padding:8px 12px;border-radius:${isTeacher?'4px 12px 12px 12px':'12px 4px 12px 12px'};color:${textColor}">
+        <div style="background:${isTeacher?'#E8F5E9':'#E3F2FD'};padding:8px 12px;border-radius:${isTeacher?'4px 12px 12px 12px':'12px 4px 12px 12px'}">
           ${msgContent}
         </div>
       </div>
