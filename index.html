@@ -1214,10 +1214,10 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .tabs button.active{background:#1e293b;color:#5DCAA5}
 [data-theme="dark"] .role-btn{background:#0f172a;color:#94a3b8;border-color:#334155}
 [data-theme="dark"] .role-btn.active{background:#0f2d22;color:#5DCAA5;border-color:#1D9E75}
-[data-theme="dark"] .topbar{background:#1e293b;border-color:#334155}
-[data-theme="dark"] .bottom-nav{background:#1e293b;border-color:#334155}
-[data-theme="dark"] .card,.dash-card,.teacher-card,.user-card,.review-card{background:#1e293b;border-color:#334155}
-[data-theme="dark"] .stat-box,.dash-stat-box{background:#0f172a;border-color:#334155}
+[data-theme="dark"] .topbar{background:rgba(15,31,24,0.92);border-color:#1e3d2c}
+[data-theme="dark"] .bottom-nav{background:rgba(10,20,15,0.95);border-color:#1e3d2c}
+[data-theme="dark"] .card,[data-theme="dark"] .dash-card,[data-theme="dark"] .tc-card,[data-theme="dark"] .user-card{background:var(--card);border-color:var(--border)}
+[data-theme="dark"] .stat-box,[data-theme="dark"] .dash-stat-box{background:var(--card);border-color:var(--border)}
 [data-theme="dark"] .chat-messages{background:#0f172a}
 [data-theme="dark"] .bubble.them{background:#1e293b;border-color:#334155}
 [data-theme="dark"] .chat-header,[data-theme="dark"] .chat-input-bar{background:#1e293b;border-color:#334155}
@@ -1254,7 +1254,25 @@ window.addEventListener('appinstalled', () => {
 .auth-theme-btn{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:700;color:white;backdrop-filter:blur(4px)}
 [data-theme="dark"] .auth-theme-btn{background:rgba(0,0,0,0.3)}
 
-:root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--bg:#F7FAF9;--white:#fff;--card:#fff;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#ef4444;--warn:#f59e0b;--radius:14px;--radius-sm:8px;--shadow:0 2px 12px rgba(0,0,0,0.08);--transition:all 0.25s cubic-bezier(.4,0,.2,1)}
+:root{
+  --green:#1D9E75;--green-light:#E8FBF3;--green-dark:#0A5C45;--green-mid:#16A67F;
+  --bg:#F0F7F4;--white:#ffffff;--card:#ffffff;
+  --text:#0d1f18;--text-muted:#5a7a6d;--text-soft:#8aa89e;
+  --border:#D4EDE4;--border-light:#EAF5EF;
+  --danger:#E53E3E;--warn:#D97706;--info:#2B6CB0;
+  --radius:18px;--radius-sm:10px;--radius-xs:6px;
+  --shadow:0 4px 20px rgba(13,90,65,0.08);
+  --shadow-lg:0 12px 40px rgba(13,90,65,0.14);
+  --shadow-green:0 8px 24px rgba(29,158,117,0.25);
+  --transition:all 0.3s cubic-bezier(.4,0,.2,1)
+}
+[data-theme="dark"]{
+  --bg:#060e0a;--white:#0f1f18;--card:#162419;
+  --text:#e0f2eb;--text-muted:#7ab89a;--text-soft:#4a7a60;
+  --border:#1e3d2c;--border-light:#1a3026;
+  --green-light:#0d2b1e;--green-dark:#4ECFA0;
+  --shadow:0 4px 20px rgba(0,0,0,0.3);--shadow-lg:0 12px 40px rgba(0,0,0,0.5)
+}
 [data-theme="dark"]{--bg:#0f1117;--white:#1a1d27;--card:#1a1d27;--text:#e8eaf0;--text-muted:#8b93a8;--border:#2a2d3a;--green-light:#0d2b22;--green-dark:#5DCAA5;--shadow:0 2px 12px rgba(0,0,0,0.4)}
 *{transition:background-color 0.3s ease,color 0.2s ease,border-color 0.2s ease}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -1316,8 +1334,8 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
 .role-btns{display:flex;gap:8px;margin-bottom:12px}
 .role-btn{flex:1;padding:9px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;background:var(--white);color:var(--text-muted);transition:all 0.2s;text-align:center;font-family:inherit}
 .role-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
-.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:var(--white);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;margin-top:4px;box-shadow:0 4px 12px rgba(29,158,117,0.3);letter-spacing:0.2px}
-.btn-primary:hover{background:var(--green-dark)}
+.btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,#1D9E75,#0A5C45);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.25s;margin-top:4px;box-shadow:0 6px 20px rgba(29,158,117,0.35);letter-spacing:0.3px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(29,158,117,0.45)}
 .btn-primary:active{transform:scale(0.97)}
 .btn-primary:disabled{opacity:0.6;cursor:not-allowed}
 .hint{font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px}
@@ -1329,8 +1347,9 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
 .eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:0;line-height:1}
 .err-msg{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;padding:10px 14px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:12px;display:none}
 #app{display:none}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;height:56px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,0.06)}
-.topbar .logo{font-size:14px;font-weight:700;color:var(--green-dark);flex:1}
+body{background:var(--bg)}
+.topbar{background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-light);padding:0 18px;height:60px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(13,90,65,0.06)}
+.topbar .logo{font-size:15px;font-weight:800;color:var(--green-dark);flex:1;letter-spacing:-0.3px}
 .t-avatar{width:32px;height:32px;border-radius:50%;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .role-tag{font-size:10px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:20px;font-weight:700}
 
@@ -1456,9 +1475,10 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
 .clock-ampm{font-size:11px;color:rgba(255,255,255,0.8);margin-left:4px;font-weight:600}
 .clock-date{font-size:11px;color:rgba(255,255,255,0.85);cursor:pointer}
 .clock-date:hover,.clock-time:hover{opacity:0.8}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
-.bottom-nav button{flex:1;padding:8px 4px 14px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--text-muted);font-family:inherit;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border-light);display:flex;z-index:100;box-shadow:0 -4px 24px rgba(13,90,65,0.08)}
+.bottom-nav button{flex:1;padding:10px 4px 16px;border:none;background:transparent;cursor:pointer;font-size:9.5px;color:var(--text-soft);font-family:inherit;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:0.3px;text-transform:uppercase}
 .bottom-nav button.active{color:var(--green)}
+.bottom-nav button.active .nav-icon{transform:scale(1.25);filter:drop-shadow(0 3px 8px rgba(29,158,117,0.5));animation:navPop 0.35s cubic-bezier(.4,0,.2,1) both}
 .bottom-nav button.active .nav-icon{transform:scale(1.2);filter:drop-shadow(0 2px 6px rgba(29,158,117,0.5));animation:navPop 0.3s ease both}
 .bottom-nav button{transition:color 0.2s,transform 0.15s}
 .bottom-nav button:active{transform:scale(0.88)}
@@ -1466,11 +1486,11 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
 .main{padding:14px 14px 78px;max-width:500px;margin:0 auto}
 .page{display:none;animation:fadeInUp 0.35s cubic-bezier(.4,0,.2,1) both}
 .page.active{display:block}
-.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px}
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border-light);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);transition:transform 0.25s,box-shadow 0.25s}
 .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat-box{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center}
-.stat-box .num{font-size:22px;font-weight:700;color:var(--green)}
-.stat-box .lbl-en{font-size:11px;font-weight:600;color:var(--text-muted)}
+.stat-box{background:var(--white);border:1px solid var(--border-light);border-radius:var(--radius);padding:16px 12px;text-align:center;box-shadow:var(--shadow);transition:all 0.25s}
+.stat-box .num{font-size:26px;font-weight:800;color:var(--green);letter-spacing:-1px}
+.stat-box .lbl-en{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.3px;text-transform:uppercase}
 .stat-box .lbl-bn{font-size:10px;color:var(--text-muted)}
 .teacher-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
 .tc-avatar{width:46px;height:46px;border-radius:12px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -2593,17 +2613,31 @@ async function renderStudentHome(el){
   const payHistory = JSON.parse(localStorage.getItem('tm_pay_history_'+CUP.id)||'[]');
 
   el.innerHTML=`
-  <div style="margin-bottom:14px">
-    <p style="font-size:12px;color:var(--text-muted)">Welcome back / স্বাগতম,</p>
-    <p style="font-size:20px;font-weight:700">${CUP.name} 👋</p>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:2px">🎓 ${CUP.grade||'Student'}</p>
+  <!-- Hero greeting -->
+  <div style="background:linear-gradient(135deg,#0A5C45,#1D9E75,#3DBFA0);border-radius:24px;padding:22px 20px;margin-bottom:18px;position:relative;overflow:hidden;animation:fadeInUp 0.5s ease both">
+    <div style="position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.07)"></div>
+    <div style="position:absolute;bottom:-20px;left:40%;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+    <div style="position:relative;z-index:1">
+      <p style="font-size:12px;color:rgba(255,255,255,0.65);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Welcome back</p>
+      <p style="font-size:24px;font-weight:800;color:white;letter-spacing:-0.5px;margin-bottom:4px">${CUP.name.split(' ')[0]} 👋</p>
+      <p style="font-size:12px;color:rgba(255,255,255,0.6)">🎓 ${CUP.grade||'Student'} • ${CUP.district||'Bangladesh'}</p>
+    </div>
   </div>
 
-  <!-- Stats -->
-  <div class="dash-stat">
-    <div class="dash-stat-box"><div class="num">${myT.length}</div><div class="lbl">My Teachers</div></div>
-    <div class="dash-stat-box"><div class="num">${activeReqs.length}</div><div class="lbl">Active Sessions</div></div>
-    <div class="dash-stat-box"><div class="num" style="font-size:14px">৳${totalPaid.toLocaleString()}</div><div class="lbl">Total Paid</div></div>
+  <!-- Stats row -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+    <div style="background:var(--white);border-radius:16px;padding:16px 10px;text-align:center;box-shadow:var(--shadow);animation:popIn 0.5s 0.1s ease both;border:1px solid var(--border-light)">
+      <div style="font-size:28px;font-weight:800;color:var(--green);letter-spacing:-1px">${myT.length}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px">Teachers</div>
+    </div>
+    <div style="background:var(--white);border-radius:16px;padding:16px 10px;text-align:center;box-shadow:var(--shadow);animation:popIn 0.5s 0.18s ease both;border:1px solid var(--border-light)">
+      <div style="font-size:28px;font-weight:800;color:var(--green);letter-spacing:-1px">${activeReqs.length}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px">Active</div>
+    </div>
+    <div style="background:var(--white);border-radius:16px;padding:16px 10px;text-align:center;box-shadow:var(--shadow);animation:popIn 0.5s 0.26s ease both;border:1px solid var(--border-light)">
+      <div style="font-size:18px;font-weight:800;color:var(--green);letter-spacing:-0.5px">৳${totalPaid>999?(totalPaid/1000).toFixed(1)+'k':totalPaid}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px">Paid</div>
+    </div>
   </div>
 
   <!-- My Teachers -->
@@ -3785,44 +3819,75 @@ function showEditProfile(){
 
 function renderProfile(){
   const el=document.getElementById('page-profile');if(!CUP)return;
+  const roleBadge = CUP.role==='teacher'?'👨‍🏫 Teacher':CUP.role==='admin'?'⚙️ Admin':'🎓 Student';
   const photoEl = CUP.photo
-    ? `<img src="${CUP.photo}" style="width:76px;height:76px;border-radius:22px;object-fit:cover;display:block;border:3px solid var(--green-light)">`
-    : `<div style="width:76px;height:76px;border-radius:22px;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;background:${CUP.color||'#E1F5EE'};color:${CUP.tc||'#0F6E56'}">${CUP.avatar||'?'}</div>`;
-  el.innerHTML=`<div style="text-align:center;padding:24px 16px 16px">
-    <div style="position:relative;display:inline-block;margin-bottom:10px">
-      ${photoEl}
-      <label style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">
-        📷<input type="file" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
-      </label>
+    ? `<img src="${CUP.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.6);box-shadow:0 8px 24px rgba(0,0,0,0.2)">`
+    : `<div style="width:90px;height:90px;border-radius:50%;font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.25);color:white;border:3px solid rgba(255,255,255,0.5);box-shadow:0 8px 24px rgba(0,0,0,0.2);backdrop-filter:blur(10px)">${CUP.avatar||'?'}</div>`;
+  const infoRow=(icon,label,val,valStyle='')=>val&&val!=='—'?`
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border-light)">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
+      <div style="flex:1">
+        <div style="font-size:10px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px">${label}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-top:1px ${valStyle?';'+valStyle:''}">${val}</div>
+      </div>
+    </div>`:'';;
+
+  el.innerHTML=`
+  <!-- Profile Hero -->
+  <div style="background:linear-gradient(160deg,#0A5C45,#1D9E75);border-radius:24px;padding:28px 20px 60px;margin-bottom:-44px;position:relative;overflow:hidden;animation:fadeInUp 0.5s ease both">
+    <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+    <div style="position:absolute;bottom:-20px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.04)"></div>
+    <div style="position:relative;z-index:1;display:flex;align-items:center;gap:16px">
+      <div style="position:relative">
+        ${photoEl}
+        <label style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3)">
+          📷<input type="file" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
+        </label>
+      </div>
+      <div>
+        <div style="font-size:20px;font-weight:800;color:white;letter-spacing:-0.3px">${CUP.name||''}</div>
+        ${CUP.nickname?`<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:2px">"${CUP.nickname}"</div>`:''}
+        <div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 10px">
+          <span style="font-size:12px;color:white;font-weight:600">${roleBadge}</span>
+        </div>
+      </div>
     </div>
-    <div style="font-size:19px;font-weight:700">${CUP.name||''}</div>
-    ${CUP.nickname?`<div style="font-size:13px;color:var(--green-dark);font-weight:600;margin-top:2px">"${CUP.nickname}"</div>`:''}
   </div>
-  <div class="card">
-    <div style="font-size:13px;font-weight:700;margin-bottom:10px">Personal Info / ব্যক্তিগত তথ্য</div>
-    <div class="info-row"><span class="key">👤 Full Name</span><span class="val">${CUP.name||'—'}</span></div>
-    ${CUP.nickname?`<div class="info-row"><span class="key">😊 Nickname</span><span class="val">${CUP.nickname}</span></div>`:''}
-    <div class="info-row"><span class="key">📧 Email</span><span class="val" style="font-size:12px">${CUP.email||CU?.email||'—'}</span></div>
-    <div class="info-row"><span class="key">📱 Mobile / মোবাইল</span><span class="val">${CUP.phone||'—'}</span></div>
-    ${CUP.gender?`<div class="info-row"><span class="key">⚧ Gender / লিঙ্গ</span><span class="val">${CUP.gender==='male'?'👨 Male':'👩 Female'}</span></div>`:''}
-    <div class="info-row"><span class="key">🗺️ Division / বিভাগ</span><span class="val">${CUP.division||'—'}</span></div>
-    <div class="info-row"><span class="key">📍 District / জেলা</span><span class="val">${CUP.district||'—'}</span></div>
-    <div class="info-row"><span class="key">🏘️ Upazila / উপজেলা</span><span class="val">${CUP.upazila||'—'}</span></div>
+
+  <!-- Info card -->
+  <div style="background:var(--white);border-radius:24px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow-lg);border:1px solid var(--border-light);padding-top:52px;animation:fadeInUp 0.5s 0.1s ease both">
+    ${infoRow('📧','Email',CUP.email||CU?.email||'—')}
+    ${infoRow('📱','Mobile',CUP.phone||'—')}
+    ${infoRow('📍','Location',[CUP.upazila,CUP.district,CUP.division].filter(Boolean).join(', ')||'—')}
+    ${CUP.role==='student'?infoRow('🏫','Class',CUP.grade||'—'):''}
     ${CUP.role==='teacher'?`
-    <div class="info-row"><span class="key">📚 Subject / বিষয়</span><span class="val">${CUP.subject||'—'}</span></div>
-    <div class="info-row"><span class="key">🎓 Class Range / শ্রেণি</span><span class="val">${CUP.class_range||'—'}</span></div>
-    <div class="info-row"><span class="key">💰 Monthly Fee / মাসিক ফি</span><span class="val" style="color:var(--green)">৳${(CUP.fee||0).toLocaleString()}</span></div>
-    <div class="info-row"><span class="key">💼 Experience / অভিজ্ঞতা</span><span class="val">${CUP.experience||'—'}</span></div>`:''}
-    ${CUP.role==='student'?`<div class="info-row"><span class="key">🏫 Class / শ্রেণি</span><span class="val">${CUP.grade||'—'}</span></div>`:''}
+      ${infoRow('📚','Subject',CUP.subject||'—')}
+      ${infoRow('🎓','Class Range',CUP.class_range||'—')}
+      ${infoRow('💼','Experience',CUP.experience||'—')}
+      ${infoRow('💰','Monthly Fee',CUP.fee?'৳'+CUP.fee.toLocaleString()+'/ month':'—','color:var(--green);font-size:16px;font-weight:800')}
+      <div style="background:var(--green-light);border-radius:14px;padding:14px;margin-top:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--green-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">💰 Commission Breakdown</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+          <span style="color:var(--text-muted)">Gross Fee</span>
+          <span style="font-weight:700">৳${(CUP.fee||0).toLocaleString()}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+          <span style="color:var(--danger)">Platform 20%</span>
+          <span style="font-weight:700;color:var(--danger)">-৳${Math.round((CUP.fee||0)*0.2).toLocaleString()}</span>
+        </div>
+        <div style="border-top:1.5px dashed var(--green);padding-top:8px;display:flex;justify-content:space-between">
+          <span style="font-weight:700;color:var(--green-dark)">Net Income</span>
+          <span style="font-weight:800;font-size:16px;color:var(--green)">৳${Math.round((CUP.fee||0)*0.8).toLocaleString()}</span>
+        </div>
+      </div>`:''
+    }
   </div>
-  ${CUP.role==='teacher'?`<div class="card" style="background:#F0FDF4;border-color:#BBF7D0">
-    <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:8px">💰 Commission Info / কমিশন তথ্য</div>
-    <div class="info-row"><span class="key" style="color:#166534">Monthly Fee / মাসিক ফি</span><span class="val">৳${(CUP.fee||0).toLocaleString()}</span></div>
-    <div class="info-row"><span class="key" style="color:#166534">Commission 20% / কমিশন</span><span class="val" style="color:var(--danger)">-৳${Math.round((CUP.fee||0)*0.2).toLocaleString()}</span></div>
-    <div class="info-row"><span class="key" style="color:#166534">Net Income / নেট আয়</span><span class="val" style="color:var(--green)">৳${Math.round((CUP.fee||0)*0.8).toLocaleString()}</span></div>
-  </div>`:''}
-  <button class="btn-primary" style="margin-top:6px" onclick="showEditProfile()">✏️ Edit Profile / প্রোফাইল সম্পাদনা</button>
-  <button class="btn-primary" style="background:var(--danger);margin-top:8px" onclick="doLogout()">Logout / লগআউট করুন</button>`;
+
+  <!-- Action buttons -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;animation:fadeInUp 0.5s 0.2s ease both">
+    <button onclick="showEditProfile()" style="padding:14px;background:var(--green-light);color:var(--green-dark);border:2px solid var(--green);border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">✏️ Edit Profile</button>
+    <button onclick="doLogout()" style="padding:14px;background:#FEE2E2;color:#B91C1C;border:2px solid #FECACA;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">🚪 Logout</button>
+  </div>`;
 }
 
 
