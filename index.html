@@ -1272,6 +1272,17 @@ window.addEventListener('appinstalled', () => {
 @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
 @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.1)}28%{transform:scale(1)}}
 @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes popIn{0%{opacity:0;transform:scale(0.7) translateY(20px)}70%{transform:scale(1.04) translateY(-3px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes slideInBottom{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes numberCount{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+@keyframes cardEntrance{0%{opacity:0;transform:translateY(30px) scale(0.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes tabSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes navPop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes toastSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes modalSlideUp{from{opacity:0;transform:translateY(60px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.anim-pop{animation:popIn 0.45s cubic-bezier(.4,0,.2,1) both}
+.anim-slide-up{animation:slideInBottom 0.4s ease both}
+.anim-card{animation:cardEntrance 0.4s cubic-bezier(.4,0,.2,1) both}
 @keyframes ripple{0%{transform:scale(0);opacity:0.4}100%{transform:scale(4);opacity:0}}
 .animate-fadeup{animation:fadeInUp 0.45s cubic-bezier(.4,0,.2,1) both}
 .animate-fadein{animation:fadeIn 0.35s ease both}
@@ -1289,7 +1300,7 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
 #loading-screen h1{color:#fff;font-size:24px;font-weight:700;margin-top:12px}
 #loading-screen p{color:rgba(255,255,255,0.75);font-size:13px;margin-top:6px}
 #auth-screen{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 60%,#5DCAA5 100%);padding:20px;background-size:200% 200%;animation:gradientShift 8s ease infinite}
-.auth-card{background:var(--white);border-radius:28px;padding:32px;width:100%;max-width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.25);animation:slideUp 0.5s cubic-bezier(.4,0,.2,1) both}
+.auth-card{background:var(--white);border-radius:28px;padding:32px;width:100%;max-width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.25),0 0 0 1px rgba(255,255,255,0.1);animation:modalSlideUp 0.5s cubic-bezier(.4,0,.2,1) both}
 .auth-logo{text-align:center;margin-bottom:22px}
 .auth-logo .icon{width:60px;height:60px;background:var(--green-light);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:26px}
 .auth-logo h1{font-size:21px;font-weight:700}
@@ -1448,7 +1459,7 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
 .bottom-nav button{flex:1;padding:8px 4px 14px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--text-muted);font-family:inherit;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bottom-nav button.active{color:var(--green)}
-.bottom-nav button.active .nav-icon{transform:scale(1.15);filter:drop-shadow(0 2px 4px rgba(29,158,117,0.4))}
+.bottom-nav button.active .nav-icon{transform:scale(1.2);filter:drop-shadow(0 2px 6px rgba(29,158,117,0.5));animation:navPop 0.3s ease both}
 .bottom-nav button{transition:color 0.2s,transform 0.15s}
 .bottom-nav button:active{transform:scale(0.88)}
 .nav-icon{font-size:18px}
@@ -1612,71 +1623,115 @@ body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg
   </div>
 </div>
 
-<div id="landing-screen" style="display:none;min-height:100vh;background:#0a0f0d;position:relative;overflow:hidden;font-family:'Times New Roman',serif">
+<div id="landing-screen" style="display:none;min-height:100vh;background:#060d0a;position:relative;overflow:hidden">
 
-  <!-- Animated background blobs -->
-  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
-    <div class="lp-blob" style="width:600px;height:600px;top:-200px;left:-200px;background:radial-gradient(circle,rgba(29,158,117,0.35),transparent 70%);animation:blobMove1 8s ease-in-out infinite"></div>
-    <div class="lp-blob" style="width:500px;height:500px;bottom:-150px;right:-150px;background:radial-gradient(circle,rgba(15,110,86,0.3),transparent 70%);animation:blobMove2 10s ease-in-out infinite"></div>
-    <div class="lp-blob" style="width:300px;height:300px;top:40%;left:60%;background:radial-gradient(circle,rgba(93,202,165,0.2),transparent 70%);animation:blobMove3 7s ease-in-out infinite"></div>
-    <!-- Grid overlay -->
-    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px"></div>
+  <!-- Particle canvas -->
+  <canvas id="lp-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1"></canvas>
+
+  <!-- Animated blobs -->
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2">
+    <div class="lp-blob" style="width:700px;height:700px;top:-250px;left:-200px;background:radial-gradient(circle,rgba(29,158,117,0.4),transparent 65%);animation:blobMove1 9s ease-in-out infinite"></div>
+    <div class="lp-blob" style="width:600px;height:600px;bottom:-200px;right:-200px;background:radial-gradient(circle,rgba(15,110,86,0.35),transparent 65%);animation:blobMove2 11s ease-in-out infinite"></div>
+    <div class="lp-blob" style="width:400px;height:400px;top:35%;left:55%;background:radial-gradient(circle,rgba(93,202,165,0.25),transparent 65%);animation:blobMove3 7s ease-in-out infinite"></div>
+    <div class="lp-blob" style="width:250px;height:250px;top:15%;right:15%;background:radial-gradient(circle,rgba(29,158,117,0.2),transparent 65%);animation:blobMove1 6s ease-in-out infinite reverse"></div>
+    <!-- Grid -->
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:50px 50px"></div>
+    <!-- Vignette -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.6) 100%)"></div>
   </div>
 
-  <!-- Content -->
+  <!-- Main content -->
   <div style="position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
 
-    <!-- Badge -->
-    <div class="lp-badge" style="animation:fadeDown 0.6s ease both">
-      <span style="width:8px;height:8px;background:#1D9E75;border-radius:50%;display:inline-block;margin-right:8px;animation:pulse-dot 2s infinite"></span>
-      Bangladesh's Smart Tuition Platform
+    <!-- Floating badge -->
+    <div class="lp-badge" style="animation:lpFadeUp 0.8s 0.1s ease both">
+      <span class="lp-dot"></span>
+      🇧🇩 Bangladesh's #1 Smart Tuition Platform
     </div>
 
-    <!-- Logo icon -->
-    <div style="font-size:64px;margin:24px 0 16px;animation:fadeDown 0.7s 0.1s ease both">📚</div>
+    <!-- Logo with orbit rings -->
+    <div style="position:relative;margin:28px 0 20px;animation:lpZoomIn 1s 0.2s cubic-bezier(.4,0,.2,1) both">
+      <div class="lp-ring" style="width:130px;height:130px;animation:lpOrbit 8s linear infinite"></div>
+      <div class="lp-ring" style="width:100px;height:100px;animation:lpOrbit 5s linear infinite reverse;opacity:0.5"></div>
+      <div style="font-size:72px;filter:drop-shadow(0 0 30px rgba(29,158,117,0.8));position:relative;z-index:1">📚</div>
+    </div>
 
-    <!-- Main heading -->
-    <h1 style="font-size:clamp(38px,8vw,72px);font-weight:900;color:white;line-height:1.1;margin:0 0 8px;animation:fadeDown 0.7s 0.2s ease both;letter-spacing:-1px">
+    <!-- Heading -->
+    <h1 style="font-size:clamp(42px,10vw,80px);font-weight:900;color:white;line-height:1.05;margin:0 0 6px;animation:lpFadeUp 0.8s 0.3s ease both;letter-spacing:-2px">
       Tuition
-      <span style="background:linear-gradient(135deg,#1D9E75,#5DCAA5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Master</span>
+      <span class="lp-grad-text">Master</span>
     </h1>
 
-    <!-- Tagline -->
-    <p style="font-size:clamp(15px,3vw,20px);color:rgba(255,255,255,0.55);margin:0 0 40px;max-width:480px;line-height:1.6;animation:fadeDown 0.7s 0.3s ease both">
-      Connecting the best teachers with eager students across Bangladesh
-      <br><span style="font-size:14px;color:rgba(255,255,255,0.35)">শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</span>
+    <!-- Sub heading -->
+    <p class="lp-sub" style="animation:lpFadeUp 0.8s 0.45s ease both">
+      শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন
+      <span style="display:block;font-size:13px;margin-top:4px;opacity:0.5">Connect • Learn • Grow</span>
     </p>
+
+    <!-- Feature pills -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 36px;animation:lpFadeUp 0.8s 0.55s ease both">
+      <span class="lp-pill">🔍 Teacher Search</span>
+      <span class="lp-pill">💬 Live Chat</span>
+      <span class="lp-pill">📅 Attendance</span>
+      <span class="lp-pill">📚 Study Materials</span>
+      <span class="lp-pill">⭐ Ratings</span>
+    </div>
 
     <!-- CTA Button -->
-    <button onclick="showAuthFromLanding()" class="lp-cta" style="animation:fadeDown 0.7s 0.5s ease both">
-      <span>Get Started</span>
-      <span class="lp-arrow">→</span>
+    <button id="lp-cta-btn" onclick="handleLandingCTA()" class="lp-cta" style="animation:lpFadeUp 0.8s 0.65s ease both">
+      <span id="lp-cta-text">Get Started</span>
+      <span class="lp-arrow" id="lp-arrow">→</span>
     </button>
 
-    <p style="margin-top:20px;font-size:12px;color:rgba(255,255,255,0.25);animation:fadeDown 0.7s 0.6s ease both">
-      Free for students • Teachers from ৳1,500/mo
+    <p style="margin-top:18px;font-size:11px;color:rgba(255,255,255,0.2);animation:lpFadeUp 0.8s 0.75s ease both;letter-spacing:0.5px">
+      FREE for students • No hidden charges
     </p>
 
+  </div>
+
+  <!-- Bottom stats bar -->
+  <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:14px 24px;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;justify-content:center;gap:32px;animation:lpFadeUp 0.8s 0.9s ease both">
+    <div style="text-align:center">
+      <div style="font-size:18px;font-weight:800;color:#5DCAA5">১০০+</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4)">Teachers</div>
+    </div>
+    <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+    <div style="text-align:center">
+      <div style="font-size:18px;font-weight:800;color:#5DCAA5">৬৪</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4)">Districts</div>
+    </div>
+    <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+    <div style="text-align:center">
+      <div style="font-size:18px;font-weight:800;color:#5DCAA5">৫০০+</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4)">Students</div>
+    </div>
   </div>
 </div>
 
 <!-- Landing CSS -->
 <style>
-@keyframes blobMove1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,40px) scale(1.1)}}
-@keyframes blobMove2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-60px) scale(1.15)}}
-@keyframes blobMove3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,30px) scale(0.9)}}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
-@keyframes arrowBounce{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
-.lp-blob{position:absolute;border-radius:50%;filter:blur(60px)}
-.lp-badge{display:inline-flex;align-items:center;padding:8px 18px;border:1px solid rgba(29,158,117,0.4);border-radius:100px;font-size:12px;color:rgba(255,255,255,0.7);background:rgba(29,158,117,0.1);backdrop-filter:blur(10px);margin-bottom:8px;letter-spacing:0.3px}
-.lp-cta{display:inline-flex;align-items:center;gap:12px;padding:18px 40px;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:white;border:none;border-radius:100px;font-size:18px;font-weight:700;cursor:pointer;font-family:'Times New Roman',serif;letter-spacing:0.5px;box-shadow:0 0 40px rgba(29,158,117,0.4),0 8px 32px rgba(0,0,0,0.3);transition:all 0.3s;position:relative;overflow:hidden}
-.lp-cta::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity 0.3s}
-.lp-cta:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 0 60px rgba(29,158,117,0.6),0 16px 48px rgba(0,0,0,0.4)}
-.lp-cta:hover::before{opacity:1}
-.lp-cta:hover .lp-arrow{animation:arrowBounce 0.6s ease infinite}
-.lp-arrow{font-size:20px;transition:transform 0.3s}
-.lp-cta:active{transform:scale(0.98)}
+@keyframes blobMove1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,30px) scale(1.12)}}
+@keyframes blobMove2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-50px) scale(1.15)}}
+@keyframes blobMove3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-25px,25px) scale(0.9)}}
+@keyframes lpFadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lpZoomIn{from{opacity:0;transform:scale(0.5) rotate(-15deg)}60%{transform:scale(1.08) rotate(3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes lpOrbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
+@keyframes arrowBounce{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+@keyframes lpGlow{0%,100%{box-shadow:0 0 40px rgba(29,158,117,0.4),0 8px 32px rgba(0,0,0,0.3)}50%{box-shadow:0 0 70px rgba(29,158,117,0.7),0 16px 48px rgba(0,0,0,0.4)}}
+.lp-blob{position:absolute;border-radius:50%;filter:blur(80px)}
+.lp-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid rgba(29,158,117,0.3)}
+.lp-grad-text{background:linear-gradient(135deg,#1D9E75,#5DCAA5,#A7F3D0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lp-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border:1px solid rgba(29,158,117,0.5);border-radius:100px;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(29,158,117,0.12);backdrop-filter:blur(12px);letter-spacing:0.3px}
+.lp-dot{width:8px;height:8px;background:#1D9E75;border-radius:50%;display:inline-block;animation:pulse-dot 2s infinite;box-shadow:0 0 8px #1D9E75}
+.lp-sub{font-size:clamp(15px,3.5vw,20px);color:rgba(255,255,255,0.5);margin:0 0 28px;max-width:420px;line-height:1.6}
+.lp-pill{padding:6px 14px;border:1px solid rgba(255,255,255,0.12);border-radius:100px;font-size:11px;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.05);backdrop-filter:blur(8px)}
+.lp-cta{display:inline-flex;align-items:center;gap:14px;padding:18px 44px;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:white;border:none;border-radius:100px;font-size:18px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.5px;animation:lpGlow 3s ease-in-out infinite;transition:transform 0.3s;position:relative;overflow:hidden}
+.lp-cta::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);animation:lpShimmer 3s ease-in-out infinite}
+@keyframes lpShimmer{0%{left:-100%}100%{left:200%}}
+.lp-cta:hover{transform:translateY(-4px) scale(1.04)}
+.lp-cta:active{transform:scale(0.97)}
+.lp-arrow{font-size:22px;animation:arrowBounce 1s ease-in-out infinite}
 </style>
 
 <div id="auth-screen">
@@ -2217,8 +2272,89 @@ function toast(msg,dur=2800){const t=document.getElementById('toast');t.textCont
 window.addEventListener('DOMContentLoaded',async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(session){CU=session.user;await loadProfile();startApp();}
-  else{document.getElementById('loading-screen').style.display='none';document.getElementById('landing-screen').style.display='block';switchTab('login');}
+  else{
+    document.getElementById('loading-screen').style.display='none';
+    const ls = document.getElementById('landing-screen');
+    ls.style.display='block';
+    // Update CTA button text if returning user
+    ls.style.opacity='0';
+    ls.style.transition='opacity 0.6s ease';
+    setTimeout(()=>{ ls.style.opacity='1'; initLandingParticles(); },50);
+  }
 });
+
+// Smart CTA - if logged in go home, else show auth
+async function handleLandingCTA(){
+  const btn = document.getElementById('lp-cta-btn');
+  const txt = document.getElementById('lp-cta-text');
+  if(btn){ btn.disabled=true; txt.textContent='Loading...'; }
+  const {data:{session}} = await sb.auth.getSession();
+  if(session){
+    // Already logged in - go straight to app
+    CU=session.user;
+    await loadProfile();
+    if(CUP && CUP.role==='teacher' && !CUP.active){
+      if(btn){ btn.disabled=false; txt.textContent='Get Started'; }
+      showErr && showErr('⏳ Account still pending admin approval!');
+      showAuthFromLanding();
+      return;
+    }
+    // Animate out then start
+    const landing = document.getElementById('landing-screen');
+    landing.style.transition='opacity 0.5s ease,transform 0.5s ease';
+    landing.style.opacity='0';
+    landing.style.transform='scale(1.04)';
+    setTimeout(()=>{ landing.style.display='none'; startApp(); }, 500);
+  } else {
+    if(btn){ btn.disabled=false; txt.textContent='Get Started'; }
+    showAuthFromLanding();
+  }
+}
+
+// Particle canvas animation
+function initLandingParticles(){
+  const canvas = document.getElementById('lp-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W = canvas.width = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+  window.addEventListener('resize',()=>{ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; });
+  const particles = Array.from({length:60},()=>({
+    x:Math.random()*W, y:Math.random()*H,
+    r:Math.random()*2+0.5,
+    dx:(Math.random()-0.5)*0.4,
+    dy:(Math.random()-0.5)*0.4,
+    alpha:Math.random()*0.5+0.1
+  }));
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(93,202,165,${p.alpha})`;
+      ctx.fill();
+      p.x+=p.dx; p.y+=p.dy;
+      if(p.x<0||p.x>W) p.dx*=-1;
+      if(p.y<0||p.y>H) p.dy*=-1;
+    });
+    // Draw connecting lines
+    particles.forEach((a,i)=>{
+      particles.slice(i+1).forEach(b=>{
+        const dist=Math.hypot(a.x-b.x,a.y-b.y);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y);
+          ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle=`rgba(29,158,117,${0.12*(1-dist/120)})`;
+          ctx.lineWidth=0.5;
+          ctx.stroke();
+        }
+      });
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
 
 function showAuthFromLanding(){
   const landing=document.getElementById('landing-screen');
