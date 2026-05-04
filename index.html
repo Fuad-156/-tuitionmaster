@@ -14,6 +14,73 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+
+// ===== REGISTRATION SUCCESS =====
+function showRegistrationSuccess(role, email){
+  document.getElementById('auth-screen').style.display='none';
+  const sc = document.getElementById('reg-success-screen');
+  sc.style.display='flex';
+
+  if(role==='teacher'){
+    document.getElementById('rs-icon').textContent='⏳';
+    document.getElementById('rs-title').textContent='Registration Successful!';
+    document.getElementById('rs-email').textContent='📧 ' + email;
+    document.getElementById('rs-info').innerHTML=`
+      <div style="font-size:13px;color:#166534;line-height:1.9">
+        ✅ আপনার account তৈরি হয়েছে<br>
+        ✅ Payment verify করা হচ্ছে<br>
+        ⏳ Admin approval এর পরে login করতে পারবেন<br>
+        📱 সাধারণত ২৪ ঘণ্টার মধ্যে approve হয়
+      </div>`;
+  } else {
+    document.getElementById('rs-icon').textContent='🎉';
+    document.getElementById('rs-title').textContent='Account Created!';
+    document.getElementById('rs-email').textContent='📧 ' + email;
+    document.getElementById('rs-info').innerHTML=`
+      <div style="font-size:13px;color:#166534;line-height:1.9">
+        ✅ আপনার student account তৈরি হয়েছে<br>
+        📧 Email verify করুন (inbox চেক করুন)<br>
+        🔑 এখন login করুন
+      </div>`;
+  }
+}
+
+function goToLogin(){
+  document.getElementById('reg-success-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  switchTab('login');
+}
+
+// ===== TEACHER REGISTRATION FEE =====
+// Show fee section when teacher role is selected
+const origSelRole = window.selRole || function(){};
+window.selRole = function(r){
+  // Call original function
+  window._role = r;
+  document.getElementById('role-s').classList.toggle('active', r==='student');
+  document.getElementById('role-t').classList.toggle('active', r==='teacher');
+  document.getElementById('t-fields').style.display = r==='teacher'?'block':'none';
+  document.getElementById('s-fields').style.display = r==='student'?'block':'none';
+  // Show/hide fee section
+  const feeSection = document.getElementById('teacher-fee-section');
+  if(feeSection) feeSection.style.display = r==='teacher' ? 'block' : 'none';
+};
+
+function handleRegisterClick(){
+  // If teacher, validate transaction ID
+  if(window._role === 'teacher'){
+    const txn = document.getElementById('reg-txn-id') ? document.getElementById('reg-txn-id').value.trim() : '';
+    if(!txn || txn.length < 6){
+      showErr('⚠️ bKash Transaction ID দিন! আগে ৳200 পাঠান: 01571505475');
+      return;
+    }
+  }
+  doRegister();
+}
+
+// Store txn id for teacher registration
+const origDoRegister = doRegister;
+
 // ===== PENDING APPROVAL SYSTEM =====
 function showPendingApproval(email){
   document.getElementById('auth-screen').style.display='none';
@@ -1713,6 +1780,17 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
   </div>
 </div>
 
+<!-- Registration Success Screen -->
+<div id="reg-success-screen" style="display:none;min-height:100vh;background:linear-gradient(135deg,#0F6E56,#1D9E75);align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:24px;padding:36px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+    <div style="font-size:60px;margin-bottom:16px" id="rs-icon">✅</div>
+    <h2 style="font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:8px" id="rs-title"></h2>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:20px" id="rs-email"></p>
+    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left" id="rs-info"></div>
+    <button onclick="goToLogin()" style="width:100%;padding:13px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Login করুন →</button>
+  </div>
+</div>
+
 <!-- Pending Approval Screen -->
 <div id="pending-screen" style="display:none;min-height:100vh;background:linear-gradient(135deg,#0F6E56,#1D9E75);display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:white;border-radius:24px;padding:36px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
@@ -2156,18 +2234,23 @@ async function doRegister(){
   CU=data.user;
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
+  const regTxnId = window._role==='teacher' && document.getElementById('reg-txn-id') ? document.getElementById('reg-txn-id').value.trim() : '';
   const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
-    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false}:{grade:document.getElementById('r-grade').value})};
+    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:regTxnId}:{grade:document.getElementById('r-grade').value})};
   const {error: insertError} = await sb.from('profiles').insert(profile);
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
   CUP=profile;
   btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
+  // Sign out immediately - force user to login manually
+  await sb.auth.signOut();
+  CU = null; CUP = null;
+  btn.disabled=false;
+  btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
+
   if(window._role==='teacher'){
-    // Teacher must wait for admin approval
-    showPendingApproval(email);
+    showRegistrationSuccess('teacher', email);
   } else {
-    toast('✅ Account created! / অ্যাকাউন্ট তৈরি হয়েছে!');
-    startApp();
+    showRegistrationSuccess('student', email);
   }
 }
 
