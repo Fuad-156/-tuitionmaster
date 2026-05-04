@@ -1436,11 +1436,15 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .chat-list-item .chat-list-time{font-size:10px;color:var(--text-muted);flex-shrink:0;margin-left:8px}
 .att-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--border)}
 .att-btns{display:flex;gap:4px;flex-shrink:0}
-.att-btn{border:2px solid var(--border);background:white;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;opacity:0.4}
+.att-btn{border:2px solid var(--border);background:var(--white);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;opacity:0.4}
 .att-btn.active{opacity:1;transform:scale(1.1)}
 .att-btn.present.active{background:#D1FAE5;border-color:#6EE7B7}
 .att-btn.absent.active{background:#FEE2E2;border-color:#FCA5A5}
 .att-btn.late.active{background:#FEF3C7;border-color:#FCD34D}
+[data-theme="dark"] .att-btn{background:#1a1d27;border-color:#2a2d3a}
+[data-theme="dark"] .att-btn.present.active{background:#0d2b22;border-color:#1D9E75}
+[data-theme="dark"] .att-btn.absent.active{background:#2d0f0f;border-color:#ef4444}
+[data-theme="dark"] .att-btn.late.active{background:#2d2006;border-color:#f59e0b}
 .material-card{background:white;border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1.5px solid var(--border)}
 .sch-slot{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--border)}
 .sch-day-badge{min-width:64px;padding:4px 8px;border-radius:8px;background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:700;text-align:center}
@@ -1906,19 +1910,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       <button onclick="closeMaterialsModal()" style="border:none;background:var(--bg);color:var(--text-muted);padding:5px 10px;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
     </div>
 
-    ${CUP?.role === 'teacher' ? `<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--green-dark)">⬆️ নতুন Material Upload</div>
-      <input id="mat-title" type="text" placeholder="Title *" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <input id="mat-subject" type="text" placeholder="বিষয় (যেমন: গণিত)" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
-        <input id="mat-desc" type="text" placeholder="Description" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
-      </div>
-      <label id="mat-file-label" onclick="document.getElementById('mat-file').click()" style="display:block;padding:10px;border:2px dashed var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;margin-bottom:10px;font-weight:600">📁 File select করুন<br><small style="font-weight:400">PDF, Word, Image (max 10MB)</small></label>
-      <input id="mat-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none" onchange="document.getElementById('mat-file-label').textContent='✅ '+this.files[0]?.name">
-      <button id="mat-upload-btn" onclick="uploadMaterial()" style="width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⬆️ Upload করুন</button>
-    </div>` : ''}
-
-    <div style="font-size:13px;font-weight:700;margin-bottom:10px">📋 সব Materials</div>
+    <div id="mat-upload-section"></div>
     <div id="materials-list">
       <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
     </div>
@@ -2536,7 +2528,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         💳 ${r.payment_method||'—'} &nbsp;|&nbsp;
         📅 ${r.created_at?fmtDate(r.created_at):'—'}
       </div>
-      ${r.txn_id?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">
+      ${r.txn_id?`<div style="background:var(--green-light);border:1px solid var(--green);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:var(--text)">
         🔖 TXN: <strong style="font-size:13px;letter-spacing:1px">${r.txn_id}</strong>
       </div>`:''}
       <div class="btn-row">
@@ -2945,7 +2937,9 @@ async function viewAttendanceHistory() {
       </div>
       ${records.map(r => {
         const s = r.profiles;
-        const bg = r.status==='present'?'#D1FAE5':r.status==='absent'?'#FEE2E2':'#FEF3C7';
+        const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    const bg = r.status==='present'?(isDark?'#0d2b22':'#D1FAE5'):r.status==='absent'?(isDark?'#2d0f0f':'#FEE2E2'):(isDark?'#2d2006':'#FEF3C7');
+    const textC = r.status==='present'?(isDark?'#5DCAA5':'#166534'):r.status==='absent'?(isDark?'#f87171':'#991B1B'):(isDark?'#fbbf24':'#92400e');
         const tc = r.status==='present'?'#065F46':r.status==='absent'?'#991B1B':'#92400E';
         const icon = r.status==='present'?'✅':r.status==='absent'?'❌':'⏰';
         return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:white;border-radius:8px;margin-bottom:4px;border:1px solid var(--border)">
