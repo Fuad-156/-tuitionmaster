@@ -1192,9 +1192,11 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .hist-pill:hover{background:#0f2d22}
 [data-theme="dark"] .logout-btn{background:#1e293b;border-color:#334155;color:#94a3b8}
 [data-theme="dark"] .lang-btn{background:#0f2d22}
-[data-theme="dark"] .filter-sel{padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-family:inherit;outline:none;background:var(--white);color:var(--text);width:100%}
-.filter-sel:focus{border-color:var(--green)}
-[data-theme="dark"] .filter-sel{background:#0f172a;color:#f1f5f9;border-color:#334155}
+[data-theme="dark"] .filter-sel{padding:7px 10px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.filter-sel:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+.filter-sel.has-value{border-color:var(--green);background-color:var(--green-light);color:var(--green-dark);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%230F6E56'/%3E%3C/svg%3E")}
+[data-theme="dark"] .filter-sel{background:transparent;color:#e8eaf0;border-color:#2a2d3a;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b93a8'/%3E%3C/svg%3E")}
+[data-theme="dark"] .filter-sel.has-value{background-color:var(--green-light);color:var(--green-dark)}
 .filter-row select{background:#1e293b;border-color:#334155;color:#f1f5f9}
 [data-theme="dark"] #f-division,#f-district,#f-upazila,#f-class{background:#1e293b;color:#f1f5f9}
 [data-theme="dark"] .search-bar input{background:#1e293b;border-color:#334155;color:#f1f5f9}
@@ -1431,9 +1433,11 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .search-bar input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none}
 .search-bar input:focus{border-color:var(--green)}
 .filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.filter-sel{padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-family:inherit;outline:none;background:var(--white);color:var(--text);width:100%}
-.filter-sel:focus{border-color:var(--green)}
-[data-theme="dark"] .filter-sel{background:#0f172a;color:#f1f5f9;border-color:#334155}
+.filter-sel{padding:7px 10px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.filter-sel:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+.filter-sel.has-value{border-color:var(--green);background-color:var(--green-light);color:var(--green-dark);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%230F6E56'/%3E%3C/svg%3E")}
+[data-theme="dark"] .filter-sel{background:transparent;color:#e8eaf0;border-color:#2a2d3a;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b93a8'/%3E%3C/svg%3E")}
+[data-theme="dark"] .filter-sel.has-value{background-color:var(--green-light);color:var(--green-dark)}
 .filter-row select{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;outline:none;background:var(--white)}
 .filter-row select:focus{border-color:var(--green)}
 .filter-pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
@@ -1744,27 +1748,39 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
     <div class="page" id="page-search">
       <div class="section-title">🔍 Find Teachers <small>শিক্ষক খুঁজুন</small></div>
       <div class="search-bar"><input type="text" id="search-inp" placeholder="Search name or subject / নাম বা বিষয় লিখুন..." oninput="renderTeachers();if(this.value.length>1)addSearchHistory(this.value.trim())"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
-        <select id="f-division" onchange="updateSearchDistricts()" class="filter-sel">
-          <option value="">All Division</option>
-          <option>ঢাকা</option><option>চট্টগ্রাম</option><option>রাজশাহী</option>
-          <option>খুলনা</option><option>বরিশাল</option><option>সিলেট</option>
-          <option>রংপুর</option><option>ময়মনসিংহ</option>
-        </select>
-        <select id="f-district" onchange="updateSearchUpazilas()" class="filter-sel">
-          <option value="">All District</option>
-        </select>
-        <select id="f-upazila" onchange="renderTeachers()" class="filter-sel">
-          <option value="">All Upazila</option>
-        </select>
-      </div>
-      <div style="margin-bottom:10px">
-        <select id="f-class" onchange="renderTeachers()" class="filter-sel" style="width:100%">
-          <option value="">All Classes / সব শ্রেণি</option>
-          <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
-          <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
-          <option>University / বিশ্ববিদ্যালয়</option>
-        </select>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="position:relative">
+            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">📍</div>
+            <select id="f-division" onchange="updateSearchDistricts();markFilter(this)" class="filter-sel" style="padding-left:26px">
+              <option value="">বিভাগ</option>
+              <option>ঢাকা</option><option>চট্টগ্রাম</option><option>রাজশাহী</option>
+              <option>খুলনা</option><option>বরিশাল</option><option>সিলেট</option>
+              <option>রংপুর</option><option>ময়মনসিংহ</option>
+            </select>
+          </div>
+          <div style="position:relative">
+            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">🏘️</div>
+            <select id="f-district" onchange="updateSearchUpazilas();markFilter(this)" class="filter-sel" style="padding-left:26px">
+              <option value="">জেলা</option>
+            </select>
+          </div>
+          <div style="position:relative">
+            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">🗺️</div>
+            <select id="f-upazila" onchange="renderTeachers();markFilter(this)" class="filter-sel" style="padding-left:26px">
+              <option value="">উপজেলা</option>
+            </select>
+          </div>
+        </div>
+        <div style="position:relative">
+          <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;z-index:1">🎓</div>
+          <select id="f-class" onchange="renderTeachers();markFilter(this)" class="filter-sel" style="width:100%;padding-left:26px">
+            <option value="">শ্রেণি বেছে নিন</option>
+            <option>Class 1-5 (Primary)</option><option>Class 6-8 (Junior)</option>
+            <option>Class 9-10 (SSC)</option><option>Class 11-12 (HSC)</option>
+            <option>University / বিশ্ববিদ্যালয়</option>
+          </select>
+        </div>
       </div>
       <div class="filter-pills">
         <div class="pill active" data-s="all" onclick="filterSub(this)">All / সব</div>
@@ -2601,6 +2617,11 @@ function renderTeachers(){
       </div>
       ${CUP?.role==='student'&&isMy?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D" onclick="openRating('${t.id}','${t.name}','${t.rating||4.5}')">⭐ Rate this Teacher</button>`:''}
     </div>`;}).join('');
+}
+
+function markFilter(sel){
+  if(sel.value) sel.classList.add('has-value');
+  else sel.classList.remove('has-value');
 }
 
 function filterSub(el){
