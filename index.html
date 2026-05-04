@@ -1516,6 +1516,11 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .bilingual{display:flex;flex-direction:column}
 .bilingual .en{font-size:13px;font-weight:600}
 .bilingual .bn{font-size:11px;color:var(--text-muted)}
+[data-theme="dark"] .bkash-step{background:#0f172a}
+[data-theme="dark"] .bkash-step p{color:#e8eaf0}
+[data-theme="dark"] div[style*="#FEF3C7"]{background:#2d2006!important;color:#fcd34d!important}
+[data-theme="dark"] div[style*="#FCD34D"]{border-color:#854d0e!important}
+[data-theme="dark"] .user-card div[style*="green-light"]{background:var(--green-light)}
 </style>
 </head>
 <body>
@@ -2349,7 +2354,7 @@ async function renderAdminHome(el){
   _aSL=students||[];_aRL=reqs||[];
   if(_aPL.length>0) adminTab='pending';
   el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Admin Panel / অ্যাডমিন প্যানেল</p><p style="font-size:20px;font-weight:700">Tuition Master 📊</p></div>
-  ${_aPL.length>0?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${_aPL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
+  ${_aPL.length>0?`<div style="background:var(--warn-bg,#FEF3C7);border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#92400e;font-weight:600;">⚠️ ${_aPL.length} জন teacher approval এর অপেক্ষায় আছে!</div>`:''}
   <div class="stat-row">
     <div class="stat-box"><div class="num">${_aTL.length}</div><div class="lbl-en">Active Teachers</div><div class="lbl-bn">সক্রিয় শিক্ষক</div></div>
     <div class="stat-box"><div class="num">${_aPL.length}</div><div class="lbl-en" style="color:var(--warn)">Pending</div><div class="lbl-bn" style="color:var(--warn)">অপেক্ষারত</div></div>
@@ -2536,14 +2541,14 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         💳 ${r.payment_method||'—'} &nbsp;|&nbsp;
         📅 ${r.created_at?fmtDate(r.created_at):'—'}
       </div>
-      ${r.txn_id?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">
-        🔖 TXN: <strong style="font-size:13px;letter-spacing:1px">${r.txn_id}</strong>
+      ${r.txn_id?`<div style="background:var(--green-light);border:1px solid var(--green);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:var(--text)">
+        🔖 TXN: <strong style="font-size:13px;letter-spacing:1px;color:var(--green-dark)">${r.txn_id}</strong>
       </div>`:''}
       <div class="btn-row">
         ${teacher?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${teacher.id}')">💬 Teacher</button>`:''}
         ${student?`<button class="btn-sm btn-outline" style="flex:1" onclick="openChatById('${student.id}')">💬 Student</button>`:''}
       </div>
-      ${teacher&&student?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;font-family:inherit;cursor:pointer" onclick="viewConversation('${teacher.id}','${student.id}')">👁️ Teacher-Student Conversation দেখুন</button>`:''}
+      ${teacher&&student?`<button class="btn-sm" style="width:100%;margin-top:6px;background:var(--green-light);color:var(--green-dark);border:1.5px solid var(--green);font-family:inherit;cursor:pointer" onclick="viewConversation('${teacher.id}','${student.id}')">👁️ Teacher-Student Conversation দেখুন</button>`:''}
 
       ${r.status==='payment_pending'?`<div class="btn-row" style="margin-top:6px">
         <button class="btn-sm btn-green" style="flex:1" onclick="verifyPayment('${r.id}')">✅ Verify & Activate</button>
