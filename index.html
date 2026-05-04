@@ -1284,7 +1284,7 @@ window.addEventListener('appinstalled', () => {
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Times New Roman','Noto Sans Bengali',serif;background:var(--bg);color:var(--text);min-height:100vh}
 #loading-screen{position:fixed;inset:0;background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 50%,#5DCAA5 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;animation:gradientShift 6s ease infinite;background-size:200% 200%}
 #loading-screen h1{color:#fff;font-size:24px;font-weight:700;margin-top:12px}
 #loading-screen p{color:rgba(255,255,255,0.75);font-size:13px;margin-top:6px}
@@ -1612,9 +1612,78 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
   </div>
 </div>
 
+<div id="landing-screen" style="display:none;min-height:100vh;background:#0a0f0d;position:relative;overflow:hidden;font-family:'Times New Roman',serif">
+
+  <!-- Animated background blobs -->
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div class="lp-blob" style="width:600px;height:600px;top:-200px;left:-200px;background:radial-gradient(circle,rgba(29,158,117,0.35),transparent 70%);animation:blobMove1 8s ease-in-out infinite"></div>
+    <div class="lp-blob" style="width:500px;height:500px;bottom:-150px;right:-150px;background:radial-gradient(circle,rgba(15,110,86,0.3),transparent 70%);animation:blobMove2 10s ease-in-out infinite"></div>
+    <div class="lp-blob" style="width:300px;height:300px;top:40%;left:60%;background:radial-gradient(circle,rgba(93,202,165,0.2),transparent 70%);animation:blobMove3 7s ease-in-out infinite"></div>
+    <!-- Grid overlay -->
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px"></div>
+  </div>
+
+  <!-- Content -->
+  <div style="position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+
+    <!-- Badge -->
+    <div class="lp-badge" style="animation:fadeDown 0.6s ease both">
+      <span style="width:8px;height:8px;background:#1D9E75;border-radius:50%;display:inline-block;margin-right:8px;animation:pulse-dot 2s infinite"></span>
+      Bangladesh's Smart Tuition Platform
+    </div>
+
+    <!-- Logo icon -->
+    <div style="font-size:64px;margin:24px 0 16px;animation:fadeDown 0.7s 0.1s ease both">📚</div>
+
+    <!-- Main heading -->
+    <h1 style="font-size:clamp(38px,8vw,72px);font-weight:900;color:white;line-height:1.1;margin:0 0 8px;animation:fadeDown 0.7s 0.2s ease both;letter-spacing:-1px">
+      Tuition
+      <span style="background:linear-gradient(135deg,#1D9E75,#5DCAA5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Master</span>
+    </h1>
+
+    <!-- Tagline -->
+    <p style="font-size:clamp(15px,3vw,20px);color:rgba(255,255,255,0.55);margin:0 0 40px;max-width:480px;line-height:1.6;animation:fadeDown 0.7s 0.3s ease both">
+      Connecting the best teachers with eager students across Bangladesh
+      <br><span style="font-size:14px;color:rgba(255,255,255,0.35)">শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</span>
+    </p>
+
+    <!-- CTA Button -->
+    <button onclick="showAuthFromLanding()" class="lp-cta" style="animation:fadeDown 0.7s 0.5s ease both">
+      <span>Get Started</span>
+      <span class="lp-arrow">→</span>
+    </button>
+
+    <p style="margin-top:20px;font-size:12px;color:rgba(255,255,255,0.25);animation:fadeDown 0.7s 0.6s ease both">
+      Free for students • Teachers from ৳1,500/mo
+    </p>
+
+  </div>
+</div>
+
+<!-- Landing CSS -->
+<style>
+@keyframes blobMove1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,40px) scale(1.1)}}
+@keyframes blobMove2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-60px) scale(1.15)}}
+@keyframes blobMove3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,30px) scale(0.9)}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
+@keyframes arrowBounce{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+.lp-blob{position:absolute;border-radius:50%;filter:blur(60px)}
+.lp-badge{display:inline-flex;align-items:center;padding:8px 18px;border:1px solid rgba(29,158,117,0.4);border-radius:100px;font-size:12px;color:rgba(255,255,255,0.7);background:rgba(29,158,117,0.1);backdrop-filter:blur(10px);margin-bottom:8px;letter-spacing:0.3px}
+.lp-cta{display:inline-flex;align-items:center;gap:12px;padding:18px 40px;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:white;border:none;border-radius:100px;font-size:18px;font-weight:700;cursor:pointer;font-family:'Times New Roman',serif;letter-spacing:0.5px;box-shadow:0 0 40px rgba(29,158,117,0.4),0 8px 32px rgba(0,0,0,0.3);transition:all 0.3s;position:relative;overflow:hidden}
+.lp-cta::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity 0.3s}
+.lp-cta:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 0 60px rgba(29,158,117,0.6),0 16px 48px rgba(0,0,0,0.4)}
+.lp-cta:hover::before{opacity:1}
+.lp-cta:hover .lp-arrow{animation:arrowBounce 0.6s ease infinite}
+.lp-arrow{font-size:20px;transition:transform 0.3s}
+.lp-cta:active{transform:scale(0.98)}
+</style>
+
 <div id="auth-screen">
   <div class="auth-card">
-    <!-- Theme toggle on auth -->
+    <!-- ===== AUTH SCREEN ===== -->
+
+<!-- ===== AUTH SCREEN ===== -->
     <button class="auth-theme-btn" id="auth-theme-btn" onclick="toggleTheme()">🌙 Dark</button>
     <div class="auth-logo">
       <div class="icon">📚</div>
@@ -2148,8 +2217,22 @@ function toast(msg,dur=2800){const t=document.getElementById('toast');t.textCont
 window.addEventListener('DOMContentLoaded',async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(session){CU=session.user;await loadProfile();startApp();}
-  else{document.getElementById('loading-screen').style.display='none';document.getElementById('auth-screen').style.display='flex';}
+  else{document.getElementById('loading-screen').style.display='none';document.getElementById('landing-screen').style.display='block';switchTab('login');}
 });
+
+function showAuthFromLanding(){
+  const landing=document.getElementById('landing-screen');
+  const auth=document.getElementById('auth-screen');
+  landing.style.transition='opacity 0.4s ease, transform 0.4s ease';
+  landing.style.opacity='0';
+  landing.style.transform='scale(0.97)';
+  setTimeout(()=>{
+    landing.style.display='none';
+    landing.style.opacity='';
+    landing.style.transform='';
+    auth.style.display='flex';
+  },400);
+}
 
 function switchTab(t){
   document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
@@ -2221,7 +2304,9 @@ async function doLogin(){
   }
   CU=data.user;
   if(email===ADMIN_EMAIL){
-    CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};
+    const {data:ap}=await sb.from('profiles').select('*').eq('id',CU.id).maybeSingle();
+    CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর',...(ap||{})};
+    CUP.role='admin';
   } else {
     await loadProfile();
   }
@@ -2272,7 +2357,12 @@ async function doRegister(){
 
 async function loadProfile(){
   if(!CU)return;
-  if(CU.email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};return;}
+  if(CU.email===ADMIN_EMAIL){
+    const {data:ap}=await sb.from('profiles').select('*').eq('id',CU.id).maybeSingle();
+    CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর',...(ap||{})};
+    CUP.role='admin';
+    return;
+  }
   const {data,error}=await sb.from('profiles').select('*').eq('id',CU.id).maybeSingle();
   if(error||!data){
     toast('⚠️ Profile load failed! Check Supabase RLS policy.');
@@ -2285,7 +2375,9 @@ async function doLogout(){
   await sb.auth.signOut();CU=null;CUP=null;allTeachers=[];allRequests=[];
   if(msgSub){sb.removeChannel(msgSub);msgSub=null;}
   document.getElementById('app').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('landing-screen').style.display='block';
+  switchTab('login');
   toast('Logged out!');
 }
 
