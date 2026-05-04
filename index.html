@@ -143,10 +143,10 @@ function applyLang() {
     btn.innerHTML = `<span class="nav-icon">${d.icon}</span><span>${isBn ? d.bn : d.en}</span>`;
   });
 
-  // Auth tabs
+  // Auth tabs (Register tab removed)
   const tabs = document.querySelectorAll('.tabs button');
   if (tabs[0]) tabs[0].textContent = isBn ? 'লগইন' : 'Login / লগইন';
-  if (tabs[1]) tabs[1].textContent = isBn ? 'নিবন্ধন' : 'Register / নিবন্ধন';
+  // if (tabs[1]) tabs[1].textContent = isBn ? 'নিবন্ধন' : 'Register / নিবন্ধন';
 
   // Search placeholder
   const si = document.getElementById('search-inp');
@@ -1623,10 +1623,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       <h1>Tuition Master</h1>
       <p>Connecting Teachers & Students • শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
     </div>
-    <div class="tabs">
-      <button class="active" onclick="switchTab('login')">Login / লগইন</button>
-      <button onclick="switchTab('register')">Register / নিবন্ধন</button>
-    </div>
+    <!-- Tabs removed to hide Register option -->
     <div id="auth-err" class="err-msg"></div>
 
     <div id="login-form">
@@ -1650,7 +1647,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
         </div>
       </div>
       <button class="btn-primary" id="login-btn" onclick="doLogin()">Login / লগইন করুন</button>
-      <p class="hint">No account? / অ্যাকাউন্ট নেই? <span onclick="switchTab('register')">Register / নিবন্ধন করুন</span></p>
+      <!-- Register hint removed -->
     </div>
 
     <div id="register-form" style="display:none">
