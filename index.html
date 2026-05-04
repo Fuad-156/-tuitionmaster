@@ -13,8 +13,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 // ===== REGISTRATION HELPERS =====
 function submitRegister(){
   // Validate teacher payment
@@ -61,6 +60,7 @@ function showRegSuccess(role, email){
 }
 
 // Show teacher fee section when teacher role selected
+const _origSelRole = window.selRole;
 window.selRole = function(r){
   window._role=r;
   document.getElementById('role-s').classList.toggle('active',r==='student');
@@ -70,6 +70,7 @@ window.selRole = function(r){
   const ps=document.getElementById('teacher-pay-section');
   if(ps) ps.style.display=r==='teacher'?'block':'none';
 };
+
 </script>
 <script>
 // ===== LANGUAGE TOGGLE =====
@@ -713,7 +714,6 @@ async function openTeacherProfile(tid) {
       <div class="info-row"><span class="key">📍 District</span><span class="val">${teacher.district || '—'}</span></div>
       <div class="info-row"><span class="key">🏘️ Upazila</span><span class="val">${teacher.upazila || '—'}</span></div>
       <div class="info-row"><span class="key">📱 Mobile</span><span class="val">${teacher.phone || '—'}</span></div>
-      ${teacher.gender?`<div class="info-row"><span class="key">⚧ Gender</span><span class="val">${teacher.gender==='male'?'👨 Male':teacher.gender==='female'?'👩 Female':'🧑 Other'}</span></div>`:''}
       <div class="info-row"><span class="key">⭐ Rating</span><span class="val" style="color:var(--warn)">${teacher.rating || 4.5} / 5 (${teacher.rating_count || 1} reviews)</span></div>
       <div class="info-row"><span class="key">💰 Monthly Fee</span><span class="val" style="color:var(--green)">৳${(teacher.fee || 0).toLocaleString()}</span></div>
     </div>
@@ -1289,9 +1289,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 #loading-screen h1{color:#fff;font-size:24px;font-weight:700;margin-top:12px}
 #loading-screen p{color:rgba(255,255,255,0.75);font-size:13px;margin-top:6px}
 #auth-screen{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 60%,#5DCAA5 100%);padding:20px;background-size:200% 200%;animation:gradientShift 8s ease infinite}
-.auth-card{background:var(--white);border-radius:28px;padding:32px;width:100%;max-width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.25);animation:slideUp 0.5s cubic-bezier(.4,0,.2,1) both;overflow:hidden}
-#register-form{display:none}
-#login-form{display:block}
+.auth-card{background:var(--white);border-radius:28px;padding:32px;width:100%;max-width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.25);animation:slideUp 0.5s cubic-bezier(.4,0,.2,1) both}
 .auth-logo{text-align:center;margin-bottom:22px}
 .auth-logo .icon{width:60px;height:60px;background:var(--green-light);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:26px}
 .auth-logo h1{font-size:21px;font-weight:700}
@@ -1683,19 +1681,7 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
         <select id="r-upazila"><option value="">Select Upazila</option></select>
       </div>
 
-      <div class="form-group">
-        <label>Gender / লিঙ্গ</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-          <label style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;font-size:13px;font-weight:600;transition:all 0.15s" id="g-male-lbl">
-            <input type="radio" name="r-gender" value="male" id="g-male" style="display:none" onchange="updateGenderUI()">
-            👨 Male<br><small style="font-weight:400;color:var(--text-muted)">পুরুষ</small>
-          </label>
-          <label style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;font-size:13px;font-weight:600;transition:all 0.15s" id="g-female-lbl">
-            <input type="radio" name="r-gender" value="female" id="g-female" style="display:none" onchange="updateGenderUI()">
-            👩 Female<br><small style="font-weight:400;color:var(--text-muted)">মহিলা</small>
-          </label>
-        </div>
-      </div> style="display:none">
+      <div id="t-fields" style="display:none">
         <div class="form-row">
           <div class="form-group"><label>Subject / বিষয়</label>
             <select id="r-subject">
@@ -2155,10 +2141,8 @@ window.addEventListener('DOMContentLoaded',async()=>{
 
 function switchTab(t){
   document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
-  const lf=document.getElementById('login-form');
-  const rf=document.getElementById('register-form');
-  lf.style.setProperty('display',t==='login'?'block':'none','important');
-  rf.style.setProperty('display',t==='register'?'block':'none','important');
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('register-form').style.display=t==='register'?'block':'none';
   document.getElementById('auth-err').style.display='none';
 }
 function selRole(r){
@@ -2216,7 +2200,6 @@ async function doRegister(){
   const district=document.getElementById('r-district').value;
   const upazila=document.getElementById('r-upazila').value;
   const pass=document.getElementById('r-pass').value;
-  const gender = document.querySelector('input[name="r-gender"]:checked')?.value || '';
   if(!name||!email||!pass||!district){showErr('Fill all required fields / সব তথ্য পূরণ করুন!');return;}
   if(pass.length<6){showErr('Password min 6 characters / পাসওয়ার্ড কমপক্ষে ৬ অক্ষর!');return;}
   const btn=document.getElementById('reg-btn');btn.disabled=true;btn.textContent='Creating...';
@@ -2226,7 +2209,7 @@ async function doRegister(){
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const txnId = window._role==='teacher' ? (document.getElementById('reg-txn-id')||{value:''}).value.trim() : '';
-  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender,
+  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
     ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:txnId}:{grade:document.getElementById('r-grade').value})};
   const {error: insertError} = await sb.from('profiles').insert(profile);
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
@@ -3422,7 +3405,6 @@ async function saveProfile(){
     division:document.getElementById('ep-division')?.value||CUP.division,
     district:document.getElementById('ep-district')?.value||CUP.district,
     upazila:document.getElementById('ep-upazila')?.value||CUP.upazila,
-    gender:document.querySelector('#ep-gender-wrap [data-gender].active-gender')?.dataset.gender || CUP.gender || '',
   };
   if(CUP.role==='teacher'){
     updates.subject=document.getElementById('ep-subject')?.value||CUP.subject;
@@ -3441,38 +3423,9 @@ async function saveProfile(){
   if(error){toast('❌ Update failed: '+error.message);if(btn){btn.disabled=false;btn.textContent='Save Changes';}return;}
   Object.assign(CUP,updates);
   toast('✅ Profile updated! / প্রোফাইল আপডেট হয়েছে!');
+  // Update topbar name
   const tn=document.getElementById('top-name');if(tn)tn.textContent=CUP.name;
   renderProfile();
-}
-
-function selectGender(el, gender){
-  document.querySelectorAll('#ep-gender-wrap [data-gender]').forEach(d=>{
-    d.style.border='1.5px solid var(--border)';
-    d.style.background='white';
-    d.style.color='var(--text)';
-    d.classList.remove('active-gender');
-  });
-  el.style.border='1.5px solid var(--green)';
-  el.style.background='var(--green-light)';
-  el.style.color='var(--green-dark)';
-  el.classList.add('active-gender');
-}
-
-function updateGenderUI(){
-  ['male','female','other'].forEach(g=>{
-    const lbl=document.getElementById(`g-${g}-lbl`);
-    const inp=document.getElementById(`g-${g}`);
-    if(!lbl||!inp)return;
-    if(inp.checked){
-      lbl.style.border='1.5px solid var(--green)';
-      lbl.style.background='var(--green-light)';
-      lbl.style.color='var(--green-dark)';
-    } else {
-      lbl.style.border='1.5px solid var(--border)';
-      lbl.style.background='white';
-      lbl.style.color='var(--text)';
-    }
-  });
 }
 
 function showEditProfile(){
@@ -3520,16 +3473,6 @@ function showEditProfile(){
       <input id="ep-name" class="edit-input" value="${CUP.name||''}" placeholder="Your full name">
     </div>
     <div class="form-group">
-      <label>⚧ Gender / লিঙ্গ</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px" id="ep-gender-wrap">
-        ${['male','female'].map(g=>{
-          const labels={male:'👨 Male<br><small>পুরুষ</small>',female:'👩 Female<br><small>মহিলা</small>'};
-          const isActive=CUP.gender===g;
-          return `<div onclick="selectGender(this,'${g}')" data-gender="${g}" style="cursor:pointer;border:1.5px solid ${isActive?'var(--green)':'var(--border)'};background:${isActive?'var(--green-light)':'white'};border-radius:10px;padding:10px 6px;text-align:center;font-size:13px;font-weight:600;color:${isActive?'var(--green-dark)':'var(--text)'}">${labels[g]}</div>`;
-        }).join('')}
-      </div>
-    </div>
-    <div class="form-group">
       <label>📱 Mobile / মোবাইল</label>
       <input id="ep-phone" class="edit-input" type="tel" value="${CUP.phone||''}" placeholder="01XXXXXXXXX">
     </div>
@@ -3574,7 +3517,6 @@ function renderProfile(){
     ${CUP.nickname?`<div class="info-row"><span class="key">😊 Nickname</span><span class="val">${CUP.nickname}</span></div>`:''}
     <div class="info-row"><span class="key">📧 Email</span><span class="val" style="font-size:12px">${CUP.email||CU?.email||'—'}</span></div>
     <div class="info-row"><span class="key">📱 Mobile / মোবাইল</span><span class="val">${CUP.phone||'—'}</span></div>
-    ${CUP.gender?`<div class="info-row"><span class="key">⚧ Gender / লিঙ্গ</span><span class="val">${CUP.gender==='male'?'👨 Male / পুরুষ':CUP.gender==='female'?'👩 Female / মহিলা':'🧑 Other / অন্যান্য'}</span></div>`:''}
     <div class="info-row"><span class="key">🗺️ Division / বিভাগ</span><span class="val">${CUP.division||'—'}</span></div>
     <div class="info-row"><span class="key">📍 District / জেলা</span><span class="val">${CUP.district||'—'}</span></div>
     <div class="info-row"><span class="key">🏘️ Upazila / উপজেলা</span><span class="val">${CUP.upazila||'—'}</span></div>
