@@ -2146,11 +2146,13 @@ function switchTab(t){
   document.getElementById('auth-err').style.display='none';
 }
 function selRole(r){
+  window._role=r;
   document.getElementById('role-s').classList.toggle('active',r==='student');
   document.getElementById('role-t').classList.toggle('active',r==='teacher');
   document.getElementById('t-fields').style.display=r==='teacher'?'block':'none';
   document.getElementById('s-fields').style.display=r==='student'?'block':'none';
-  window._role=r;
+  const ps=document.getElementById('teacher-pay-section');
+  if(ps) ps.style.display=r==='teacher'?'block':'none';
 }
 window._role='student';
 function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
