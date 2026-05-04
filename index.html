@@ -13,7 +13,41 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ===== PENDING APPROVAL SYSTEM =====
+function showPendingApproval(email){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+  const ps = document.getElementById('pending-screen');
+  ps.style.display='flex';
+  document.getElementById('pending-email-text').textContent = 'Email: ' + (email||CU?.email||'');
+}
+
+function backToLogin(){
+  document.getElementById('pending-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  switchTab('login');
+  // Sign out so they login fresh
+  sb.auth.signOut();
+}
+
+async function checkApprovalNow(){
+  if(!CU) return;
+  const {data} = await sb.from('profiles').select('active').eq('id',CU.id).single();
+  if(data?.active===true){
+    document.getElementById('pending-screen').style.display='none';
+    await loadProfile();
+    startApp();
+  } else {
+    // Shake animation
+    const box = document.querySelector('#pending-screen > div');
+    box.style.animation='shake 0.4s ease';
+    setTimeout(()=>box.style.animation='',500);
+    alert('এখনো approved হয়নি। একটু অপেক্ষা করুন! \nNot approved yet. Please wait!');
+  }
+}
+
+</script>
 <script>
 // ===== LANGUAGE TOGGLE =====
 const T = {
@@ -1523,6 +1557,12 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .bilingual{display:flex;flex-direction:column}
 .bilingual .en{font-size:13px;font-weight:600}
 .bilingual .bn{font-size:11px;color:var(--text-muted)}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+#f-division,#f-district,#f-upazila,#f-class{color:var(--text)!important;background:var(--white)!important}
+[data-theme='dark'] #f-division,[data-theme='dark'] #f-district,
+[data-theme='dark'] #f-upazila,[data-theme='dark'] #f-class{color:#f1f5f9!important;background:#0f172a!important}
 </style>
 </head>
 <body>
@@ -1670,6 +1710,26 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create Account / অ্যাকাউন্ট তৈরি করুন</button>
       <p class="hint">Already have account? <span onclick="switchTab('login')">Login / লগইন করুন</span></p>
     </div>
+  </div>
+</div>
+
+<!-- Pending Approval Screen -->
+<div id="pending-screen" style="display:none;min-height:100vh;background:linear-gradient(135deg,#0F6E56,#1D9E75);display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:24px;padding:36px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+    <div style="font-size:60px;margin-bottom:16px">⏳</div>
+    <h2 style="font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:10px">Waiting for Approval</h2>
+    <h3 style="font-size:16px;font-weight:600;color:#1D9E75;margin-bottom:16px">অনুমোদনের অপেক্ষায়</h3>
+    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left">
+      <div style="font-size:13px;color:#166534;line-height:1.8">
+        ✅ আপনার teacher account তৈরি হয়েছে<br>
+        ⏳ Admin এখন আপনার তথ্য review করছেন<br>
+        📱 Approved হলে login করতে পারবেন<br>
+        ⏱️ সাধারণত ২৪ ঘণ্টার মধ্যে হয়
+      </div>
+    </div>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:20px" id="pending-email-text"></p>
+    <button onclick="backToLogin()" style="width:100%;padding:12px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">← Back to Login / লগইন এ ফিরুন</button>
+    <button onclick="checkApprovalNow()" style="width:100%;padding:10px;background:none;border:1.5px solid #1D9E75;color:#1D9E75;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px">🔄 Check Status / স্ট্যাটাস চেক করুন</button>
   </div>
 </div>
 
@@ -2072,6 +2132,11 @@ async function doLogin(){
   CU=data.user;
   if(email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};}
   else{await loadProfile();}
+  // Check if teacher is approved
+  if(CUP && CUP.role==='teacher' && CUP.active===false){
+    showPendingApproval(email);
+    return;
+  }
   startApp();
 }
 
@@ -2097,8 +2162,13 @@ async function doRegister(){
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
   CUP=profile;
   btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
-  toast('✅ Account created! / অ্যাকাউন্ট তৈরি হয়েছে!');
-  startApp();
+  if(window._role==='teacher'){
+    // Teacher must wait for admin approval
+    showPendingApproval(email);
+  } else {
+    toast('✅ Account created! / অ্যাকাউন্ট তৈরি হয়েছে!');
+    startApp();
+  }
 }
 
 async function loadProfile(){
