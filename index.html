@@ -1681,6 +1681,18 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
         <select id="r-upazila"><option value="">Select Upazila</option></select>
       </div>
 
+      <div class="form-group">
+        <label>Gender / লিঙ্গ</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <div onclick="selectRegGender('male')" id="rg-male" style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600">
+            👨 Male<br><small style="font-weight:400;color:var(--text-muted)">পুরুষ</small>
+          </div>
+          <div onclick="selectRegGender('female')" id="rg-female" style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600">
+            👩 Female<br><small style="font-weight:400;color:var(--text-muted)">মহিলা</small>
+          </div>
+        </div>
+      </div>
+
       <div id="t-fields" style="display:none">
         <div class="form-row">
           <div class="form-group"><label>Subject / বিষয়</label>
@@ -2155,6 +2167,41 @@ function selRole(r){
   if(ps) ps.style.display=r==='teacher'?'block':'none';
 }
 window._role='student';
+window._regGender='';
+
+function selectRegGender(g){
+  window._regGender=g;
+  ['male','female'].forEach(x=>{
+    const el=document.getElementById('rg-'+x);
+    if(!el)return;
+    if(x===g){
+      el.style.border='1.5px solid var(--green)';
+      el.style.background='var(--green-light)';
+      el.style.color='var(--green-dark)';
+    } else {
+      el.style.border='1.5px solid var(--border)';
+      el.style.background='white';
+      el.style.color='var(--text)';
+    }
+  });
+}
+
+function selectEpGender(g){
+  window._epGender=g;
+  ['male','female'].forEach(x=>{
+    const el=document.getElementById('epg-'+x);
+    if(!el)return;
+    if(x===g){
+      el.style.border='1.5px solid var(--green)';
+      el.style.background='var(--green-light)';
+      el.style.color='var(--green-dark)';
+    } else {
+      el.style.border='1.5px solid var(--border)';
+      el.style.background='white';
+      el.style.color='var(--text)';
+    }
+  });
+}
 function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
 
 async function doLogin(){
@@ -2209,7 +2256,7 @@ async function doRegister(){
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const txnId = window._role==='teacher' ? (document.getElementById('reg-txn-id')||{value:''}).value.trim() : '';
-  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
+  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender:window._regGender||'',
     ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:txnId}:{grade:document.getElementById('r-grade').value})};
   const {error: insertError} = await sb.from('profiles').insert(profile);
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
@@ -3401,6 +3448,7 @@ async function saveProfile(){
   if(btn){btn.disabled=true;btn.textContent='Saving...';}
   const updates={
     name:document.getElementById('ep-name')?.value||CUP.name,
+    gender: window._epGender || CUP.gender || '',
     phone:document.getElementById('ep-phone')?.value||CUP.phone,
     division:document.getElementById('ep-division')?.value||CUP.division,
     district:document.getElementById('ep-district')?.value||CUP.district,
@@ -3477,6 +3525,17 @@ function showEditProfile(){
       <input id="ep-phone" class="edit-input" type="tel" value="${CUP.phone||''}" placeholder="01XXXXXXXXX">
     </div>
     <div class="form-group">
+      <label>⚧ Gender / লিঙ্গ</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+        <div onclick="selectEpGender('male')" id="epg-male" style="cursor:pointer;border:1.5px solid ${CUP.gender==='male'?'var(--green)':'var(--border)'};background:${CUP.gender==='male'?'var(--green-light)':'white'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.gender==='male'?'var(--green-dark)':'var(--text)'}">
+          👨 Male<br><small style="font-weight:400">পুরুষ</small>
+        </div>
+        <div onclick="selectEpGender('female')" id="epg-female" style="cursor:pointer;border:1.5px solid ${CUP.gender==='female'?'var(--green)':'var(--border)'};background:${CUP.gender==='female'?'var(--green-light)':'white'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.gender==='female'?'var(--green-dark)':'var(--text)'}">
+          👩 Female<br><small style="font-weight:400">মহিলা</small>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
       <label>🗺️ Division / বিভাগ</label>
       <select id="ep-division" class="edit-input">
         ${divs.map(d=>`<option ${CUP.division===d?'selected':''}>${d}</option>`).join('')}
@@ -3517,6 +3576,7 @@ function renderProfile(){
     ${CUP.nickname?`<div class="info-row"><span class="key">😊 Nickname</span><span class="val">${CUP.nickname}</span></div>`:''}
     <div class="info-row"><span class="key">📧 Email</span><span class="val" style="font-size:12px">${CUP.email||CU?.email||'—'}</span></div>
     <div class="info-row"><span class="key">📱 Mobile / মোবাইল</span><span class="val">${CUP.phone||'—'}</span></div>
+    ${CUP.gender?`<div class="info-row"><span class="key">⚧ Gender / লিঙ্গ</span><span class="val">${CUP.gender==='male'?'👨 Male':'👩 Female'}</span></div>`:''}
     <div class="info-row"><span class="key">🗺️ Division / বিভাগ</span><span class="val">${CUP.division||'—'}</span></div>
     <div class="info-row"><span class="key">📍 District / জেলা</span><span class="val">${CUP.district||'—'}</span></div>
     <div class="info-row"><span class="key">🏘️ Upazila / উপজেলা</span><span class="val">${CUP.upazila||'—'}</span></div>
