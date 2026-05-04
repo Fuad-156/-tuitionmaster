@@ -14,105 +14,62 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-
-// ===== REGISTRATION SUCCESS =====
-function showRegistrationSuccess(role, email){
-  document.getElementById('auth-screen').style.display='none';
-  const sc = document.getElementById('reg-success-screen');
-  sc.style.display='flex';
-
-  if(role==='teacher'){
-    document.getElementById('rs-icon').textContent='⏳';
-    document.getElementById('rs-title').textContent='Registration Successful!';
-    document.getElementById('rs-email').textContent='📧 ' + email;
-    document.getElementById('rs-info').innerHTML=`
-      <div style="font-size:13px;color:#166534;line-height:1.9">
-        ✅ আপনার account তৈরি হয়েছে<br>
-        ✅ Payment verify করা হচ্ছে<br>
-        ⏳ Admin approval এর পরে login করতে পারবেন<br>
-        📱 সাধারণত ২৪ ঘণ্টার মধ্যে approve হয়
-      </div>`;
-  } else {
-    document.getElementById('rs-icon').textContent='🎉';
-    document.getElementById('rs-title').textContent='Account Created!';
-    document.getElementById('rs-email').textContent='📧 ' + email;
-    document.getElementById('rs-info').innerHTML=`
-      <div style="font-size:13px;color:#166534;line-height:1.9">
-        ✅ আপনার student account তৈরি হয়েছে<br>
-        📧 Email verify করুন (inbox চেক করুন)<br>
-        🔑 এখন login করুন
-      </div>`;
-  }
-}
-
-function goToLogin(){
-  document.getElementById('reg-success-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
-  switchTab('login');
-}
-
-// ===== TEACHER REGISTRATION FEE =====
-// Show fee section when teacher role is selected
-const origSelRole = window.selRole || function(){};
-window.selRole = function(r){
-  // Call original function
-  window._role = r;
-  document.getElementById('role-s').classList.toggle('active', r==='student');
-  document.getElementById('role-t').classList.toggle('active', r==='teacher');
-  document.getElementById('t-fields').style.display = r==='teacher'?'block':'none';
-  document.getElementById('s-fields').style.display = r==='student'?'block':'none';
-  // Show/hide fee section
-  const feeSection = document.getElementById('teacher-fee-section');
-  if(feeSection) feeSection.style.display = r==='teacher' ? 'block' : 'none';
-};
-
-function handleRegisterClick(){
-  // If teacher, validate transaction ID
+// ===== REGISTRATION HELPERS =====
+function submitRegister(){
+  // Validate teacher payment
   if(window._role === 'teacher'){
-    const txn = document.getElementById('reg-txn-id') ? document.getElementById('reg-txn-id').value.trim() : '';
+    const txn = (document.getElementById('reg-txn-id')||{value:''}).value.trim();
     if(!txn || txn.length < 6){
       showErr('⚠️ bKash Transaction ID দিন! আগে ৳200 পাঠান: 01571505475');
+      document.getElementById('reg-txn-id').focus();
       return;
     }
   }
   doRegister();
 }
 
-// Store txn id for teacher registration
-const origDoRegister = doRegister;
-
-// ===== PENDING APPROVAL SYSTEM =====
-function showPendingApproval(email){
+function showRegSuccess(role, email){
   document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app').style.display='none';
-  const ps = document.getElementById('pending-screen');
-  ps.style.display='flex';
-  document.getElementById('pending-email-text').textContent = 'Email: ' + (email||CU?.email||'');
-}
+  const sc = document.getElementById('reg-success-screen');
+  sc.style.display='flex';
 
-function backToLogin(){
-  document.getElementById('pending-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
-  switchTab('login');
-  // Sign out so they login fresh
-  sb.auth.signOut();
-}
-
-async function checkApprovalNow(){
-  if(!CU) return;
-  const {data} = await sb.from('profiles').select('active').eq('id',CU.id).single();
-  if(data?.active===true){
-    document.getElementById('pending-screen').style.display='none';
-    await loadProfile();
-    startApp();
+  if(role==='teacher'){
+    document.getElementById('rs-icon').textContent='⏳';
+    document.getElementById('rs-title').textContent='Registration Submitted!';
+    document.getElementById('rs-email').textContent='📧 '+email;
+    document.getElementById('rs-info').style.background='#FEF3C7';
+    document.getElementById('rs-info').style.border='1px solid #FCD34D';
+    document.getElementById('rs-info').innerHTML=`
+      <strong style="color:#92400e">✅ করা হয়েছে:</strong><br>
+      <span style="color:#92400e">• Account তৈরি হয়েছে<br>
+      • Payment verify এর অপেক্ষায়<br>
+      • Admin approval এর অপেক্ষায়<br><br>
+      ⏱️ Approved হলে login করতে পারবেন।<br>
+      সাধারণত ২৪ ঘণ্টার মধ্যে হয়।</span>`;
   } else {
-    // Shake animation
-    const box = document.querySelector('#pending-screen > div');
-    box.style.animation='shake 0.4s ease';
-    setTimeout(()=>box.style.animation='',500);
-    alert('এখনো approved হয়নি। একটু অপেক্ষা করুন! \nNot approved yet. Please wait!');
+    document.getElementById('rs-icon').textContent='🎉';
+    document.getElementById('rs-title').textContent='Account Created!';
+    document.getElementById('rs-email').textContent='📧 '+email;
+    document.getElementById('rs-info').style.background='#F0FDF4';
+    document.getElementById('rs-info').style.border='1px solid #BBF7D0';
+    document.getElementById('rs-info').innerHTML=`
+      <span style="color:#166534">✅ Account তৈরি হয়েছে<br>
+      📧 Email verify করুন (inbox চেক করুন)<br>
+      🔑 এখন Login করুন</span>`;
   }
 }
+
+// Show teacher fee section when teacher role selected
+const _origSelRole = window.selRole;
+window.selRole = function(r){
+  window._role=r;
+  document.getElementById('role-s').classList.toggle('active',r==='student');
+  document.getElementById('role-t').classList.toggle('active',r==='teacher');
+  document.getElementById('t-fields').style.display=r==='teacher'?'block':'none';
+  document.getElementById('s-fields').style.display=r==='student'?'block':'none';
+  const ps=document.getElementById('teacher-pay-section');
+  if(ps) ps.style.display=r==='teacher'?'block':'none';
+};
 
 </script>
 <script>
@@ -1624,12 +1581,6 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 .bilingual{display:flex;flex-direction:column}
 .bilingual .en{font-size:13px;font-weight:600}
 .bilingual .bn{font-size:11px;color:var(--text-muted)}
-
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-
-#f-division,#f-district,#f-upazila,#f-class{color:var(--text)!important;background:var(--white)!important}
-[data-theme='dark'] #f-division,[data-theme='dark'] #f-district,
-[data-theme='dark'] #f-upazila,[data-theme='dark'] #f-class{color:#f1f5f9!important;background:#0f172a!important}
 </style>
 </head>
 <body>
@@ -1774,7 +1725,24 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       </div>
 
       <div class="form-group"><label>Password / পাসওয়ার্ড</label><div class="pass-wrap"><input type="password" id="r-pass" placeholder="Min 6 characters / কমপক্ষে ৬ অক্ষর"><button class="eye-btn" type="button" onclick="togglePass('r-pass',this)">👁️</button></div></div>
-      <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create Account / অ্যাকাউন্ট তৈরি করুন</button>
+      <!-- Teacher payment section (shown only for teacher) -->
+      <div id="teacher-pay-section" style="display:none">
+        <div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px;padding:14px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#856404;margin-bottom:10px">💳 Registration Fee / নিবন্ধন ফি</div>
+          <div style="font-size:13px;color:#856404;line-height:1.8;margin-bottom:10px">
+            ১. নিচের নম্বরে <strong>৳200</strong> bKash করুন:<br>
+            <div style="background:white;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:16px;font-weight:700;letter-spacing:2px;color:#1a1a1a;text-align:center">📱 01571505475</div>
+            Account: <strong>Sk. Fuadur Rahman</strong><br>
+            ২. Transaction ID নিচে লিখুন
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>bKash Transaction ID ✱</label>
+            <input type="text" id="reg-txn-id" placeholder="e.g. 8AB12CD345" style="text-align:center;letter-spacing:2px;font-size:15px;font-weight:600">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="reg-btn" onclick="submitRegister()">Create Account / অ্যাকাউন্ট তৈরি করুন</button>
       <p class="hint">Already have account? <span onclick="switchTab('login')">Login / লগইন করুন</span></p>
     </div>
   </div>
@@ -1783,31 +1751,11 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
 <!-- Registration Success Screen -->
 <div id="reg-success-screen" style="display:none;min-height:100vh;background:linear-gradient(135deg,#0F6E56,#1D9E75);align-items:center;justify-content:center;padding:20px">
   <div style="background:white;border-radius:24px;padding:36px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
-    <div style="font-size:60px;margin-bottom:16px" id="rs-icon">✅</div>
-    <h2 style="font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:8px" id="rs-title"></h2>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:20px" id="rs-email"></p>
-    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left" id="rs-info"></div>
-    <button onclick="goToLogin()" style="width:100%;padding:13px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Login করুন →</button>
-  </div>
-</div>
-
-<!-- Pending Approval Screen -->
-<div id="pending-screen" style="display:none;min-height:100vh;background:linear-gradient(135deg,#0F6E56,#1D9E75);display:none;align-items:center;justify-content:center;padding:20px">
-  <div style="background:white;border-radius:24px;padding:36px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
-    <div style="font-size:60px;margin-bottom:16px">⏳</div>
-    <h2 style="font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:10px">Waiting for Approval</h2>
-    <h3 style="font-size:16px;font-weight:600;color:#1D9E75;margin-bottom:16px">অনুমোদনের অপেক্ষায়</h3>
-    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left">
-      <div style="font-size:13px;color:#166534;line-height:1.8">
-        ✅ আপনার teacher account তৈরি হয়েছে<br>
-        ⏳ Admin এখন আপনার তথ্য review করছেন<br>
-        📱 Approved হলে login করতে পারবেন<br>
-        ⏱️ সাধারণত ২৪ ঘণ্টার মধ্যে হয়
-      </div>
-    </div>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:20px" id="pending-email-text"></p>
-    <button onclick="backToLogin()" style="width:100%;padding:12px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">← Back to Login / লগইন এ ফিরুন</button>
-    <button onclick="checkApprovalNow()" style="width:100%;padding:10px;background:none;border:1.5px solid #1D9E75;color:#1D9E75;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px">🔄 Check Status / স্ট্যাটাস চেক করুন</button>
+    <div style="font-size:56px;margin-bottom:14px" id="rs-icon">✅</div>
+    <h2 style="font-size:19px;font-weight:700;color:#1a1a1a;margin-bottom:8px" id="rs-title"></h2>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:16px" id="rs-email"></p>
+    <div style="border-radius:12px;padding:14px;margin-bottom:20px;text-align:left;font-size:13px;line-height:1.9" id="rs-info"></div>
+    <button onclick="document.getElementById('reg-success-screen').style.display='none';document.getElementById('auth-screen').style.display='flex';switchTab('login')" style="width:100%;padding:13px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Login করুন →</button>
   </div>
 </div>
 
@@ -2208,11 +2156,20 @@ async function doLogin(){
     return;
   }
   CU=data.user;
-  if(email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};}
-  else{await loadProfile();}
-  // Check if teacher is approved
+  if(email===ADMIN_EMAIL){
+    CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};
+  } else {
+    await loadProfile();
+  }
+  // Block unapproved teachers
   if(CUP && CUP.role==='teacher' && CUP.active===false){
-    showPendingApproval(email);
+    await sb.auth.signOut();
+    CU=null; CUP=null;
+    showErr('⏳ আপনার account এখনো approve হয়নি। Admin approval এর জন্য অপেক্ষা করুন।');
+    return;
+  }
+  if(!CUP && email !== ADMIN_EMAIL){
+    showErr('❌ Profile পাওয়া যায়নি। আবার চেষ্টা করুন।');
     return;
   }
   startApp();
@@ -2234,30 +2191,25 @@ async function doRegister(){
   CU=data.user;
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
-  const regTxnId = window._role==='teacher' && document.getElementById('reg-txn-id') ? document.getElementById('reg-txn-id').value.trim() : '';
+  const txnId = window._role==='teacher' ? (document.getElementById('reg-txn-id')||{value:''}).value.trim() : '';
   const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,
-    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:regTxnId}:{grade:document.getElementById('r-grade').value})};
+    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:txnId}:{grade:document.getElementById('r-grade').value})};
   const {error: insertError} = await sb.from('profiles').insert(profile);
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
-  CUP=profile;
-  btn.disabled=false;btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
-  // Sign out immediately - force user to login manually
+  // FORCE SIGN OUT — must login manually
   await sb.auth.signOut();
   CU = null; CUP = null;
   btn.disabled=false;
   btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন';
 
-  if(window._role==='teacher'){
-    showRegistrationSuccess('teacher', email);
-  } else {
-    showRegistrationSuccess('student', email);
-  }
+  // Show success screen — do NOT call startApp()
+  showRegSuccess(window._role, email);
 }
 
 async function loadProfile(){
   if(!CU)return;
   if(CU.email===ADMIN_EMAIL){CUP={id:CU.id,name:'Sk. Fuadur Rahman',nickname:'Fuad',role:'admin',avatar:'SF',color:'#E1F5EE',tc:'#0F6E56',email:ADMIN_EMAIL,phone:'01571505475',division:'খুলনা',district:'খুলনা',upazila:'খুলনা সদর'};return;}
-  const {data,error}=await sb.from('profiles').select('*').eq('id',CU.id).single();
+  const {data,error}=await sb.from('profiles').select('*').eq('id',CU.id).maybeSingle();
   if(error||!data){
     toast('⚠️ Profile load failed! Check Supabase RLS policy.');
     console.error('Profile load error:',error);
@@ -2540,7 +2492,12 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
   [...tL,...sL,...pL].forEach(u=>{window._chatUsers[u.id]=u;});
   if(adminTab==='pending'){
     if(!pL.length)return`<div class="empty-state"><div class="icon">✅</div><p>No pending teachers! / অপেক্ষারত কোনো শিক্ষক নেই</p></div>`;
-    return pL.map(t=>`<div class="user-card" style="border-left:3px solid var(--warn)">
+    return pL.map(t=>`<div class="user-card" style="border-left:4px solid #f59e0b">
+      ${t.reg_txn_id?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:4px">💳 bKash Payment Info</div>
+        <div style="font-size:15px;font-weight:700;letter-spacing:1px;color:#1a1a1a">${t.reg_txn_id}</div>
+        <div style="font-size:11px;color:#92400e;margin-top:2px">৳200 Registration Fee</div>
+      </div>`:'<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#991B1B">⚠️ No payment info provided</div>'}
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
         <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${t.color};color:${t.tc}">${t.avatar}</div>
         <div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--text)">${t.name}</div>
