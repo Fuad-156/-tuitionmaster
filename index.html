@@ -1684,10 +1684,10 @@ body{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;background:v
       <div class="form-group">
         <label>Gender / লিঙ্গ</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-          <div onclick="selectRegGender('male')" id="rg-male" style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600">
+          <div onclick="selectRegGender('male')" id="rg-male" style="cursor:pointer;border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--text)">
             👨 Male<br><small style="font-weight:400;color:var(--text-muted)">পুরুষ</small>
           </div>
-          <div onclick="selectRegGender('female')" id="rg-female" style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600">
+          <div onclick="selectRegGender('female')" id="rg-female" style="cursor:pointer;border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--text)">
             👩 Female<br><small style="font-weight:400;color:var(--text-muted)">মহিলা</small>
           </div>
         </div>
@@ -2180,7 +2180,7 @@ function selectRegGender(g){
       el.style.color='var(--green-dark)';
     } else {
       el.style.border='1.5px solid var(--border)';
-      el.style.background='white';
+      el.style.background='var(--card)';
       el.style.color='var(--text)';
     }
   });
@@ -2197,7 +2197,7 @@ function selectEpGender(g){
       el.style.color='var(--green-dark)';
     } else {
       el.style.border='1.5px solid var(--border)';
-      el.style.background='white';
+      el.style.background='var(--card)';
       el.style.color='var(--text)';
     }
   });
@@ -3527,10 +3527,10 @@ function showEditProfile(){
     <div class="form-group">
       <label>⚧ Gender / লিঙ্গ</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-        <div onclick="selectEpGender('male')" id="epg-male" style="cursor:pointer;border:1.5px solid ${CUP.gender==='male'?'var(--green)':'var(--border)'};background:${CUP.gender==='male'?'var(--green-light)':'white'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.gender==='male'?'var(--green-dark)':'var(--text)'}">
+        <div onclick="selectEpGender('male')" id="epg-male" style="cursor:pointer;border:1.5px solid ${CUP.gender==='male'?'var(--green)':'var(--border)'};background:${CUP.gender==='male'?'var(--green-light)':'var(--card)'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.gender==='male'?'var(--green-dark)':'var(--text)'}">
           👨 Male<br><small style="font-weight:400">পুরুষ</small>
         </div>
-        <div onclick="selectEpGender('female')" id="epg-female" style="cursor:pointer;border:1.5px solid ${CUP.gender==='female'?'var(--green)':'var(--border)'};background:${CUP.gender==='female'?'var(--green-light)':'white'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.gender==='female'?'var(--green-dark)':'var(--text)'}">
+        <div onclick="selectEpGender('female')" id="epg-female" style="cursor:pointer;border:1.5px solid ${CUP.gender==='female'?'var(--green)':'var(--border)'};background:${CUP.gender==='female'?'var(--green-light)':'var(--card)'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.gender==='female'?'var(--green-dark)':'var(--text)'}">
           👩 Female<br><small style="font-weight:400">মহিলা</small>
         </div>
       </div>
