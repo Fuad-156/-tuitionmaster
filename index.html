@@ -677,9 +677,13 @@ async function openTeacherProfile(tid) {
 
   // Header
   const av = document.getElementById('tp-avatar');
-  av.textContent = teacher.avatar;
   av.style.background = teacher.color;
   av.style.color = teacher.tc;
+  if(teacher.photo){
+    av.innerHTML = `<img src="${teacher.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    av.textContent = teacher.avatar;
+  }
   document.getElementById('tp-name').textContent = teacher.name;
   document.getElementById('tp-subject').textContent = (teacher.subject || '') + ' • ' + (teacher.district || teacher.area || '');
 
@@ -2599,6 +2603,12 @@ const COLORS=[['#E6F1FB','#185FA5'],['#E1F5EE','#0F6E56'],['#FBEAF0','#993556'],
 let CU=null,CUP=null,allTeachers=[],allRequests=[],subFilter='all',chatWith=null,msgSub=null,adminTab='teachers';
 function getColor(s){let h=0;for(let c of s)h=c.charCodeAt(0)+h*31;return COLORS[Math.abs(h)%COLORS.length]}
 function ini(n){return(n||'').split(' ').map(x=>x[0]||'').join('').toUpperCase().slice(0,2)||'?'}
+// Helper: renders avatar circle — photo if available, else initials
+function avatarHTML(u, size='46px', radius='12px'){
+  const sz=`width:${size};height:${size};border-radius:${radius};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:${parseInt(size)*0.35}px;font-weight:700;overflow:hidden`;
+  if(u.photo) return `<div class="tc-avatar" style="${sz};background:${u.color}"><img src="${u.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:${radius}"></div>`;
+  return `<div class="tc-avatar" style="${sz};background:${u.color};color:${u.tc}">${u.avatar||ini(u.name||'')}</div>`;
+}
 function fmtTime(ts){const d=new Date(ts);return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
 function fmtDate(ts){const d=new Date(ts);return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
 function toast(msg,dur=2800){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',dur)}
@@ -3071,7 +3081,7 @@ async function renderStudentHome(el){
       const req=allRequests.find(r=>r.teacher_id===t.id&&r.student_id===CUP.id);
       return`<div class="dash-card">
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
-          <div class="tc-avatar" style="background:${t.color};color:${t.tc}">${t.avatar}</div>
+          ${avatarHTML(t,'46px','12px')}
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700;color:var(--text)">${t.name}</div>
             <div style="font-size:12px;color:var(--text-muted)">${t.subject||""} • ${t.district||t.area||""}</div>
@@ -3175,7 +3185,7 @@ async function renderTeacherHome(el){
   ${allRequests.length===0?`<div class="empty-state"><div class="icon">📭</div><p>No requests yet / এখনো কোনো অনুরোধ নেই</p></div>`
   :allRequests.map(r=>{const s=myStudents.find(x=>x.id===r.student_id);if(!s)return'';
     return`<div class="card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-      <div class="tc-avatar" style="width:40px;height:40px;font-size:14px;border-radius:10px;background:${s.color};color:${s.tc}">${s.avatar}</div>
+      ${avatarHTML(s,'40px','10px')}
       <div style="flex:1"><div style="font-size:13px;font-weight:700">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.grade||''} • ${s.district||s.area||''}</div></div>
       <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'Active':'Pending'}</span></div>
       <div class="btn-row">
@@ -3248,7 +3258,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
         <div style="font-size:11px;color:#92400e;margin-top:2px">৳200 Registration Fee</div>
       </div>`:'<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#991B1B">⚠️ No payment info provided</div>'}
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-        <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${t.color};color:${t.tc}">${t.avatar}</div>
+        ${avatarHTML(t,'42px','11px')}
         <div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--text)">${t.name}</div>
           <span class="chip chip-orange">⏳ Pending Approval</span>
           <span class="chip chip-green">${t.subject||'—'}</span>
@@ -3273,7 +3283,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
     if(!tL.length)return`<div class="empty-state"><div class="icon">👨‍🏫</div><p>No teachers yet / এখনো কোনো শিক্ষক নেই</p></div>`;
     return tL.map(t=>`<div class="user-card">
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-        <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${t.color};color:${t.tc}">${t.avatar}</div>
+        ${avatarHTML(t,'42px','11px')}
         <div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--text)">${t.name}</div>
           <span class="chip chip-green">${t.subject||'—'}</span>
           <span class="chip chip-blue">${t.class_range||'—'}</span>
@@ -3294,7 +3304,7 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
     if(!sL.length)return`<div class="empty-state"><div class="icon">🎓</div><p>No students yet / এখনো কোনো শিক্ষার্থী নেই</p></div>`;
     return sL.map(s=>`<div class="user-card">
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-        <div class="tc-avatar" style="width:42px;height:42px;font-size:15px;border-radius:11px;background:${s.color};color:${s.tc}">${s.avatar}</div>
+        ${avatarHTML(s,'42px','11px')}
         <div style="flex:1"><div style="font-size:14px;font-weight:700">${s.name}</div>
           <span class="chip chip-blue">${s.grade||'—'}</span>
         </div>
@@ -3377,11 +3387,11 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         ${teacher?`<div style="flex:1;background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px">
-          <div style="width:32px;height:32px;border-radius:8px;background:${teacher.color};color:${teacher.tc};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${teacher.avatar}</div>
+          ${avatarHTML(teacher,'32px','8px')}
           <div style="min-width:0"><div style="font-size:11px;color:var(--text-muted)">👨‍🏫 Teacher</div><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${teacher.name}</div></div>
         </div>`:''}
         ${student?`<div style="flex:1;background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px">
-          <div style="width:32px;height:32px;border-radius:8px;background:${student.color};color:${student.tc};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${student.avatar}</div>
+          ${avatarHTML(student,'32px','8px')}
           <div style="min-width:0"><div style="font-size:11px;color:var(--text-muted)">🎓 Student</div><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${student.name}</div></div>
         </div>`:''}
       </div>
@@ -3428,7 +3438,7 @@ function renderTeachers(){
     const isMy=allRequests.some(r=>r.student_id===CUP?.id&&r.teacher_id===t.id);
     return`<div class="teacher-card">
       <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
-        <div class="tc-avatar" style="background:${t.color};color:${t.tc}">${t.avatar}</div>
+        ${avatarHTML(t,'46px','12px')}
         <div style="flex:1">
           <div style="font-size:14px;font-weight:700;color:var(--text)">${t.name}</div>
           <div style="font-size:12px;color:var(--text-muted)">${t.subject||""} • ${t.district||t.area||""}</div>
@@ -3742,7 +3752,7 @@ async function loadAttendanceStudents() {
     ${attendanceStudents.map(s => {
       const status = attMap[s.id] || 'unmarked';
       return `<div class="att-row" id="att-row-${s.id}">
-        <div class="tc-avatar" style="width:38px;height:38px;font-size:13px;border-radius:10px;background:${s.color};color:${s.tc};flex-shrink:0">${s.avatar}</div>
+        ${avatarHTML(s,'38px','10px')}
         <div style="flex:1">
           <div style="font-size:13px;font-weight:700">${s.name}</div>
           <div style="font-size:11px;color:var(--text-muted)">${s.grade||''}</div>
@@ -4050,7 +4060,7 @@ async function viewConversation(teacherId, studentId){
       msgContent = `<div style="font-size:13px;line-height:1.5">${m.text}</div>`;
     }
     return `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start;${isTeacher?'':'flex-direction:row-reverse'}">
-      <div style="width:32px;height:32px;border-radius:50%;background:${sender?.color||'#ddd'};color:${sender?.tc||'#333'};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${sender?.avatar||'?'}</div>
+      ${sender ? avatarHTML(sender,'32px','50%') : `<div style="width:32px;height:32px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:11px">?</div>`}
       <div style="max-width:75%">
         <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;${isTeacher?'':'text-align:right'}">${senderLabel} ${sender?.name||''} • ${fmtTime(m.created_at)}</div>
         <div class="${isTeacher?'conv-bubble-teacher':'conv-bubble-student'}" style="padding:8px 12px;border-radius:${isTeacher?'4px 12px 12px 12px':'12px 4px 12px 12px'}">
