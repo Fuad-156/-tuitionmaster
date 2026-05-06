@@ -71,24 +71,6 @@ window.selRole = function(r){
   if(ps) ps.style.display=r==='teacher'?'block':'none';
 };
 
-function openImgPreview(src){
-  const modal = document.getElementById('img-preview-modal');
-  const img = document.getElementById('img-preview-img');
-  img.src = src;
-  // Add save button to modal
-  let savebtn = document.getElementById('img-save-btn');
-  if(!savebtn){
-    savebtn = document.createElement('a');
-    savebtn.id = 'img-save-btn';
-    savebtn.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.15);color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;font-weight:700;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);z-index:1000;transition:all 0.2s';
-    savebtn.textContent = '💾 Save Image';
-    savebtn.onclick = (e) => { e.stopPropagation(); };
-    modal.appendChild(savebtn);
-  }
-  savebtn.href = src;
-  savebtn.download = 'tuitionmaster_' + Date.now() + '.jpg';
-  modal.style.display = 'flex';
-}
 </script>
 <script>
 // ===== LANGUAGE TOGGLE =====
@@ -2353,7 +2335,7 @@ body{background:var(--bg)}
   <div class="chat-screen" id="chat-screen">
     <div class="chat-header">
       <button onclick="closeChat()">←</button>
-      <div class="t-avatar" id="chat-av" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,0.4)"></div>
+      <div id="chat-av" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat"></div>
       <div class="chat-header-info">
         <div class="ch-name" id="chat-nm"></div>
         <div class="ch-sub" id="chat-sb"></div>
@@ -2386,10 +2368,8 @@ body{background:var(--bg)}
   </div>
 </div>
 <div id="toast"></div>
-<div id="img-preview-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:998;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px)" onclick="if(event.target===this||event.target.id==='img-preview-modal')this.style.display='none'">
-  <button onclick="document.getElementById('img-preview-modal').style.display='none'" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;backdrop-filter:blur(8px);z-index:1001">✕</button>
-  <img id="img-preview-img" src="" style="max-width:95vw;max-height:85vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);object-fit:contain">
-  <div style="color:rgba(255,255,255,0.5);font-size:12px;margin-top:12px">Tap outside to close • 💾 Save button below</div>
+<div class="img-preview-modal" id="img-preview-modal" style="display:none" onclick="this.style.display='none'">
+  <img id="img-preview-img" src="">
 </div>
 
 <!-- Image Preview Modal -->
@@ -4002,12 +3982,23 @@ async function openChat(uid,name,sub,color,tc,avatar,photo){
   // Reset styles first
   av.style.backgroundImage='';av.style.backgroundSize='';av.style.backgroundPosition='';av.textContent='';
   if(photo){
-    av.style.backgroundImage=`url(${photo})`;
+    // Must set backgroundImage LAST — background shorthand resets it
+    av.textContent='';
+    av.style.backgroundColor=color;
     av.style.backgroundSize='cover';
     av.style.backgroundPosition='center';
-    av.style.background=color;
+    av.style.backgroundRepeat='no-repeat';
+    av.style.backgroundImage='url('+photo+')';
   } else {
-    av.textContent=avatar;av.style.background=color;av.style.color=tc;
+    av.textContent=avatar;
+    av.style.backgroundImage='none';
+    av.style.backgroundColor=color;
+    av.style.color=tc;
+    av.style.display='flex';
+    av.style.alignItems='center';
+    av.style.justifyContent='center';
+    av.style.fontWeight='700';
+    av.style.fontSize='14px';
   }
   document.getElementById('chat-nm').textContent=name;
   document.getElementById('chat-sb').textContent=sub;
@@ -4129,26 +4120,12 @@ async function loadMessages(){
   el.innerHTML=data.map(m=>{const isMe=m.from_id===CUP.id;
     let body='';
     if(m.type==='image'){
-      const imgRadius = isMe ? '16px 16px 0 16px' : '0 16px 16px 16px';
-      body=`<div style="position:relative;display:inline-block;max-width:220px">
-        <img src="${m.text}" style="max-width:220px;max-height:260px;border-radius:${imgRadius};display:block;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.2);object-fit:cover" onclick="openImgPreview('${m.text}')" alt="Image">
-        <div style="position:absolute;bottom:6px;right:6px;display:flex;gap:4px">
-          <button onclick="openImgPreview('${m.text}')" title="View" style="background:rgba(0,0,0,0.55);border:none;border-radius:8px;padding:4px 7px;cursor:pointer;color:#fff;font-size:13px;backdrop-filter:blur(4px)">🔍</button>
-          <a href="${m.text}" download="image" title="Save/Download" style="background:rgba(0,0,0,0.55);border-radius:8px;padding:4px 7px;color:#fff;font-size:13px;text-decoration:none;display:flex;align-items:center;backdrop-filter:blur(4px)">💾</a>
-        </div>
-      </div>`;
+      body=`<img class="chat-img" src="${m.text}" onclick="openImgPreview('${m.text}')" alt="Image" style="max-width:220px;border-radius:${isMe?'16px 16px 0 16px':'0 16px 16px 16px'};display:block;box-shadow:0 1px 3px rgba(0,0,0,0.15)">`;
     } else if(m.type==='voice'){
-      const waveColor = isMe ? 'rgba(255,255,255,0.75)' : 'var(--green,#1D9E75)';
-      const bgColor = isMe ? 'var(--green,#1D9E75)' : 'var(--card,#fff)';
-      const border = isMe ? 'none' : '1px solid var(--border,#e5e7eb)';
-      const btnBg = isMe ? 'rgba(255,255,255,0.25)' : 'var(--green-light,#E1F5EE)';
-      const btnColor = isMe ? '#fff' : 'var(--green,#1D9E75)';
-      const textColor = isMe ? '#fff' : 'var(--text,#1a1a1a)';
-      const radius = isMe ? '16px 16px 0 16px' : '0 16px 16px 16px';
-      body=`<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:${radius};min-width:160px;max-width:240px;background:${bgColor};border:${border};box-shadow:0 1px 4px rgba(0,0,0,0.08)">
-        <button onclick="playVoice('${m.text}',this)" style="background:${btnBg};border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:${btnColor};transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">▶</button>
-        <div style="flex:1;height:28px;display:flex;align-items:center;gap:2px">${Array.from({length:18},(_,i)=>`<span style="display:inline-block;width:3px;height:${Math.max(4,Math.round(6+Math.abs(Math.sin(i*0.7+1))*14))}px;background:${waveColor};border-radius:2px;transition:height 0.3s"></span>`).join('')}</div>
-        <span style="font-size:11px;opacity:0.8;flex-shrink:0;color:${textColor}">${m.duration||'0:05'}</span>
+      body=`<div class="voice-bubble ${isMe?'me':'them'}" style="background:${isMe?'var(--green)':'white'};border-radius:${isMe?'16px 16px 0 16px':'0 16px 16px 16px'}">
+        <button onclick="playVoice('${m.text}',this)" style="background:${isMe?'rgba(255,255,255,0.3)':'var(--green-light)'};border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center">▶</button>
+        <div style="flex:1;height:28px;display:flex;align-items:center;gap:2px">${Array.from({length:18},(_,i)=>`<span style="display:inline-block;width:3px;height:${6+Math.abs(Math.sin(i*0.7))*14}px;background:${isMe?'rgba(255,255,255,0.7)':'var(--green)'};border-radius:2px"></span>`).join('')}</div>
+        <span style="font-size:11px;opacity:0.8;flex-shrink:0">${m.duration||'0:05'}</span>
       </div>`;
     } else {
       body=`<div class="bubble ${isMe?'me':'them'}">${m.text}</div>`;
