@@ -2074,6 +2074,56 @@ body{background:var(--bg)}
             <option>5+ years / ৫+ বছর</option>
           </select>
         </div>
+
+        <!-- Graduation Status -->
+        <div class="form-group">
+          <label>🎓 Graduation Status / স্নাতক অবস্থা</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+            <div onclick="selectGraduationStatus('yes')" id="grad-yes" style="cursor:pointer;border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--text);transition:all 0.2s">
+              ✅ Graduated<br><small style="font-weight:400;color:var(--text-muted)">স্নাতক সম্পন্ন</small>
+            </div>
+            <div onclick="selectGraduationStatus('no')" id="grad-no" style="cursor:pointer;border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--text);transition:all 0.2s">
+              📖 Studying<br><small style="font-weight:400;color:var(--text-muted)">এখনো পড়ছি</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- If graduated -->
+        <div id="t-graduated-fields" style="display:none">
+          <div class="form-group">
+            <label>🏛️ University / College Name</label>
+            <input type="text" id="r-grad-institution" placeholder="যেমন: ঢাকা বিশ্ববিদ্যালয়, BUET...">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">কোন বিশ্ববিদ্যালয় / কলেজ থেকে গ্রাজুয়েশন করেছেন?</div>
+          </div>
+          <div class="form-group">
+            <label>📋 Degree / ডিগ্রি</label>
+            <select id="r-grad-degree">
+              <option value="">Select Degree</option>
+              <option>BSc / বিএসসি</option><option>BA / বিএ</option><option>BBA / বিবিএ</option>
+              <option>BCom / বিকম</option><option>MBBS</option><option>BEng / বিইঞ্জি</option>
+              <option>MSc / এমএসসি</option><option>MA / এমএ</option><option>MBA / এমবিএ</option>
+              <option>PhD / পিএইচডি</option><option>Other / অন্যান্য</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- If still studying -->
+        <div id="t-studying-fields" style="display:none">
+          <div class="form-group">
+            <label>🏫 Current Institution / বর্তমান প্রতিষ্ঠান</label>
+            <input type="text" id="r-current-institution" placeholder="যেমন: ঢাকা কলেজ, রাজশাহী বিশ্ববিদ্যালয়...">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">আপনি এখন কোথায় পড়ছেন?</div>
+          </div>
+          <div class="form-group">
+            <label>📚 Current Level / বর্তমান স্তর</label>
+            <select id="r-current-level">
+              <option value="">Select Level</option>
+              <option>HSC / উচ্চ মাধ্যমিক</option>
+              <option>Undergraduate / স্নাতক (চলমান)</option>
+              <option>Postgraduate / স্নাতকোত্তর (চলমান)</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div id="s-fields">
@@ -2085,6 +2135,11 @@ body{background:var(--bg)}
             <option>Class 10 (SSC)</option><option>Class 11 (HSC)</option>
             <option>Class 12 (HSC)</option><option>University / বিশ্ববিদ্যালয়</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>🏫 Institution / শিক্ষা প্রতিষ্ঠান</label>
+          <input type="text" id="r-institution" placeholder="স্কুল / কলেজের নাম লিখুন...">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">আপনি কোন স্কুল / কলেজে পড়ছেন?</div>
         </div>
       </div>
 
@@ -2644,6 +2699,48 @@ function selectRegGender(g){
   });
 }
 
+window._epGradStatus = '';
+function selectEpGradStatus(status){
+  window._epGradStatus = status;
+  ['yes','no'].forEach(x=>{
+    const el = document.getElementById('epgrad-'+x);
+    if(!el) return;
+    if(x === status){
+      el.style.border = '1.5px solid var(--green)';
+      el.style.background = 'var(--green-light)';
+      el.style.color = 'var(--green-dark)';
+    } else {
+      el.style.border = '1.5px solid var(--border)';
+      el.style.background = 'var(--card)';
+      el.style.color = 'var(--text)';
+    }
+  });
+  const yesF = document.getElementById('epgrad-fields-yes');
+  const noF = document.getElementById('epgrad-fields-no');
+  if(yesF) yesF.style.display = status==='yes' ? 'block' : 'none';
+  if(noF) noF.style.display = status==='no' ? 'block' : 'none';
+}
+
+window._graduationStatus = '';
+function selectGraduationStatus(status){
+  window._graduationStatus = status;
+  ['yes','no'].forEach(x=>{
+    const el = document.getElementById('grad-'+x);
+    if(!el) return;
+    if(x === status){
+      el.style.border = '1.5px solid var(--green)';
+      el.style.background = 'var(--green-light)';
+      el.style.color = 'var(--green-dark)';
+    } else {
+      el.style.border = '1.5px solid var(--border)';
+      el.style.background = 'var(--card)';
+      el.style.color = 'var(--text)';
+    }
+  });
+  document.getElementById('t-graduated-fields').style.display = status==='yes' ? 'block' : 'none';
+  document.getElementById('t-studying-fields').style.display = status==='no' ? 'block' : 'none';
+}
+
 function selectEpGender(g){
   window._epGender=g;
   ['male','female'].forEach(x=>{
@@ -2717,7 +2814,21 @@ async function doRegister(){
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const txnId = window._role==='teacher' ? (document.getElementById('reg-txn-id')||{value:''}).value.trim() : '';
   const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender:window._regGender||'',blood_group:document.getElementById('r-blood')?.value||'',
-    ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:txnId}:{grade:document.getElementById('r-grade').value})};
+    ...(window._role==='teacher'?{
+      subject:document.getElementById('r-subject').value,
+      fee:parseInt(document.getElementById('r-fee').value)||1500,
+      class_range:document.getElementById('r-class').value,
+      experience:document.getElementById('r-exp').value,
+      rating:4.5,active:false,reg_txn_id:txnId,
+      graduated: window._graduationStatus==='yes',
+      grad_institution: window._graduationStatus==='yes'?(document.getElementById('r-grad-institution')?.value||''):'',
+      grad_degree: window._graduationStatus==='yes'?(document.getElementById('r-grad-degree')?.value||''):'',
+      current_institution: window._graduationStatus==='no'?(document.getElementById('r-current-institution')?.value||''):'',
+      current_level: window._graduationStatus==='no'?(document.getElementById('r-current-level')?.value||''):'',
+    }:{
+      grade:document.getElementById('r-grade').value,
+      institution:document.getElementById('r-institution')?.value||''
+    })};
   const {error: insertError} = await sb.from('profiles').insert(profile);
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
   // FORCE SIGN OUT — must login manually
@@ -3989,9 +4100,17 @@ async function saveProfile(){
     updates.class_range=document.getElementById('ep-class')?.value||CUP.class_range;
     updates.fee=parseInt(document.getElementById('ep-fee')?.value)||CUP.fee;
     updates.experience=document.getElementById('ep-exp')?.value||CUP.experience;
+    if(window._epGradStatus){
+      updates.graduated = window._epGradStatus==='yes';
+    }
+    updates.grad_institution = document.getElementById('ep-grad-institution')?.value||CUP.grad_institution||'';
+    updates.grad_degree = document.getElementById('ep-grad-degree')?.value||CUP.grad_degree||'';
+    updates.current_institution = document.getElementById('ep-current-institution')?.value||CUP.current_institution||'';
+    updates.current_level = document.getElementById('ep-current-level')?.value||CUP.current_level||'';
   }
   if(CUP.role==='student'){
     updates.grade=document.getElementById('ep-grade')?.value||CUP.grade;
+    updates.institution=document.getElementById('ep-institution')?.value||CUP.institution||'';
   }
   // Generate new avatar from name
   const words=(updates.name||'').trim().split(' ');
@@ -4029,6 +4148,44 @@ function showEditProfile(){
       <select id="ep-exp" class="edit-input">
         ${['<1 year / ১ বছরের কম','1–2 years / ১–২ বছর','3–5 years / ৩–৫ বছর','5–10 years / ৫–১০ বছর','10+ years / ১০+ বছর'].map(e=>`<option ${CUP.experience===e?'selected':''}>${e}</option>`).join('')}
       </select>
+    </div>
+    <!-- Teacher education -->
+    <div class="form-group">
+      <label>🎓 Graduation Status / স্নাতক অবস্থা</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+        <div onclick="selectEpGradStatus('yes')" id="epgrad-yes" style="cursor:pointer;border:1.5px solid ${CUP.graduated===true?'var(--green)':'var(--border)'};background:${CUP.graduated===true?'var(--green-light)':'var(--card)'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.graduated===true?'var(--green-dark)':'var(--text)'}">
+          ✅ Graduated<br><small style="font-weight:400">স্নাতক সম্পন্ন</small>
+        </div>
+        <div onclick="selectEpGradStatus('no')" id="epgrad-no" style="cursor:pointer;border:1.5px solid ${CUP.graduated===false&&CUP.graduated!==undefined?'var(--green)':'var(--border)'};background:${CUP.graduated===false&&CUP.graduated!==undefined?'var(--green-light)':'var(--card)'};border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:${CUP.graduated===false&&CUP.graduated!==undefined?'var(--green-dark)':'var(--text)'}">
+          📖 Studying<br><small style="font-weight:400">এখনো পড়ছি</small>
+        </div>
+      </div>
+    </div>
+    <div id="epgrad-fields-yes" style="display:${CUP.graduated===true?'block':'none'}">
+      <div class="form-group">
+        <label>🏛️ University / College (Graduated)</label>
+        <input id="ep-grad-institution" class="edit-input" value="${CUP.grad_institution||''}" placeholder="যেমন: ঢাকা বিশ্ববিদ্যালয়...">
+      </div>
+      <div class="form-group">
+        <label>📋 Degree / ডিগ্রি</label>
+        <select id="ep-grad-degree" class="edit-input">
+          <option value="">Select Degree</option>
+          ${['BSc / বিএসসি','BA / বিএ','BBA / বিবিএ','BCom / বিকম','MBBS','BEng / বিইঞ্জি','MSc / এমএসসি','MA / এমএ','MBA / এমবিএ','PhD / পিএইচডি','Other / অন্যান্য'].map(d=>`<option ${CUP.grad_degree===d?'selected':''}>${d}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div id="epgrad-fields-no" style="display:${CUP.graduated===false&&CUP.graduated!==undefined?'block':'none'}">
+      <div class="form-group">
+        <label>🏫 Current Institution / বর্তমান প্রতিষ্ঠান</label>
+        <input id="ep-current-institution" class="edit-input" value="${CUP.current_institution||''}" placeholder="যেমন: ঢাকা কলেজ...">
+      </div>
+      <div class="form-group">
+        <label>📚 Current Level / বর্তমান স্তর</label>
+        <select id="ep-current-level" class="edit-input">
+          <option value="">Select Level</option>
+          ${['HSC / উচ্চ মাধ্যমিক','Undergraduate / স্নাতক (চলমান)','Postgraduate / স্নাতকোত্তর (চলমান)'].map(l=>`<option ${CUP.current_level===l?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>
     </div>`:'';
   const studentFields=CUP.role==='student'?`
     <div class="form-group">
@@ -4036,6 +4193,10 @@ function showEditProfile(){
       <select id="ep-grade" class="edit-input">
         ${['Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'].map(g=>`<option ${CUP.grade===g?'selected':''}>${g}</option>`).join('')}
       </select>
+    </div>
+    <div class="form-group">
+      <label>🏫 Institution / শিক্ষা প্রতিষ্ঠান</label>
+      <input id="ep-institution" class="edit-input" value="${CUP.institution||''}" placeholder="স্কুল / কলেজের নাম লিখুন...">
     </div>`:'';
 
   el.innerHTML=`
@@ -4136,10 +4297,15 @@ function renderProfile(){
     ${CUP.blood_group?infoRow('🩸','Blood Group',CUP.blood_group):''}
     ${infoRow('📍','Location',[CUP.upazila,CUP.district,CUP.division].filter(Boolean).join(', ')||'—')}
     ${CUP.role==='student'?infoRow('🏫','Class',CUP.grade||'—'):''}
+    ${CUP.role==='student'&&CUP.institution?infoRow('🏛️','Institution',CUP.institution):''}
     ${CUP.role==='teacher'?`
       ${infoRow('📚','Subject',CUP.subject||'—')}
       ${infoRow('🎓','Class Range',CUP.class_range||'—')}
       ${infoRow('💼','Experience',CUP.experience||'—')}
+      ${CUP.graduated===true?infoRow('🏛️','Graduated From',CUP.grad_institution||'—'):''}
+      ${CUP.graduated===true&&CUP.grad_degree?infoRow('📋','Degree',CUP.grad_degree):''}
+      ${CUP.graduated===false&&CUP.current_institution?infoRow('📖','Currently Studying At',CUP.current_institution):''}
+      ${CUP.graduated===false&&CUP.current_level?infoRow('📚','Current Level',CUP.current_level):''}
       ${infoRow('💰','Monthly Fee',CUP.fee?'৳'+CUP.fee.toLocaleString()+'/ month':'—','color:var(--green);font-size:16px;font-weight:800')}
       <div style="background:var(--green-light);border-radius:14px;padding:14px;margin-top:14px">
         <div style="font-size:11px;font-weight:700;color:var(--green-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">💰 Commission Breakdown</div>
