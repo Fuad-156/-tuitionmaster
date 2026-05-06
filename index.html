@@ -1225,6 +1225,29 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .hist-pill:hover{background:#0f2d22}
 
 [data-theme="dark"] .lang-btn{background:#0f2d22}
+/* Dark mode: registration success screen */
+[data-theme="dark"] #reg-success-screen{background:linear-gradient(135deg,#050d09,#0a1f14) !important}
+[data-theme="dark"] #reg-success-screen>div{background:#1a1d27 !important;color:#e8eaf0}
+[data-theme="dark"] #rs-title{color:#e8eaf0 !important}
+/* Dark mode: modals general */
+[data-theme="dark"] .notif-box,[data-theme="dark"] .cal-box,[data-theme="dark"] .bkash-box,[data-theme="dark"] .rating-box{background:#1a1d27;border-color:#2a2d3a}
+[data-theme="dark"] .notif-modal{background:rgba(0,0,0,0.75)}
+/* Dark mode: schedule/attendance modals */
+[data-theme="dark"] #schedule-modal .notif-box,[data-theme="dark"] #att-modal .notif-box,[data-theme="dark"] #materials-modal .notif-box,[data-theme="dark"] #conv-modal .notif-box{background:#1a1d27}
+[data-theme="dark"] #sch-day,[data-theme="dark"] #sch-subject,[data-theme="dark"] #sch-start,[data-theme="dark"] #sch-end,[data-theme="dark"] #sch-note{background:#0f1117;border-color:#2a2d3a;color:#e8eaf0}
+[data-theme="dark"] #mat-title,[data-theme="dark"] #mat-subject,[data-theme="dark"] #mat-desc{background:#0f1117 !important;border-color:#2a2d3a !important;color:#e8eaf0 !important}
+/* Dark mode: edit inputs */
+[data-theme="dark"] .edit-input{background:#0f1117;color:#e8eaf0;border-color:#2a2d3a}
+/* Dark mode: teacher profile modal */
+[data-theme="dark"] .tp-modal{background:#0f1117}
+[data-theme="dark"] .tp-body,.tp-body{background:transparent}
+[data-theme="dark"] .review-card{background:#1a1d27;border-color:#2a2d3a}
+/* Dark mode: status badges */
+[data-theme="dark"] .status-badge.pending{background:#2a2000;color:#f59e0b}
+/* Dark mode: specific hardcoded bg areas in inline JS HTML */
+[data-theme="dark"] .dash-card{background:#1a1d27;border-color:#2a2d3a}
+/* Dark mode: commission breakdown */
+[data-theme="dark"] .user-card{background:#1a1d27;border-color:#2a2d3a}
 [data-theme="dark"] .filter-sel{padding:7px 10px 7px 26px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:var(--white);color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none}
 .filter-sel:focus{border-color:var(--green);outline:none}
 .filter-sel.has-value{border-color:var(--green);background-color:var(--green-light);color:var(--green-dark)}
@@ -2010,6 +2033,18 @@ body{background:var(--bg)}
         </div>
       </div>
 
+      <div class="form-group">
+        <label>🩸 Blood Group / রক্তের গ্রুপ</label>
+        <select id="r-blood" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:var(--white);outline:none">
+          <option value="">Select / বেছে নিন</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option>
+          <option>O+</option><option>O-</option>
+          <option>Unknown / জানি না</option>
+        </select>
+      </div>
+
       <div id="t-fields" style="display:none">
         <div class="form-row">
           <div class="form-group"><label>Subject / বিষয়</label>
@@ -2357,7 +2392,7 @@ body{background:var(--bg)}
         <button onclick="closeConvModal()" style="border:none;background:rgba(255,255,255,0.2);color:white;width:30px;height:30px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
       </div>
     </div>
-    <div id="conv-body" style="flex:1;overflow-y:auto;padding:16px;background:#f0f2f5;min-height:200px;max-height:70vh">
+    <div id="conv-body" style="flex:1;overflow-y:auto;padding:16px;background:var(--bg);min-height:200px;max-height:70vh">
       <div style="text-align:center;padding:30px;color:var(--text-muted)">Loading...</div>
     </div>
     <div style="padding:10px 14px;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;text-align:center;font-size:11px;color:var(--text-muted);border-radius:0 0 16px 16px">
@@ -2681,7 +2716,7 @@ async function doRegister(){
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const txnId = window._role==='teacher' ? (document.getElementById('reg-txn-id')||{value:''}).value.trim() : '';
-  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender:window._regGender||'',
+  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender:window._regGender||'',blood_group:document.getElementById('r-blood')?.value||'',
     ...(window._role==='teacher'?{subject:document.getElementById('r-subject').value,fee:parseInt(document.getElementById('r-fee').value)||1500,class_range:document.getElementById('r-class').value,experience:document.getElementById('r-exp').value,rating:4.5,active:false,reg_txn_id:txnId}:{grade:document.getElementById('r-grade').value})};
   const {error: insertError} = await sb.from('profiles').insert(profile);
   if(insertError){ showErr('Profile save failed: '+insertError.message); btn.disabled=false; btn.textContent='Create Account / অ্যাকাউন্ট তৈরি করুন'; return; }
@@ -2711,6 +2746,54 @@ async function loadProfile(){
   }
   CUP=data;
 }
+function confirmDeleteAccount(){
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:380px;text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+      <h3 style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px">Account Delete করবেন?</h3>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px">
+        এই কাজটি undo করা যাবে না।<br>
+        আপনার সব data চিরতরে মুছে যাবে।<br><br>
+        <strong style="color:#991B1B">নিশ্চিত করতে আপনার নাম লিখুন:</strong>
+      </p>
+      <input id="del-confirm-inp" placeholder="${CUP.name}" style="width:100%;padding:10px 14px;border:2px solid #FCA5A5;border-radius:10px;font-size:14px;font-family:inherit;text-align:center;margin-bottom:14px;background:var(--bg);color:var(--text);outline:none;box-sizing:border-box">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onclick="this.closest('[style*=fixed]').remove()" style="padding:12px;background:var(--bg);color:var(--text-muted);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">বাতিল করুন</button>
+        <button onclick="doDeleteAccount()" style="padding:12px;background:#991B1B;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" id="del-final-btn">🗑️ হ্যাঁ, মুছুন</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function doDeleteAccount(){
+  const inp = document.getElementById('del-confirm-inp');
+  if(!inp || inp.value.trim().toLowerCase() !== (CUP.name||'').toLowerCase()){
+    inp.style.borderColor='#ef4444';
+    inp.placeholder='নাম সঠিকভাবে লিখুন!';
+    setTimeout(()=>{inp.style.borderColor='#FCA5A5';inp.placeholder=CUP.name;},1500);
+    return;
+  }
+  const btn = document.getElementById('del-final-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Deleting...';}
+  try {
+    // Delete profile from DB
+    await sb.from('profiles').delete().eq('id', CUP.id);
+    // Delete auth user
+    await sb.auth.admin?.deleteUser?.(CUP.id);
+    // Sign out
+    await sb.auth.signOut();
+  } catch(e){}
+  // Close modal and go to landing
+  document.querySelectorAll('[style*="position:fixed"][style*="z-index:9999"]').forEach(el=>el.remove());
+  CU=null;CUP=null;allTeachers=[];allRequests=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('landing-screen').style.display='block';
+  toast('✅ Account মুছে ফেলা হয়েছে!');
+}
+
 async function doLogout(){
   await sb.auth.signOut();CU=null;CUP=null;allTeachers=[];allRequests=[];
   if(msgSub){sb.removeChannel(msgSub);msgSub=null;}
@@ -3895,6 +3978,7 @@ async function saveProfile(){
   const updates={
     name:document.getElementById('ep-name')?.value||CUP.name,
     gender: window._epGender || CUP.gender || '',
+    blood_group: document.getElementById('ep-blood')?.value||CUP.blood_group||'',
     phone:document.getElementById('ep-phone')?.value||CUP.phone,
     division:document.getElementById('ep-division')?.value||CUP.division,
     district:document.getElementById('ep-district')?.value||CUP.district,
@@ -3982,6 +4066,13 @@ function showEditProfile(){
       </div>
     </div>
     <div class="form-group">
+      <label>🩸 Blood Group / রক্তের গ্রুপ</label>
+      <select id="ep-blood" class="edit-input">
+        <option value="">Select / বেছে নিন</option>
+        ${['A+','A-','B+','B-','AB+','AB-','O+','O-','Unknown / জানি না'].map(b=>`<option ${CUP.blood_group===b?'selected':''}>${b}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
       <label>🗺️ Division / বিভাগ</label>
       <select id="ep-division" class="edit-input">
         ${divs.map(d=>`<option ${CUP.division===d?'selected':''}>${d}</option>`).join('')}
@@ -4042,6 +4133,7 @@ function renderProfile(){
   <div style="background:var(--white);border-radius:24px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow-lg);border:1px solid var(--border-light);padding-top:52px;animation:fadeInUp 0.5s 0.1s ease both">
     ${infoRow('📧','Email',CUP.email||CU?.email||'—')}
     ${infoRow('📱','Mobile',CUP.phone||'—')}
+    ${CUP.blood_group?infoRow('🩸','Blood Group',CUP.blood_group):''}
     ${infoRow('📍','Location',[CUP.upazila,CUP.district,CUP.division].filter(Boolean).join(', ')||'—')}
     ${CUP.role==='student'?infoRow('🏫','Class',CUP.grade||'—'):''}
     ${CUP.role==='teacher'?`
@@ -4071,6 +4163,12 @@ function renderProfile(){
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;animation:fadeInUp 0.5s 0.2s ease both">
     <button onclick="showEditProfile()" style="padding:14px;background:var(--green-light);color:var(--green-dark);border:2px solid var(--green);border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">✏️ Edit Profile</button>
     <button onclick="doLogout()" style="padding:14px;background:#FEE2E2;color:#B91C1C;border:2px solid #FECACA;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">🚪 Logout</button>
+  </div>
+  <!-- Danger zone -->
+  <div style="border:1.5px dashed #FCA5A5;border-radius:14px;padding:16px;margin-bottom:10px;animation:fadeInUp 0.5s 0.3s ease both;background:var(--white)">
+    <div style="font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">⚠️ Danger Zone / বিপদ এলাকা</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5">একবার account delete করলে আর ফিরে পাবেন না। সব data মুছে যাবে।</div>
+    <button onclick="confirmDeleteAccount()" style="width:100%;padding:12px;background:#FEF2F2;color:#991B1B;border:2px solid #FCA5A5;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">🗑️ Delete Account / অ্যাকাউন্ট মুছুন</button>
   </div>`;
 }
 
