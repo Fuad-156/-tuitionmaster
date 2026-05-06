@@ -100,22 +100,7 @@ const T = {
 };
 let currentLang = 'en';
 
-function toggleDark(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  document.documentElement.setAttribute('data-theme',isDark?'light':'dark');
-  const btn=document.getElementById('dark-btn');
-  if(btn) btn.textContent=isDark?'🌙':'☀️';
-  localStorage.setItem('tm_theme',isDark?'light':'dark');
-}
-// Apply saved theme on load
-(function(){
-  const t=localStorage.getItem('tm_theme')||
-    (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-  if(t==='dark'){
-    document.documentElement.setAttribute('data-theme','dark');
-    setTimeout(()=>{const b=document.getElementById('dark-btn');if(b)b.textContent='☀️';},100);
-  }
-})();
+// Dark mode handled by toggleTheme/applyTheme
 
 function toggleLang() {
   currentLang = currentLang === 'en' ? 'bn' : 'en';
@@ -579,21 +564,26 @@ function markAllRead() {
 function renderNotifications() {
   const el = document.getElementById('notif-list');
   const unread = notifications.filter(n => !n.read).length;
-  document.getElementById('notif-count-title').textContent = unread > 0 ? `(${unread} new)` : '';
+  const countEl = document.getElementById('notif-count-title');
+  if(countEl) countEl.textContent = unread > 0 ? `(${unread} new)` : '';
 
   if (!notifications.length) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">🔔</div><p>No notifications yet / এখনো কোনো notification নেই</p></div>`;
+    el.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+      <div style="font-size:52px;margin-bottom:14px;animation:floatY 3s ease-in-out infinite">🔔</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">No notifications yet</div>
+      <div style="font-size:13px">এখনো কোনো notification নেই</div>
+    </div>`;
     return;
   }
-  el.innerHTML = notifications.map(n => `
-    <div class="notif-item ${n.read ? 'read' : 'unread'}" onclick="readNotif(${n.id})">
-      <div class="notif-icon" style="background:${n.color}">${n.icon}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:${n.read ? '500' : '700'}">${n.title}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${n.body}</div>
-        <div class="notif-time">${timeAgo(n.time)}</div>
+  el.innerHTML = notifications.map((n,i) => `
+    <div class="notif-item ${n.read ? 'read' : 'unread'}" onclick="readNotif(${n.id})" style="animation:fadeInUp 0.35s ${i*0.06}s ease both">
+      <div class="notif-icon" style="background:${n.color||'var(--green-light)'}">${n.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="notif-title" style="font-weight:${n.read?'600':'800'}">${n.title}</div>
+        <div class="notif-body">${n.body}</div>
+        <div class="notif-time">🕐 ${timeAgo(n.time)}</div>
       </div>
-      ${!n.read ? '<div style="width:8px;height:8px;background:var(--green);border-radius:50%;flex-shrink:0;margin-top:4px"></div>' : ''}
+      ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
     </div>`).join('');
 }
 
@@ -1224,8 +1214,9 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .chat-input-bar input{background:#0f172a;border-color:#334155;color:#f1f5f9}
 [data-theme="dark"] .bkash-box{background:#1e293b}
 [data-theme="dark"] .rating-box{background:#1e293b}
-[data-theme="dark"] .notif-box{background:#1e293b}
-[data-theme="dark"] .notif-item.read{background:#0f172a;border-color:#334155}
+[data-theme="dark"] .notif-box,[data-theme="dark"] .notif-header-bar{background:var(--card)}
+[data-theme="dark"] .notif-item.unread{background:#0d2b1e;border-color:#1D9E75}
+[data-theme="dark"] .notif-item.read{background:var(--bg);border-color:var(--border)}
 [data-theme="dark"] .cal-box{background:#1e293b}
 [data-theme="dark"] .cal-day:hover{background:#0f2d22}
 [data-theme="dark"] .tp-body{background:#0f172a}
@@ -1430,15 +1421,24 @@ body{background:var(--bg)}
 .hist-pill .del{color:var(--text-muted);font-size:10px;margin-left:2px}
 
 /* NOTIFICATIONS */
-.notif-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white}
-.notif-btn{position:relative;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--white);cursor:pointer;font-family:inherit}
-.notif-modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:996;display:flex;align-items:flex-end;justify-content:center}
-.notif-box{background:var(--white);border-radius:24px 24px 0 0;padding:20px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
-.notif-item{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;margin-bottom:8px;cursor:pointer;transition:background 0.2s}
-.notif-item.unread{background:#F0FDF4;border:1px solid #BBF7D0}
-.notif-item.read{background:var(--bg);border:1px solid var(--border)}
-.notif-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.notif-time{font-size:10px;color:var(--text-muted);margin-top:3px}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-size:9px;font-weight:800;min-width:18px;height:18px;border-radius:99px;display:flex;align-items:center;justify-content:center;border:2px solid var(--white);padding:0 3px;animation:pulse-green 2s infinite}
+.notif-btn{position:relative;width:36px;height:36px;border:1.5px solid var(--border-light);border-radius:12px;font-size:16px;background:var(--white);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:var(--shadow)}
+.notif-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.notif-modal{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);z-index:996;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease}
+.notif-box{background:var(--white);border-radius:28px 28px 0 0;padding:0;width:100%;max-width:520px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:slideInBottom 0.35s cubic-bezier(.4,0,.2,1)}
+.notif-header-bar{padding:20px 20px 14px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--white)}
+.notif-header-bar h3{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-0.3px}
+.notif-scroll{overflow-y:auto;padding:12px 16px 24px;flex:1}
+.notif-item{display:flex;gap:12px;align-items:flex-start;padding:13px 12px;border-radius:16px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;border:1.5px solid transparent}
+.notif-item.unread{background:linear-gradient(135deg,#f0fdf8,#e8fbf3);border-color:#BBF7D0}
+.notif-item.unread:hover{background:linear-gradient(135deg,#e8fbf3,#d1fae5);transform:translateY(-1px)}
+.notif-item.read{background:var(--bg);border-color:var(--border-light)}
+.notif-item.read:hover{background:var(--border-light)}
+.notif-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.notif-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;line-height:1.4}
+.notif-body{font-size:12px;color:var(--text-muted);line-height:1.5}
+.notif-time{font-size:10px;color:var(--text-soft);margin-top:4px;font-weight:600}
+.notif-unread-dot{width:8px;height:8px;background:var(--green);border-radius:50%;flex-shrink:0;margin-top:4px;animation:pulse-green 2s infinite}
 
 /* TEACHER PROFILE PAGE */
 .tp-modal{position:fixed;inset:0;background:var(--bg);z-index:995;overflow-y:auto}
@@ -1532,7 +1532,7 @@ body{background:var(--bg)}
 .att-btn.late.active{background:#FEF3C7;border-color:#FCD34D}
 [data-theme="dark"] .att-btn{background:#1a1d27;border-color:#2a2d3a}
 [data-theme="dark"] .att-row,[data-theme="dark"] .material-card,[data-theme="dark"] .sch-slot{background:#1a1d27;border-color:#2a2d3a}
-[data-theme="dark"] .notif-box{background:#1a1d27}
+
 [data-theme="dark"] .bubble.them{background:#1a1d27;border-color:#2a2d3a}
 [data-theme="dark"] .att-btn.present.active{background:#0d2b22;border-color:#1D9E75}
 [data-theme="dark"] .att-btn.absent.active{background:#2d0f0f;border-color:#ef4444}
@@ -1932,7 +1932,7 @@ body{background:var(--bg)}
     <!-- ===== AUTH SCREEN ===== -->
 
 <!-- ===== AUTH SCREEN ===== -->
-    <button class="auth-theme-btn" id="auth-theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+    <button class="auth-theme-btn" id="auth-theme-btn" onclick="toggleTheme()" id="auth-theme-btn">🌙 Dark</button>
     <div class="auth-logo">
       <div class="icon auth-icon-float">📚</div>
       <h1>Tuition Master</h1>
@@ -2090,25 +2090,33 @@ body{background:var(--bg)}
 
 <div id="app">
   <div class="topbar">
-    <div class="logo">📚 Tuition Master</div>
-    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" title="Dark/Light Mode">
-      <div class="theme-toggle-ball" id="theme-ball">🌙</div>
-    </button>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="t-avatar" id="top-av"></div>
-      <div>
-        <div style="font-size:12px;font-weight:700" id="top-name"></div>
-        <div class="role-tag" id="top-role"></div>
+    <div class="logo">📚 <span style="background:linear-gradient(135deg,var(--green-dark),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Tuition Master</span></div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <!-- Theme toggle -->
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" title="Dark/Light Mode">
+        <div class="theme-toggle-ball" id="theme-ball">🌙</div>
+      </button>
+      <!-- Language -->
+      <button class="lang-btn" id="lang-btn" onclick="toggleLang()">বাংলা</button>
+      <!-- Notifications -->
+      <div style="position:relative">
+        <button class="notif-btn" onclick="openNotifications()">🔔</button>
+        <div class="notif-badge" id="notif-badge" style="display:none">0</div>
       </div>
+      <!-- Install -->
+      <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green);color:white;cursor:pointer;font-family:inherit">📲</button>
+      <!-- Avatar + name -->
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--green-light);border-radius:12px;cursor:pointer" onclick="showPage('profile')">
+        <div class="t-avatar" id="top-av" style="width:28px;height:28px;font-size:12px"></div>
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--green-dark)" id="top-name"></div>
+          <div class="role-tag" id="top-role" style="font-size:9px"></div>
+        </div>
+      </div>
+      <!-- Logout -->
+      <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="font-size:11px;padding:6px 10px">↩ Exit</button>
     </div>
-    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">বাংলা</button>
-    <div style="position:relative">
-      <button class="notif-btn" onclick="openNotifications()">🔔</button>
-      <div class="notif-badge" id="notif-badge" style="display:none">0</div>
-    </div>
-    <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green);color:white;cursor:pointer;font-family:inherit">📲 Install</button>
-    <button id="dark-btn" onclick="toggleDark()" style="width:32px;height:32px;border:1.5px solid var(--border);border-radius:50%;background:var(--white);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Dark Mode">🌙</button>
-    <button class="logout-btn" id="logout-btn" onclick="doLogout()">Logout</button>
   </div>
 
   <!-- Clock Bar -->
@@ -2238,14 +2246,17 @@ body{background:var(--bg)}
 <!-- Notification Modal -->
 <div class="notif-modal" id="notif-modal" style="display:none" onclick="if(event.target===this)closeNotifications()">
   <div class="notif-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:16px;font-weight:700">🔔 Notifications <span id="notif-count-title" style="font-size:12px;color:var(--text-muted);font-weight:400"></span></div>
-      <div style="display:flex;gap:8px">
-        <button onclick="markAllRead()" style="border:none;background:var(--green-light);color:var(--green-dark);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Mark all read</button>
-        <button onclick="closeNotifications()" style="border:none;background:var(--bg);color:var(--text-muted);padding:5px 10px;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
+    <div class="notif-header-bar">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--text);letter-spacing:-0.3px">🔔 Notifications</div>
+        <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px" id="notif-count-title"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="markAllRead()" style="font-size:11px;color:var(--green);background:var(--green-light);border:none;cursor:pointer;font-family:inherit;font-weight:700;padding:7px 13px;border-radius:20px">✓ All read</button>
+        <button onclick="closeNotifications()" style="font-size:18px;background:var(--bg);border:none;cursor:pointer;color:var(--text-muted);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center">✕</button>
       </div>
     </div>
-    <div id="notif-list"></div>
+    <div class="notif-scroll" id="notif-list"></div>
   </div>
 </div>
 
@@ -4081,14 +4092,12 @@ function toggleTheme(){
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   const isDark = theme === 'dark';
-
-  // Auth button
-  const authBtn = document.getElementById('auth-theme-btn');
-  if(authBtn) authBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-
-  // App toggle ball
+  // Update theme-toggle ball
   const ball = document.getElementById('theme-ball');
   if(ball) ball.textContent = isDark ? '☀️' : '🌙';
+  // Update auth button
+  const authBtn = document.getElementById('auth-theme-btn');
+  if(authBtn) authBtn.textContent = (isDark ? '☀️ Light' : '🌙 Dark');
 }
 
 // Init on page load
