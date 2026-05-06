@@ -1223,7 +1223,7 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .pill{background:#1e293b;border-color:#334155;color:#94a3b8}
 [data-theme="dark"] .hist-pill{background:#1e293b;border-color:#334155}
 [data-theme="dark"] .hist-pill:hover{background:#0f2d22}
-[data-theme="dark"] .logout-btn{background:#1e293b;border-color:#334155;color:#94a3b8}
+
 [data-theme="dark"] .lang-btn{background:#0f2d22}
 [data-theme="dark"] .filter-sel{padding:7px 10px 7px 26px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;background:var(--white);color:var(--text);width:100%;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none}
 .filter-sel:focus{border-color:var(--green);outline:none}
@@ -1238,7 +1238,7 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] #auth-screen{background:linear-gradient(135deg,#0a1628,#0f2d22,#1a3a30)}
 
 /* Theme toggle button */
-.theme-toggle{position:fixed;top:12px;right:16px;z-index:9998;width:44px;height:24px;background:var(--border);border-radius:12px;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;transition:background 0.3s}
+.theme-toggle{width:44px;height:24px;background:var(--border);border-radius:12px;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;transition:background 0.3s;flex-shrink:0}
 .theme-toggle-ball{width:20px;height:20px;border-radius:50%;background:var(--white);transition:transform 0.3s;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 [data-theme="dark"] .theme-toggle{background:var(--green)}
 [data-theme="dark"] .theme-toggle-ball{transform:translateX(20px)}
@@ -1345,7 +1345,7 @@ body{background:var(--bg)}
 .role-tag{font-size:10px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:20px;font-weight:700}
 
 .lang-btn{padding:5px 10px;border:1.5px solid var(--green);border-radius:var(--radius-sm);font-size:11px;font-weight:700;background:var(--green-light);color:var(--green-dark);cursor:pointer;font-family:inherit}
-.logout-btn{padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--white);color:var(--text-muted);cursor:pointer;font-family:inherit}
+.logout-btn{font-family:inherit;cursor:pointer;transition:all 0.2s}
 
 
 
@@ -2115,7 +2115,7 @@ body{background:var(--bg)}
         </div>
       </div>
       <!-- Logout -->
-      <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="font-size:11px;padding:6px 10px">↩ Exit</button>
+      <button class="logout-btn" id="logout-btn" onclick="doLogout()" title="Logout" style="width:34px;height:34px;border-radius:10px;border:1.5px solid #fecaca;background:#fef2f2;color:#ef4444;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">🚪</button>
     </div>
   </div>
 
