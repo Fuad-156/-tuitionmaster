@@ -715,7 +715,7 @@ async function openTeacherProfile(tid) {
     </div>
 
     <div class="btn-row" style="margin-bottom:10px">
-      <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${teacher.id}','${teacher.name}','${teacher.subject||''}','${teacher.color}','${teacher.tc}','${teacher.avatar}');closeTeacherProfile()">💬 Send Message</button>
+      <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${teacher.id}','${teacher.name}','${teacher.subject||''}','${teacher.color}','${teacher.tc}','${teacher.avatar}','${teacher.photo||''}');closeTeacherProfile()">💬 Send Message</button>
       ${CUP?.role === 'student' ? `<button class="btn-sm btn-green" style="flex:1" ${isMy ? 'disabled' : ''} onclick="reqTeacher('${teacher.id}','${teacher.fee || 0}');closeTeacherProfile()">${isMy ? '✅ Requested' : '+ Request Teacher'}</button>` : ''}
     </div>
 
@@ -3081,7 +3081,7 @@ async function renderStudentHome(el){
         </div>
         <div class="btn-row">
           <button class="btn-sm btn-outline" style="flex:1" onclick="openTeacherProfile('${t.id}')">👤 Profile</button>
-          <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message</button>
+          <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}','${t.photo||''}')">💬 Message</button>
           <button class="btn-sm" style="flex:1;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D" onclick="openRating('${t.id}','${t.name}','${t.rating||4.5}')">⭐ Rate</button>
         </div>
       </div>`;}).join('')}
@@ -3179,7 +3179,7 @@ async function renderTeacherHome(el){
       <div style="flex:1"><div style="font-size:13px;font-weight:700">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.grade||''} • ${s.district||s.area||''}</div></div>
       <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'Active':'Pending'}</span></div>
       <div class="btn-row">
-        <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}')">💬 Message</button>
+        <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}','${s.photo||''}')">💬 Message</button>
         ${r.status!=='active'?`<button class="btn-sm btn-outline" style="flex:1" onclick="acceptReq('${r.id}')">✅ Accept / গ্রহণ</button>`:''}
       </div></div>`;}).join('')}`;
   // Load schedule async after render
@@ -3442,7 +3442,7 @@ function renderTeachers(){
       </div>
       <div class="btn-row">
         <button class="btn-sm btn-outline" style="flex:1" onclick="openTeacherProfile('${t.id}')">👤 Profile</button>
-        <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}')">💬 Message</button>
+        <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}','${t.photo||''}')">💬 Message</button>
         ${CUP?.role==='student'?`<button class="btn-sm btn-green" style="flex:1" ${isMy?'disabled':''} onclick="reqTeacher('${t.id}','${t.fee||0}')">${isMy?'✅':'+ Request'}</button>`:''}
       </div>
       ${CUP?.role==='student'&&isMy?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D" onclick="openRating('${t.id}','${t.name}','${t.rating||4.5}')">⭐ Rate this Teacher</button>`:''}
@@ -3570,7 +3570,7 @@ async function renderChatList(){
 function openChatById(uid){
   const u=(window._chatUsers||{})[uid];
   if(!u){console.error('User not found:',uid);return;}
-  openChat(u.id,u.name,u.subject||u.grade||'',u.color,u.tc,u.avatar);
+  openChat(u.id,u.name,u.subject||u.grade||'',u.color,u.tc,u.avatar,u.photo||'');
 }
 
 // ===== SCHEDULE / TIMETABLE =====
@@ -3966,10 +3966,19 @@ function initChatViewportFix(){
   }
 }
 
-async function openChat(uid,name,sub,color,tc,avatar){
+async function openChat(uid,name,sub,color,tc,avatar,photo){
   chatWith=uid;
   const av=document.getElementById('chat-av');
-  av.textContent=avatar;av.style.background=color;av.style.color=tc;
+  // Reset styles first
+  av.style.backgroundImage='';av.style.backgroundSize='';av.style.backgroundPosition='';av.textContent='';
+  if(photo){
+    av.style.backgroundImage=`url(${photo})`;
+    av.style.backgroundSize='cover';
+    av.style.backgroundPosition='center';
+    av.style.background=color;
+  } else {
+    av.textContent=avatar;av.style.background=color;av.style.color=tc;
+  }
   document.getElementById('chat-nm').textContent=name;
   document.getElementById('chat-sb').textContent=sub;
   await loadMessages();
