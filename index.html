@@ -1654,6 +1654,10 @@ body{background:var(--bg)}
 .bilingual{display:flex;flex-direction:column}
 .bilingual .en{font-size:13px;font-weight:600}
 .bilingual .bn{font-size:11px;color:var(--text-muted)}
+
+.tick-sent{color:rgba(255,255,255,0.5);font-size:11px}
+.tick-delivered{color:rgba(255,255,255,0.75);font-size:11px}
+.tick-seen{color:#00ff9d;font-size:11px}
 </style>
 </head>
 <body>
@@ -1959,6 +1963,10 @@ body{background:var(--bg)}
   to{opacity:1;transform:translateY(0)}
 }
 .page.active{animation:pageEnter 0.4s cubic-bezier(0.22,1,0.36,1) both}
+
+.tick-sent{color:rgba(255,255,255,0.5);font-size:11px}
+.tick-delivered{color:rgba(255,255,255,0.75);font-size:11px}
+.tick-seen{color:#00ff9d;font-size:11px}
 </style>
 
 <div id="auth-screen">
@@ -2609,7 +2617,14 @@ function avatarHTML(u, size='46px', radius='12px'){
   if(u.photo) return `<div class="tc-avatar" style="${sz};background:${u.color}"><img src="${u.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:${radius}"></div>`;
   return `<div class="tc-avatar" style="${sz};background:${u.color};color:${u.tc}">${u.avatar||ini(u.name||'')}</div>`;
 }
-function fmtTime(ts){const d=new Date(ts);return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
+function fmtTime(ts){
+  const d=new Date(ts);
+  let h=d.getHours();
+  const m=(d.getMinutes()<10?'0':'')+d.getMinutes();
+  const ampm=h>=12?'PM':'AM';
+  h=h%12||12;
+  return h+':'+m+' '+ampm;
+}
 function fmtDate(ts){const d=new Date(ts);return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
 function toast(msg,dur=2800){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',dur)}
 
@@ -3982,12 +3997,31 @@ async function openChat(uid,name,sub,color,tc,avatar,photo){
   // Reset styles first
   av.style.backgroundImage='';av.style.backgroundSize='';av.style.backgroundPosition='';av.textContent='';
   if(photo){
-    av.style.backgroundImage=`url(${photo})`;
+    av.style.cssText='';
+    av.textContent='';
+    av.style.backgroundImage='url('+photo+')';
     av.style.backgroundSize='cover';
     av.style.backgroundPosition='center';
-    av.style.background=color;
+    av.style.backgroundColor=color;
+    av.style.width='38px';av.style.height='38px';
+    av.style.borderRadius='50%';
+    av.style.border='2px solid rgba(255,255,255,0.4)';
+    av.style.flexShrink='0';
+    av.style.display='flex';
   } else {
-    av.textContent=avatar;av.style.background=color;av.style.color=tc;
+    av.style.cssText='';
+    av.textContent=avatar;
+    av.style.background=color;
+    av.style.color=tc;
+    av.style.width='38px';av.style.height='38px';
+    av.style.borderRadius='50%';
+    av.style.border='2px solid rgba(255,255,255,0.4)';
+    av.style.display='flex';
+    av.style.alignItems='center';
+    av.style.justifyContent='center';
+    av.style.fontWeight='700';
+    av.style.fontSize='14px';
+    av.style.flexShrink='0';
   }
   document.getElementById('chat-nm').textContent=name;
   document.getElementById('chat-sb').textContent=sub;
@@ -4119,16 +4153,31 @@ async function loadMessages(){
     } else {
       body=`<div class="bubble ${isMe?'me':'them'}">${m.text}</div>`;
     }
-    return`<div class="msg-wrap ${isMe?'me':'them'}">${body}<div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)}</div></div>`;
+    const statusIcon = isMe ? (
+      m.seen ? '<span style="color:#00d68f;font-size:11px" title="Seen">✓✓</span>' :
+      m.delivered ? '<span style="color:rgba(255,255,255,0.7);font-size:11px" title="Delivered">✓✓</span>' :
+      '<span style="color:rgba(255,255,255,0.5);font-size:11px" title="Sent">✓</span>'
+    ) : '';
+    return`<div class="msg-wrap ${isMe?'me':'them'}">${body}<div class="btime ${isMe?'r':''}">${fmtTime(m.created_at)} ${statusIcon}</div></div>`;
   }).join('');
   el.scrollTop=el.scrollHeight;
+  // Mark incoming messages as seen
+  if(chatWith && CUP){
+    try{
+      await sb.from('messages')
+        .update({seen:true,delivered:true})
+        .eq('to_id',CUP.id)
+        .eq('from_id',chatWith)
+        .eq('seen',false);
+    }catch(e){}
+  }
 }
 async function sendMsg(){
   const inp=document.getElementById('chat-inp');
   const text=inp.value.trim();
   if(!text||!chatWith)return;
   inp.value='';
-  await sb.from('messages').insert({from_id:CUP.id,to_id:chatWith,text,type:'text'});
+  await sb.from('messages').insert({from_id:CUP.id,to_id:chatWith,text,type:'text',delivered:false,seen:false});
   await loadMessages();
   addNotification('💬','Message Sent / পাঠানো হয়েছে!',text.slice(0,50),'#E6F1FB');
 }
