@@ -1559,6 +1559,18 @@ body{background:var(--bg)}
 [data-theme="dark"] .att-btn{background:#1a1d27;border-color:#2a2d3a}
 [data-theme="dark"] .att-row,[data-theme="dark"] .material-card,[data-theme="dark"] .sch-slot{background:#1a1d27;border-color:#2a2d3a}
 
+/* Admin conversation bubbles */
+.conv-bubble-teacher{background:#E8F5E9;color:#1a2e1a}
+.conv-bubble-student{background:#E3F2FD;color:#1a1f2e}
+[data-theme="dark"] .conv-bubble-teacher{background:#0d2b22;color:#a7f3d0}
+[data-theme="dark"] .conv-bubble-student{background:#0f1e3a;color:#93c5fd}
+
+/* Revenue table head/foot */
+.rev-table-head{background:#F0FDF4}
+.rev-head-text{color:#166534}
+[data-theme="dark"] .rev-table-head{background:#0d2b22}
+[data-theme="dark"] .rev-head-text{color:#5DCAA5}
+
 [data-theme="dark"] .bubble.them{background:#1a1d27;border-color:#2a2d3a}
 [data-theme="dark"] .att-btn.present.active{background:#0d2b22;border-color:#1D9E75}
 [data-theme="dark"] .att-btn.absent.active{background:#2d0f0f;border-color:#ef4444}
@@ -3331,20 +3343,20 @@ function buildAdminTab(){const tL=_aTL,sL=_aSL,rL=_aRL,pL=_aPL;
       :`<canvas id="revenue-chart" style="width:100%;max-height:220px"></canvas>`}
       ${months.length>0?`<div style="margin-top:10px">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#F0FDF4">
-            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px;color:#166534">Month / মাস</th>
-            <th style="padding:6px 8px;text-align:center;color:#166534">Sessions</th>
-            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0;color:#166534">Commission</th>
+          <thead><tr class="rev-table-head">
+            <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 6px" class="rev-head-text">Month / মাস</th>
+            <th style="padding:6px 8px;text-align:center" class="rev-head-text">Sessions</th>
+            <th style="padding:6px 8px;text-align:right;border-radius:0 6px 6px 0" class="rev-head-text">Commission</th>
           </tr></thead>
           <tbody>${monthData.map((m,i)=>`<tr style="border-bottom:1px solid var(--border)">
-            <td style="padding:7px 8px;font-weight:600">${m.label}</td>
+            <td style="padding:7px 8px;font-weight:600;color:var(--text)">${m.label}</td>
             <td style="padding:7px 8px;text-align:center;color:var(--text-muted)">${m.count}</td>
             <td style="padding:7px 8px;text-align:right;font-weight:700;color:var(--green)">৳${m.amount.toLocaleString()}</td>
           </tr>`).join('')}</tbody>
-          <tfoot><tr style="background:#F0FDF4">
-            <td style="padding:7px 8px;font-weight:700;border-radius:0 0 0 6px">মোট Total</td>
-            <td style="padding:7px 8px;text-align:center;font-weight:700">${activeR.length}</td>
-            <td style="padding:7px 8px;text-align:right;font-weight:800;color:#166534;font-size:14px;border-radius:0 0 6px 0">৳${totalCommission.toLocaleString()}</td>
+          <tfoot><tr class="rev-table-head">
+            <td style="padding:7px 8px;font-weight:700;border-radius:0 0 0 6px;color:var(--text)">মোট Total</td>
+            <td style="padding:7px 8px;text-align:center;font-weight:700;color:var(--text)">${activeR.length}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:800;font-size:14px;border-radius:0 0 6px 0;color:var(--green)">৳${totalCommission.toLocaleString()}</td>
           </tr></tfoot>
         </table>
       </div>`:''}
@@ -3506,19 +3518,29 @@ async function renderChatList(){
     window._chatUsers={};
     users.forEach(u=>{window._chatUsers[u.id]=u;});
     if(!users.length){el.innerHTML=`<div class="empty-state"><div class="icon">💬</div><p>কোনো user নেই</p></div>`;return;}
-    el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 2px">সব User — Message করুন</div>`
-    +users.map(u=>{
+    // Group by role
+    const teachers=users.filter(u=>u.role==='teacher');
+    const students=users.filter(u=>u.role==='student');
+    const makeItem=u=>{
       const hasMsg=ids.includes(u.id);
       const roleLabel=u.role==='teacher'?'👨‍🏫 Teacher':'🎓 Student';
+      const roleBg=u.role==='teacher'?'var(--green-light)':'#EEF2FF';
+      const roleColor=u.role==='teacher'?'var(--green-dark)':'#3C3489';
       return`<div class="chat-list-item" onclick="openChatById('${u.id}')">
         <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0;display:flex;align-items:center;justify-content:center">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
         <div style="flex:1;min-width:0">
-          <div class="chat-list-name">${u.name}</div>
-          <div class="chat-list-preview">${roleLabel} ${u.district?'• '+u.district:''}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <div class="chat-list-name" style="margin-bottom:0">${u.name}</div>
+            <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;background:${roleBg};color:${roleColor};flex-shrink:0">${roleLabel}</span>
+          </div>
+          <div class="chat-list-preview">${u.subject||u.grade||''} ${u.district?'• '+u.district:''}</div>
         </div>
         <div style="font-size:10px;color:${hasMsg?'var(--green)':'var(--border)'};flex-shrink:0">${hasMsg?'●':'○'}</div>
       </div>`;
-    }).join('');
+    };
+    el.innerHTML=
+      (teachers.length?`<div style="font-size:10px;font-weight:800;color:var(--green-dark);text-transform:uppercase;letter-spacing:0.5px;padding:10px 4px 6px;border-bottom:1px solid var(--border-light)">👨‍🏫 Teachers (${teachers.length})</div>`+teachers.map(makeItem).join(''):'')
+      +(students.length?`<div style="font-size:10px;font-weight:800;color:#3C3489;text-transform:uppercase;letter-spacing:0.5px;padding:10px 4px 6px;border-bottom:1px solid var(--border-light)">🎓 Students (${students.length})</div>`+students.map(makeItem).join(''):'');
     return;
   }
 
@@ -3526,14 +3548,23 @@ async function renderChatList(){
   const {data:users}=await sb.from('profiles').select('*').in('id',ids);
   window._chatUsers={};
   (users||[]).forEach(u=>{window._chatUsers[u.id]=u;});
-  el.innerHTML=(users||[]).map(u=>`<div class="chat-list-item" onclick="openChatById('${u.id}')">
-    <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0;display:flex;align-items:center;justify-content:center">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
-    <div style="flex:1;min-width:0">
-      <div class="chat-list-name">${u.name}</div>
-      <div class="chat-list-preview">${u.subject||u.grade||u.role||''} ${u.district?'• '+u.district:''}</div>
-    </div>
-    <div style="font-size:10px;color:var(--green);flex-shrink:0">●</div>
-  </div>`).join('');
+  el.innerHTML=(users||[]).map(u=>{
+    const isAdmin=u.role==='admin';
+    const roleLabel=isAdmin?'⚙️ Admin':u.role==='teacher'?'👨‍🏫 Teacher':'🎓 Student';
+    const roleBg=isAdmin?'#FEF3C7':u.role==='teacher'?'var(--green-light)':'#EEF2FF';
+    const roleColor=isAdmin?'#92400e':u.role==='teacher'?'var(--green-dark)':'#3C3489';
+    return`<div class="chat-list-item" onclick="openChatById('${u.id}')">
+      <div class="tc-avatar" style="width:48px;height:48px;font-size:16px;border-radius:50%;background:${u.color};color:${u.tc};flex-shrink:0;display:flex;align-items:center;justify-content:center">${u.photo?`<img src='${u.photo}' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>`:u.avatar}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <div class="chat-list-name" style="margin-bottom:0">${u.name}</div>
+          <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;background:${roleBg};color:${roleColor};flex-shrink:0">${roleLabel}</span>
+        </div>
+        <div class="chat-list-preview">${u.subject||u.grade||''} ${u.district?'• '+u.district:''}</div>
+      </div>
+      <div style="font-size:10px;color:var(--green);flex-shrink:0">●</div>
+    </div>`;
+  }).join('');
 }
 
 function openChatById(uid){
@@ -4013,7 +4044,7 @@ async function viewConversation(teacherId, studentId){
       <div style="width:32px;height:32px;border-radius:50%;background:${sender?.color||'#ddd'};color:${sender?.tc||'#333'};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${sender?.avatar||'?'}</div>
       <div style="max-width:75%">
         <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;${isTeacher?'':'text-align:right'}">${senderLabel} ${sender?.name||''} • ${fmtTime(m.created_at)}</div>
-        <div style="background:${isTeacher?'#E8F5E9':'#E3F2FD'};padding:8px 12px;border-radius:${isTeacher?'4px 12px 12px 12px':'12px 4px 12px 12px'}">
+        <div class="${isTeacher?'conv-bubble-teacher':'conv-bubble-student'}" style="padding:8px 12px;border-radius:${isTeacher?'4px 12px 12px 12px':'12px 4px 12px 12px'}">
           ${msgContent}
         </div>
       </div>
