@@ -1200,6 +1200,9 @@ window.addEventListener('appinstalled', () => {
 [data-theme="dark"] .auth-card{background:#1e293b;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
 [data-theme="dark"] .form-group input,
 [data-theme="dark"] .form-group select{background:#0f172a;color:#f1f5f9;border-color:#334155}
+.bday-sel{padding:10px 8px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:var(--white);outline:none;width:100%}
+.bday-sel:focus{border-color:var(--green)}
+[data-theme="dark"] .bday-sel{background:#0f172a;color:#f1f5f9;border-color:#334155}
 [data-theme="dark"] .tabs{background:#0f172a}
 [data-theme="dark"] .tabs button.active{background:#1e293b;color:#5DCAA5}
 [data-theme="dark"] .role-btn{background:#0f172a;color:#94a3b8;border-color:#334155}
@@ -2045,6 +2048,31 @@ body{background:var(--bg)}
         </select>
       </div>
 
+      <!-- Birthday / জন্মতারিখ -->
+      <div class="form-group">
+        <label>🎂 Date of Birth / জন্মতারিখ</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+          <select id="r-bday" class="bday-sel">
+            <option value="">দিন</option>
+            ${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${i+1}</option>`).join('')}
+          </select>
+          <select id="r-bmonth" class="bday-sel">
+            <option value="">মাস</option>
+            <option value="01">জানুয়ারি</option><option value="02">ফেব্রুয়ারি</option>
+            <option value="03">মার্চ</option><option value="04">এপ্রিল</option>
+            <option value="05">মে</option><option value="06">জুন</option>
+            <option value="07">জুলাই</option><option value="08">আগস্ট</option>
+            <option value="09">সেপ্টেম্বর</option><option value="10">অক্টোবর</option>
+            <option value="11">নভেম্বর</option><option value="12">ডিসেম্বর</option>
+          </select>
+          <select id="r-byear" class="bday-sel">
+            <option value="">বছর</option>
+            ${Array.from({length:60},(_,i)=>{const y=new Date().getFullYear()-5-i;return`<option value="${y}">${y}</option>`}).join('')}
+          </select>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">আপনার জন্ম তারিখ, মাস ও বছর বেছে নিন</div>
+      </div>
+
       <div id="t-fields" style="display:none">
         <div class="form-row">
           <div class="form-group"><label>Subject / বিষয়</label>
@@ -2813,7 +2841,12 @@ async function doRegister(){
   const [bg,tc]=getColor(name);
   const area=`${upazila?upazila+', ':''}${district}${division?', '+division:''}`;
   const txnId = window._role==='teacher' ? (document.getElementById('reg-txn-id')||{value:''}).value.trim() : '';
-  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender:window._regGender||'',blood_group:document.getElementById('r-blood')?.value||'',
+  // Build birth_date from dropdowns
+  const bday=document.getElementById('r-bday')?.value||'';
+  const bmonth=document.getElementById('r-bmonth')?.value||'';
+  const byear=document.getElementById('r-byear')?.value||'';
+  const birth_date=(byear&&bmonth&&bday)?`${byear}-${bmonth}-${bday}`:'';
+  const profile={id:CU.id,name,role:window._role,phone,area,division,district,upazila,avatar:ini(name),color:bg,tc,gender:window._regGender||'',blood_group:document.getElementById('r-blood')?.value||'',birth_date,
     ...(window._role==='teacher'?{
       subject:document.getElementById('r-subject').value,
       fee:parseInt(document.getElementById('r-fee').value)||1500,
@@ -4095,6 +4128,12 @@ async function saveProfile(){
     district:document.getElementById('ep-district')?.value||CUP.district,
     upazila:document.getElementById('ep-upazila')?.value||CUP.upazila,
   };
+  // Save birth_date from dropdowns
+  const epBday=document.getElementById('ep-bday')?.value||'';
+  const epBmonth=document.getElementById('ep-bmonth')?.value||'';
+  const epByear=document.getElementById('ep-byear')?.value||'';
+  if(epByear&&epBmonth&&epBday) updates.birth_date=`${epByear}-${epBmonth}-${epBday}`;
+  else if(CUP.birth_date) updates.birth_date=CUP.birth_date;
   if(CUP.role==='teacher'){
     updates.subject=document.getElementById('ep-subject')?.value||CUP.subject;
     updates.class_range=document.getElementById('ep-class')?.value||CUP.class_range;
@@ -4234,6 +4273,23 @@ function showEditProfile(){
       </select>
     </div>
     <div class="form-group">
+      <label>🎂 Date of Birth / জন্মতারিখ</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+        ${(()=>{
+          const parts=CUP.birth_date?CUP.birth_date.split('-'):['','',''];
+          const [cy,cm,cd]=[parts[0]||'',parts[1]||'',parts[2]||''];
+          const dayOpts=Array.from({length:31},(_,i)=>{const v=String(i+1).padStart(2,'0');return`<option value="${v}" ${cd===v?'selected':''}>${i+1}</option>`}).join('');
+          const mNames=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+          const monthOpts=mNames.map((n,i)=>{const v=String(i+1).padStart(2,'0');return`<option value="${v}" ${cm===v?'selected':''}>${n}</option>`}).join('');
+          const curY=new Date().getFullYear();
+          const yearOpts=Array.from({length:60},(_,i)=>{const y=curY-5-i;return`<option value="${y}" ${cy===String(y)?'selected':''}>${y}</option>`}).join('');
+          return `<select id="ep-bday" class="edit-input bday-sel" style="padding:10px 8px"><option value="">দিন</option>${dayOpts}</select>
+                  <select id="ep-bmonth" class="edit-input bday-sel" style="padding:10px 8px"><option value="">মাস</option>${monthOpts}</select>
+                  <select id="ep-byear" class="edit-input bday-sel" style="padding:10px 8px"><option value="">বছর</option>${yearOpts}</select>`;
+        })()}
+      </div>
+    </div>
+    <div class="form-group">
       <label>🗺️ Division / বিভাগ</label>
       <select id="ep-division" class="edit-input">
         ${divs.map(d=>`<option ${CUP.division===d?'selected':''}>${d}</option>`).join('')}
@@ -4294,6 +4350,16 @@ function renderProfile(){
   <div style="background:var(--white);border-radius:24px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow-lg);border:1px solid var(--border-light);padding-top:52px;animation:fadeInUp 0.5s 0.1s ease both">
     ${infoRow('📧','Email',CUP.email||CU?.email||'—')}
     ${infoRow('📱','Mobile',CUP.phone||'—')}
+    ${(()=>{
+      if(!CUP.birth_date) return '';
+      const bd=new Date(CUP.birth_date);
+      const today=new Date();
+      let age=today.getFullYear()-bd.getFullYear();
+      const m=today.getMonth()-bd.getMonth();
+      if(m<0||(m===0&&today.getDate()<bd.getDate())) age--;
+      const bdStr=bd.toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'});
+      return infoRow('🎂','Birthday / জন্মদিন',`${bdStr} (বয়স: ${age} বছর)`);
+    })()}
     ${CUP.blood_group?infoRow('🩸','Blood Group',CUP.blood_group):''}
     ${infoRow('📍','Location',[CUP.upazila,CUP.district,CUP.division].filter(Boolean).join(', ')||'—')}
     ${CUP.role==='student'?infoRow('🏫','Class',CUP.grade||'—'):''}
