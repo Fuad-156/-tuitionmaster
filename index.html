@@ -1752,16 +1752,189 @@ body{background:var(--bg)}
 .lp-cta:hover{transform:translateY(-4px) scale(1.04)}
 .lp-cta:active{transform:scale(0.97)}
 .lp-arrow{font-size:22px;animation:arrowBounce 1s ease-in-out infinite}
+
+/* ========== LIVE ANIMATIONS ONLY ========== */
+
+/* Auth screen floating particles */
+.auth-particle{position:absolute;border-radius:50%;pointer-events:none;opacity:0}
+@keyframes particleFloat{
+  0%{opacity:0;transform:translateY(0) scale(0)}
+  10%{opacity:0.6}
+  90%{opacity:0.3}
+  100%{opacity:0;transform:translateY(-100vh) scale(1.5)}
+}
+@keyframes particleWave{
+  0%,100%{transform:translateX(0) translateY(0)}
+  25%{transform:translateX(30px) translateY(-20px)}
+  50%{transform:translateX(-20px) translateY(-40px)}
+  75%{transform:translateX(20px) translateY(-60px)}
+}
+
+/* Auth logo pulse */
+@keyframes authLogoPulse{
+  0%,100%{transform:scale(1) rotate(0deg);filter:drop-shadow(0 8px 20px rgba(29,158,117,0.4))}
+  50%{transform:scale(1.08) rotate(2deg);filter:drop-shadow(0 12px 30px rgba(29,158,117,0.7))}
+}
+@keyframes authTitleGlow{
+  0%,100%{text-shadow:none}
+  50%{text-shadow:0 0 20px rgba(255,255,255,0.3)}
+}
+
+/* Floating bubbles in auth bg */
+@keyframes bubbleRise{
+  0%{opacity:0;transform:translateY(100px) scale(0.5)}
+  15%{opacity:0.15}
+  85%{opacity:0.1}
+  100%{opacity:0;transform:translateY(-120px) scale(1.2)}
+}
+.auth-bubble{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+  pointer-events:none;
+  animation:bubbleRise linear infinite;
+}
+
+/* Card entrance animation */
+@keyframes cardSlideUp{
+  from{opacity:0;transform:translateY(60px) scale(0.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.auth-card-anim{animation:cardSlideUp 0.7s cubic-bezier(0.22,1,0.36,1) both}
+
+/* Input focus ripple */
+@keyframes inputPulse{
+  0%{box-shadow:0 0 0 0 rgba(29,158,117,0.4)}
+  70%{box-shadow:0 0 0 8px rgba(29,158,117,0)}
+  100%{box-shadow:0 0 0 0 rgba(29,158,117,0)}
+}
+
+/* Auth icon float */
+@keyframes iconFloat{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  33%{transform:translateY(-10px) rotate(3deg)}
+  66%{transform:translateY(-5px) rotate(-2deg)}
+}
+.auth-icon-float{animation:iconFloat 4s ease-in-out infinite}
+
+/* Shimmer on login button (always visible) */
+@keyframes btnShimmer{
+  0%{background-position:-200% center}
+  100%{background-position:200% center}
+}
+
+/* ===== HOME PAGE ANIMATIONS ===== */
+@keyframes homeHeroFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+@keyframes statCountUp{
+  from{opacity:0;transform:translateY(20px) scale(0.8)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes cardSlideIn{
+  from{opacity:0;transform:translateX(-20px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes cardSlideInRight{
+  from{opacity:0;transform:translateX(20px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes fadeUpStagger{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes welcomePop{
+  0%{opacity:0;transform:scale(0.8) translateY(10px)}
+  60%{transform:scale(1.03) translateY(-2px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+@keyframes waveHand{
+  0%,100%{transform:rotate(0deg)}
+  20%{transform:rotate(-20deg)}
+  40%{transform:rotate(10deg)}
+  60%{transform:rotate(-10deg)}
+  80%{transform:rotate(5deg)}
+}
+.wave-emoji{display:inline-block;animation:waveHand 2s ease-in-out 1s both}
+
+/* Stat box pop */
+.stat-anim-0{animation:statCountUp 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both}
+.stat-anim-1{animation:statCountUp 0.5s 0.2s cubic-bezier(0.22,1,0.36,1) both}
+.stat-anim-2{animation:statCountUp 0.5s 0.3s cubic-bezier(0.22,1,0.36,1) both}
+.stat-anim-3{animation:statCountUp 0.5s 0.4s cubic-bezier(0.22,1,0.36,1) both}
+
+/* Teacher card entrance */
+.tc-anim-0{animation:fadeUpStagger 0.5s 0.05s cubic-bezier(0.22,1,0.36,1) both}
+.tc-anim-1{animation:fadeUpStagger 0.5s 0.15s cubic-bezier(0.22,1,0.36,1) both}
+.tc-anim-2{animation:fadeUpStagger 0.5s 0.25s cubic-bezier(0.22,1,0.36,1) both}
+.tc-anim-3{animation:fadeUpStagger 0.5s 0.35s cubic-bezier(0.22,1,0.36,1) both}
+.tc-anim-4{animation:fadeUpStagger 0.5s 0.45s cubic-bezier(0.22,1,0.36,1) both}
+.tc-anim-5{animation:fadeUpStagger 0.5s 0.55s cubic-bezier(0.22,1,0.36,1) both}
+
+/* Section title slide */
+.section-anim{animation:cardSlideIn 0.5s cubic-bezier(0.22,1,0.36,1) both}
+
+/* ===== PROFILE ANIMATIONS ===== */
+@keyframes profileAvatarPop{
+  0%{opacity:0;transform:scale(0) rotate(-180deg)}
+  60%{transform:scale(1.1) rotate(5deg)}
+  100%{opacity:1;transform:scale(1) rotate(0deg)}
+}
+@keyframes profileNameSlide{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes infoRowSlide{
+  from{opacity:0;transform:translateX(-15px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.profile-av-anim{animation:profileAvatarPop 0.7s cubic-bezier(0.22,1,0.36,1) both}
+.profile-name-anim{animation:profileNameSlide 0.5s 0.2s cubic-bezier(0.22,1,0.36,1) both}
+.profile-card-anim{animation:fadeUpStagger 0.6s 0.3s cubic-bezier(0.22,1,0.36,1) both}
+.profile-card-anim-2{animation:fadeUpStagger 0.6s 0.45s cubic-bezier(0.22,1,0.36,1) both}
+.profile-card-anim-3{animation:fadeUpStagger 0.6s 0.6s cubic-bezier(0.22,1,0.36,1) both}
+
+/* Ripple on button tap */
+.ripple-btn{position:relative;overflow:hidden}
+.ripple-btn::after{
+  content:'';position:absolute;border-radius:50%;
+  background:rgba(255,255,255,0.3);
+  width:1px;height:1px;top:50%;left:50%;
+  transform:scale(0);animation:none;
+}
+.ripple-btn.ripple-active::after{
+  animation:rippleAnim 0.5s ease-out;
+}
+@keyframes rippleAnim{
+  0%{transform:scale(0);opacity:0.6}
+  100%{transform:scale(200);opacity:0}
+}
+
+/* Page transition */
+@keyframes pageEnter{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.page.active{animation:pageEnter 0.4s cubic-bezier(0.22,1,0.36,1) both}
 </style>
 
 <div id="auth-screen">
-  <div class="auth-card">
+  <!-- Live animated bubbles -->
+  <div class="auth-bubble" style="width:60px;height:60px;left:10%;animation-duration:7s;animation-delay:0s"></div>
+  <div class="auth-bubble" style="width:40px;height:40px;left:25%;animation-duration:9s;animation-delay:1.5s"></div>
+  <div class="auth-bubble" style="width:80px;height:80px;left:50%;animation-duration:11s;animation-delay:0.5s"></div>
+  <div class="auth-bubble" style="width:30px;height:30px;left:70%;animation-duration:8s;animation-delay:2s"></div>
+  <div class="auth-bubble" style="width:50px;height:50px;left:85%;animation-duration:10s;animation-delay:1s"></div>
+  <div class="auth-bubble" style="width:25px;height:25px;left:40%;animation-duration:6s;animation-delay:3s"></div>
+  <div class="auth-bubble" style="width:70px;height:70px;left:5%;animation-duration:12s;animation-delay:4s"></div>
+  <div class="auth-card auth-card-anim">
     <!-- ===== AUTH SCREEN ===== -->
 
 <!-- ===== AUTH SCREEN ===== -->
     <button class="auth-theme-btn" id="auth-theme-btn" onclick="toggleTheme()">🌙 Dark</button>
     <div class="auth-logo">
-      <div class="icon">📚</div>
+      <div class="icon auth-icon-float">📚</div>
       <h1>Tuition Master</h1>
       <p>Connecting Teachers & Students • শিক্ষক ও শিক্ষার্থীর সেতুবন্ধন</p>
     </div>
@@ -2718,7 +2891,7 @@ async function renderTeacherHome(el){
     if(ids.length>0){const {data}=await sb.from('profiles').select('*').in('id',ids);myStudents=data||[];}
   }
   const earnings=allRequests.filter(r=>r.status==='active').length*(CUP.fee||0);
-  el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Welcome back / স্বাগতম,</p><p style="font-size:20px;font-weight:700">${CUP.name} 👋</p></div>
+  el.innerHTML=`<div style="margin-bottom:14px"><p style="font-size:12px;color:var(--text-muted)">Welcome back / স্বাগতম,</p><p style="font-size:20px;font-weight:700;animation:welcomePop 0.6s cubic-bezier(0.22,1,0.36,1) both">${CUP.name} <span class='wave-emoji'>👋</span></p></div>
   <div class="stat-row">
     <div class="stat-box"><div class="num">${allRequests.length}</div><div class="lbl-en">Total Requests</div><div class="lbl-bn">মোট অনুরোধ</div></div>
     <div class="stat-box"><div class="num">${allRequests.filter(r=>r.status==='active').length}</div><div class="lbl-en">Active Students</div><div class="lbl-bn">সক্রিয় শিক্ষার্থী</div></div>
@@ -3920,6 +4093,25 @@ function applyTheme(theme){
 
 // Init on page load
 initTheme();
+
+// Ripple effect on buttons
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.btn-primary, .btn-green, .btn-sm');
+  if(!btn) return;
+  btn.classList.add('ripple-btn');
+  btn.classList.remove('ripple-active');
+  void btn.offsetWidth; // reflow
+  btn.classList.add('ripple-active');
+  setTimeout(()=>btn.classList.remove('ripple-active'), 500);
+});
+
+// Input focus animation
+document.addEventListener('focusin', function(e){
+  if(e.target.matches('input, select')){
+    e.target.style.transition = 'all 0.3s cubic-bezier(0.22,1,0.36,1)';
+  }
+});
+
 
 // ===== FORGOT PASSWORD =====
 function showForgotPassword(){
