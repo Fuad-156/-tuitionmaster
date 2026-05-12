@@ -366,6 +366,9 @@ async function sendImage(input) {
     });
     await loadMessages();
     addNotification('🖼️','Image Sent / ছবি পাঠানো হয়েছে!','You sent a photo in chat.','#E6F1FB');
+    // Re-focus chat input so Enter key works again after sending image
+    const chatInp = document.getElementById('chat-inp');
+    if (chatInp) chatInp.focus();
   };
   reader.readAsDataURL(file);
   input.value = '';
@@ -2346,7 +2349,7 @@ body{background:var(--bg)}
       <button class="chat-attach-btn" onclick="document.getElementById('img-upload').click()" title="Send Image" style="width:38px;height:38px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0">📎</button>
       <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="sendImage(this)">
       <div class="chat-input-wrap">
-        <input type="text" id="chat-inp" placeholder="বার্তা লিখুন..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <input type="text" id="chat-inp" placeholder="বার্তা লিখুন..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendMsg();}" onkeypress="if(event.key==='Enter'){event.preventDefault();sendMsg();}">
         <button onclick="document.getElementById('img-upload').click()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:0;line-height:1">🖼️</button>
         <button class="record-btn" id="record-btn" onclick="toggleRecording()" style="width:28px;height:28px;background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;padding:0">🎤</button>
       </div>
@@ -4011,8 +4014,13 @@ async function openChat(uid,name,sub,color,tc,avatar,photo){
   screen.classList.add('open');
   document.getElementById('bnav').style.display='none';
   document.getElementById('main-content').style.display='none';
-  // Scroll to bottom after render
-  setTimeout(()=>{const msgs=document.getElementById('chat-msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},100);
+  // Scroll to bottom after render and focus input
+  setTimeout(()=>{
+    const msgs=document.getElementById('chat-msgs');
+    if(msgs)msgs.scrollTop=msgs.scrollHeight;
+    const chatInp=document.getElementById('chat-inp');
+    if(chatInp)chatInp.focus();
+  },100);
 }
 function closeChat(){
   const screen=document.getElementById('chat-screen');
