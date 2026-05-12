@@ -719,7 +719,7 @@ async function openTeacherProfile(tid) {
     </div>
 
     <div class="btn-row" style="margin-bottom:10px">
-      <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${teacher.id}','${teacher.name}','${teacher.subject||''}','${teacher.color}','${teacher.tc}','${teacher.avatar}','${teacher.photo||''}');closeTeacherProfile()">💬 Send Message</button>
+      <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${teacher.id}','${teacher.name}','${teacher.subject||''}','${teacher.color}','${teacher.tc}','${teacher.avatar}','${teacher.photo||''}','${teacher.phone||''}');closeTeacherProfile()">💬 Send Message</button>
       ${CUP?.role === 'student' ? `<button class="btn-sm btn-green" style="flex:1" ${isMy ? 'disabled' : ''} onclick="reqTeacher('${teacher.id}','${teacher.fee || 0}');closeTeacherProfile()">${isMy ? '✅ Requested' : '+ Request Teacher'}</button>` : ''}
     </div>
 
@@ -2340,6 +2340,7 @@ body{background:var(--bg)}
         <div class="ch-name" id="chat-nm"></div>
         <div class="ch-sub" id="chat-sb"></div>
       </div>
+      <a id="chat-call-btn" href="#" onclick="return false;" style="display:none;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);color:white;border:none;font-size:18px;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0" title="Call">📞</a>
     </div>
     <div class="chat-messages" id="chat-msgs"></div>
     <div class="chat-input-bar">
@@ -3090,7 +3091,7 @@ async function renderStudentHome(el){
         </div>
         <div class="btn-row">
           <button class="btn-sm btn-outline" style="flex:1" onclick="openTeacherProfile('${t.id}')">👤 Profile</button>
-          <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}','${t.photo||''}')">💬 Message</button>
+          <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}','${t.photo||''}','${t.phone||''}')">💬 Message</button>
           <button class="btn-sm" style="flex:1;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D" onclick="openRating('${t.id}','${t.name}','${t.rating||4.5}')">⭐ Rate</button>
         </div>
       </div>`;}).join('')}
@@ -3188,7 +3189,7 @@ async function renderTeacherHome(el){
       <div style="flex:1"><div style="font-size:13px;font-weight:700">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.grade||''} • ${s.district||s.area||''}</div></div>
       <span class="status-badge ${r.status==='active'?'active':'pending'}">${r.status==='active'?'Active':'Pending'}</span></div>
       <div class="btn-row">
-        <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}','${s.photo||''}')">💬 Message</button>
+        <button class="btn-sm btn-green" style="flex:1" onclick="openChat('${s.id}','${s.name}','${s.grade||''}','${s.color}','${s.tc}','${s.avatar}','${s.photo||''}','${s.phone||''}')">💬 Message</button>
         ${r.status!=='active'?`<button class="btn-sm btn-outline" style="flex:1" onclick="acceptReq('${r.id}')">✅ Accept / গ্রহণ</button>`:''}
       </div></div>`;}).join('')}`;
   // Load schedule async after render
@@ -3451,7 +3452,7 @@ function renderTeachers(){
       </div>
       <div class="btn-row">
         <button class="btn-sm btn-outline" style="flex:1" onclick="openTeacherProfile('${t.id}')">👤 Profile</button>
-        <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}','${t.photo||''}')">💬 Message</button>
+        <button class="btn-sm btn-outline" style="flex:1" onclick="openChat('${t.id}','${t.name}','${t.subject||''}','${t.color}','${t.tc}','${t.avatar}','${t.photo||''}','${t.phone||''}')">💬 Message</button>
         ${CUP?.role==='student'?`<button class="btn-sm btn-green" style="flex:1" ${isMy?'disabled':''} onclick="reqTeacher('${t.id}','${t.fee||0}')">${isMy?'✅':'+ Request'}</button>`:''}
       </div>
       ${CUP?.role==='student'&&isMy?`<button class="btn-sm" style="width:100%;margin-top:6px;background:#FEF3C7;color:#92400e;border:1.5px solid #FCD34D" onclick="openRating('${t.id}','${t.name}','${t.rating||4.5}')">⭐ Rate this Teacher</button>`:''}
@@ -3579,7 +3580,7 @@ async function renderChatList(){
 function openChatById(uid){
   const u=(window._chatUsers||{})[uid];
   if(!u){console.error('User not found:',uid);return;}
-  openChat(u.id,u.name,u.subject||u.grade||'',u.color,u.tc,u.avatar,u.photo||'');
+  openChat(u.id,u.name,u.subject||u.grade||'',u.color,u.tc,u.avatar,u.photo||'',u.phone||'');
 }
 
 // ===== SCHEDULE / TIMETABLE =====
@@ -3975,13 +3976,12 @@ function initChatViewportFix(){
   }
 }
 
-async function openChat(uid,name,sub,color,tc,avatar,photo){
+async function openChat(uid,name,sub,color,tc,avatar,photo,phone){
   chatWith=uid;
   const av=document.getElementById('chat-av');
   // Reset styles first
   av.style.backgroundImage='';av.style.backgroundSize='';av.style.backgroundPosition='';av.textContent='';
   if(photo){
-    // Must set backgroundImage LAST — background shorthand resets it
     av.textContent='';
     av.style.backgroundColor=color;
     av.style.backgroundSize='cover';
@@ -4001,6 +4001,16 @@ async function openChat(uid,name,sub,color,tc,avatar,photo){
   }
   document.getElementById('chat-nm').textContent=name;
   document.getElementById('chat-sb').textContent=sub;
+  // Call button
+  const callBtn=document.getElementById('chat-call-btn');
+  if(callBtn){
+    if(phone){
+      callBtn.href='tel:'+phone;
+      callBtn.style.display='flex';
+    } else {
+      callBtn.style.display='none';
+    }
+  }
   await loadMessages();
   if(msgSub)sb.removeChannel(msgSub);
   msgSub=sb.channel('msgs-'+[CUP.id,uid].sort().join('-'))
@@ -4065,7 +4075,11 @@ async function viewConversation(teacherId, studentId){
     if(m.type==='image'){
       msgContent = `<img src="${m.text}" style="max-width:200px;border-radius:10px;display:block;margin-top:4px">`;
     } else if(m.type==='voice'){
-      msgContent = `<div style="font-size:12px;color:var(--text-muted)">🎤 Voice message</div>`;
+      msgContent = `<div style="display:flex;align-items:center;gap:8px;min-width:160px">
+        <button onclick="playVoice('${m.text}',this)" style="background:var(--green);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white">▶</button>
+        <div style="flex:1;height:24px;display:flex;align-items:center;gap:2px">${Array.from({length:16},(_,i)=>`<span style="display:inline-block;width:3px;height:${5+Math.abs(Math.sin(i*0.7))*12}px;background:var(--green);border-radius:2px;opacity:0.7"></span>`).join('')}</div>
+        <span style="font-size:11px;color:var(--text-muted);flex-shrink:0">${m.duration||'0:05'}</span>
+      </div>`;
     } else {
       msgContent = `<div style="font-size:13px;line-height:1.5">${m.text}</div>`;
     }
