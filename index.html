@@ -355,7 +355,7 @@ function clearMsgBadge(){
 async function sendImage(input) {
   if(!input.files||!input.files[0]||!chatWith) return;
   const file = input.files[0];
-  if(file.size > 3*1024*1024){ toast('⚠️ Image too large! Max 3MB'); return; }
+  if(file.size > 100*1024*1024){ toast('⚠️ Image too large! Max 100MB'); return; }
   toast('📤 Sending image...');
   const reader = new FileReader();
   reader.onload = async (e) => {
@@ -3859,7 +3859,7 @@ async function openMaterialsModal() {
             <input id="mat-subject" type="text" placeholder="বিষয় (যেমন: গণিত)" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--text)">
             <input id="mat-desc" type="text" placeholder="Description" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--text)">
           </div>
-          <label id="mat-file-label" style="display:block;padding:12px;border:2px dashed var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;margin-bottom:10px;font-weight:600" onclick="document.getElementById('mat-file').click()">📁 File select করুন<br><small style="font-weight:400">PDF, Word, Image (max 10MB)</small></label>
+          <label id="mat-file-label" style="display:block;padding:12px;border:2px dashed var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;margin-bottom:10px;font-weight:600" onclick="document.getElementById('mat-file').click()">📁 File select করুন<br><small style="font-weight:400">PDF, Word, Image (max 1GB)</small></label>
           <input id="mat-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none" onchange="document.getElementById('mat-file-label').innerHTML='✅ <strong>'+this.files[0]?.name+'</strong>'">
           <button id="mat-upload-btn" onclick="uploadMaterial()" style="width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⬆️ Upload করুন</button>
         </div>`;
@@ -3916,7 +3916,7 @@ async function uploadMaterial() {
 
   if (!title) { toast('⚠️ Title দিন'); return; }
   if (!file) { toast('⚠️ File select করুন'); return; }
-  if (file.size > 10 * 1024 * 1024) { toast('⚠️ File 10MB এর বেশি হবে না'); return; }
+  if (file.size > 1024 * 1024 * 1024) { toast('⚠️ File 1GB এর বেশি হবে না'); return; }
 
   const btn = document.getElementById('mat-upload-btn');
   btn.disabled = true;
@@ -4202,7 +4202,7 @@ function downloadImg(src){
 async function uploadProfilePhoto(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { toast('❌ Photo too large! Max 2MB'); return; }
+  if (file.size > 100 * 1024 * 1024) { toast('❌ Photo too large! Max 100MB'); return; }
   if (!file.type.startsWith('image/')) { toast('❌ Please select an image file'); return; }
   toast('📤 Uploading photo...');
   const reader = new FileReader();
