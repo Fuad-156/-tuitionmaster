@@ -208,6 +208,16 @@ function drawRevenueChart(){
   if(!canvas)return;
   const activeR=_aRL.filter(r=>r.status==='active');
   if(!activeR.length)return;
+
+  // Detect dark mode
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor   = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+  const labelColor  = isDark ? '#94A3B8' : '#64748B';
+  const valueColor  = isDark ? '#A7F3D0' : '#0F6E56';
+  const barTop      = isDark ? '#34D399' : '#1D9E75';
+  const barBottom   = isDark ? '#065F46' : '#A7F3D0';
+  const bgColor     = isDark ? '#0f172a' : '#ffffff';
+
   // Group by month
   const byMonth={};
   activeR.forEach(r=>{
@@ -222,40 +232,66 @@ function drawRevenueChart(){
   const labels=months.map(k=>byMonth[k].label);
   const data=months.map(k=>byMonth[k].amount);
   const maxVal=Math.max(...data,1);
+
   const W=canvas.offsetWidth||300;
-  const H=200;
-  canvas.width=W;canvas.height=H;
+  const H=220;
+  canvas.width=W*window.devicePixelRatio;
+  canvas.height=H*window.devicePixelRatio;
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
-  const pad={l:50,r:16,t:16,b:40};
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+
+  const pad={l:54,r:16,t:20,b:44};
   const chartW=W-pad.l-pad.r;
   const chartH=H-pad.t-pad.b;
-  ctx.clearRect(0,0,W,H);
-  // Grid lines
-  ctx.strokeStyle='#E2E8F0';ctx.lineWidth=1;
+
+  // Background
+  ctx.fillStyle=bgColor;
+  ctx.fillRect(0,0,W,H);
+
+  // Grid lines & Y labels
   for(let i=0;i<=4;i++){
     const y=pad.t+chartH-(i/4)*chartH;
+    ctx.strokeStyle=gridColor;
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle='#94A3B8';ctx.font='10px sans-serif';ctx.textAlign='right';
-    ctx.fillText('৳'+(Math.round(maxVal*i/4)).toLocaleString(),pad.l-4,y+4);
+    ctx.setLineDash([]);
+    ctx.fillStyle=labelColor;
+    ctx.font='10px sans-serif';
+    ctx.textAlign='right';
+    const val=Math.round(maxVal*i/4);
+    ctx.fillText('৳'+(val>=1000?(val/1000).toFixed(1)+'k':val),pad.l-6,y+4);
   }
-  const barW=Math.min(36,chartW/months.length*0.55);
+
   const gap=chartW/months.length;
-  // Draw bars with gradient
+  const barW=Math.min(32,gap*0.5);
+
   months.forEach((m,i)=>{
     const x=pad.l+gap*i+gap/2-barW/2;
     const barH=Math.max(4,(data[i]/maxVal)*chartH);
     const y=pad.t+chartH-barH;
+
+    // Bar gradient
     const grad=ctx.createLinearGradient(0,y,0,y+barH);
-    grad.addColorStop(0,'#1D9E75');grad.addColorStop(1,'#A7F3D0');
+    grad.addColorStop(0,barTop);
+    grad.addColorStop(1,barBottom);
     ctx.fillStyle=grad;
     ctx.beginPath();
-    ctx.roundRect(x,y,barW,barH,4);
+    ctx.roundRect(x,y,barW,barH,[4,4,0,0]);
     ctx.fill();
-    // Value label on bar
-    ctx.fillStyle='#166534';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
-    ctx.fillText('৳'+data[i].toLocaleString(),x+barW/2,y-4);
-    // Month label
-    ctx.fillStyle='#64748B';ctx.font='9px sans-serif';
+
+    // Value label above bar
+    ctx.fillStyle=valueColor;
+    ctx.font='bold 9px sans-serif';
+    ctx.textAlign='center';
+    const valStr='৳'+(data[i]>=1000?(data[i]/1000).toFixed(1)+'k':data[i].toLocaleString());
+    ctx.fillText(valStr,x+barW/2,y-5);
+
+    // Month label below
+    ctx.fillStyle=labelColor;
+    ctx.font='9px sans-serif';
     ctx.fillText(labels[i],x+barW/2,H-pad.b+14);
   });
 }
@@ -4551,12 +4587,12 @@ function toggleTheme(){
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   const isDark = theme === 'dark';
-  // Update theme-toggle ball
   const ball = document.getElementById('theme-ball');
   if(ball) ball.textContent = isDark ? '☀️' : '🌙';
-  // Update auth button
   const authBtn = document.getElementById('auth-theme-btn');
   if(authBtn) authBtn.textContent = (isDark ? '☀️ Light' : '🌙 Dark');
+  // Redraw chart with correct colors
+  setTimeout(()=>drawRevenueChart(), 50);
 }
 
 // Init on page load
