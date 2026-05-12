@@ -2949,6 +2949,20 @@ async function loadProfile(){
   CUP=data;
 }
 function confirmDeleteAccount(){
+  // Admin account cannot be deleted
+  if(CUP && CUP.role === 'admin'){
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML = `
+      <div style="background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:360px;text-align:center">
+        <div style="font-size:52px;margin-bottom:12px">🔒</div>
+        <h3 style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:8px">Admin Account Protected</h3>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px">Admin account delete করা যাবে না।<br>এটি system protected।</p>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">ঠিক আছে</button>
+      </div>`;
+    document.body.appendChild(modal);
+    return;
+  }
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   modal.innerHTML = `
@@ -4562,11 +4576,12 @@ function renderProfile(){
     <button onclick="doLogout()" style="padding:14px;background:#FEE2E2;color:#B91C1C;border:2px solid #FECACA;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">🚪 Logout</button>
   </div>
   <!-- Danger zone -->
+  ${CUP.role==='admin' ? '' : `
   <div style="border:1.5px dashed #FCA5A5;border-radius:14px;padding:16px;margin-bottom:10px;animation:fadeInUp 0.5s 0.3s ease both;background:var(--white)">
     <div style="font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">⚠️ Danger Zone / বিপদ এলাকা</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5">একবার account delete করলে আর ফিরে পাবেন না। সব data মুছে যাবে।</div>
     <button onclick="confirmDeleteAccount()" style="width:100%;padding:12px;background:#FEF2F2;color:#991B1B;border:2px solid #FCA5A5;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">🗑️ Delete Account / অ্যাকাউন্ট মুছুন</button>
-  </div>`;
+  </div>`}`;
 }
 
 
