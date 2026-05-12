@@ -2348,6 +2348,7 @@ body{background:var(--bg)}
       <div class="chat-input-wrap" style="align-items:flex-end">
         <textarea id="chat-inp" placeholder="বার্তা লিখুন..." rows="1" style="flex:1;border:none;outline:none;background:transparent;font-size:13px;font-family:inherit;color:var(--text);resize:none;overflow-y:hidden;max-height:100px;line-height:1.5;padding:2px 0;display:block" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
         <button onclick="document.getElementById('img-upload').click()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:0;line-height:1;flex-shrink:0">🖼️</button>
+        <button onclick="addNewlineToChat()" title="নতুন লাইন" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);padding:0 2px;line-height:1;flex-shrink:0;font-family:inherit">↵</button>
         <button class="record-btn" id="record-btn" onclick="toggleRecording()" style="width:28px;height:28px;background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0">🎤</button>
       </div>
       <button class="send-btn" onclick="sendMsg()">
@@ -4161,6 +4162,18 @@ function closeImgPreview(){
 function downloadImgPreview(){
   const modal=document.getElementById('img-preview-modal');
   downloadImg(modal._currentSrc||document.getElementById('img-preview-img').src);
+}
+
+function addNewlineToChat(){
+  const inp = document.getElementById('chat-inp');
+  if(!inp) return;
+  const start = inp.selectionStart;
+  const end = inp.selectionEnd;
+  inp.value = inp.value.substring(0, start) + '\n' + inp.value.substring(end);
+  inp.selectionStart = inp.selectionEnd = start + 1;
+  inp.style.height = 'auto';
+  inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
+  inp.focus();
 }
 
 function autoResizeChatInput(el){
