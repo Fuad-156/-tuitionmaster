@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Premium redesigned version generated for Tuition Master. Core IDs and functionality are preserved. -->
-<html lang="bn">
+<html lang="bn" class="tm-ultra-ui" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,29 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tuition Master">
+
+<!-- Critical first-paint theme fix: prevents white flash and starts entry screen in dark mode -->
+<style id="tm-critical-first-paint">
+  :root{color-scheme:dark;background:#020805;}
+  html,body{background:#020805!important;min-height:100%;}
+  html[data-theme="light"],html[data-theme="light"] body{background:#F4FBF7!important;color-scheme:light;}
+  #loading-screen,#auth-screen,#landing-screen{
+    background:
+      radial-gradient(circle at 18% 16%,rgba(34,197,94,.22),transparent 24rem),
+      radial-gradient(circle at 82% 10%,rgba(20,184,166,.14),transparent 24rem),
+      linear-gradient(145deg,#010704 0%,#041B10 48%,#020805 100%)!important;
+  }
+</style>
+<script id="tm-early-theme">
+(function(){
+  try{
+    var saved=localStorage.getItem('tm_theme') || 'dark';
+    document.documentElement.classList.add('tm-ultra-ui');
+    document.documentElement.setAttribute('data-theme', saved);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', saved==='dark' ? '#020805' : '#F4FBF7');
+  }catch(e){document.documentElement.setAttribute('data-theme','dark');}
+})();
+</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -5046,7 +5069,7 @@ function renderProfile(){
 
 // ===== DARK / LIGHT MODE =====
 function initTheme(){
-  const saved = localStorage.getItem('tm_theme') || 'light';
+  const saved = localStorage.getItem('tm_theme') || 'dark';
   applyTheme(saved);
 }
 
@@ -5553,6 +5576,308 @@ html.tm-ultra-ui .lp-cta{border-radius:24px!important;min-height:58px!important;
   });
 })();
 </script>
+
+
+
+<!-- =========================================================
+  Tuition Master Ultra UI v3 — theme flash + auth/bKash fixes
+  Keeps all existing IDs, functions and Supabase logic untouched.
+========================================================= -->
+<style id="tuition-master-theme-fix-v3">
+/* First screen / entry animation: always premium dark unless user already chose light */
+html.tm-ultra-ui{background:#020805!important;}
+html.tm-ultra-ui body{background:#020805!important;}
+html.tm-ultra-ui[data-theme="light"] body{background:linear-gradient(180deg,#F7FEFA 0%,#EEF8F2 46%,#F8FFFB 100%)!important;}
+html.tm-ultra-ui[data-theme="dark"] body,html.tm-ultra-ui:not([data-theme="light"]) body{background:linear-gradient(180deg,#020805 0%,#06130D 48%,#020805 100%)!important;}
+html.tm-ultra-ui:not([data-theme="light"]) #loading-screen,
+html.tm-ultra-ui:not([data-theme="light"]) #landing-screen,
+html.tm-ultra-ui:not([data-theme="light"]) #auth-screen{
+  background:
+    radial-gradient(circle at 14% 12%,rgba(34,197,94,.24),transparent 22rem),
+    radial-gradient(circle at 86% 8%,rgba(20,184,166,.16),transparent 26rem),
+    radial-gradient(circle at 52% 92%,rgba(134,239,172,.08),transparent 28rem),
+    linear-gradient(145deg,#010704 0%,#041C11 47%,#020805 100%)!important;
+}
+html.tm-ultra-ui #auth-screen,
+html.tm-ultra-ui #landing-screen,
+html.tm-ultra-ui #loading-screen{
+  position:relative!important;overflow:hidden!important;
+}
+html.tm-ultra-ui #auth-screen::after,
+html.tm-ultra-ui #landing-screen::after,
+html.tm-ultra-ui #loading-screen::after{
+  content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(115deg,transparent 0 42%,rgba(134,239,172,.10) 47%,transparent 54% 100%),
+    radial-gradient(circle at 64% 34%,rgba(34,197,94,.10),transparent 16rem);
+  animation:tmEntryAurora 14s ease-in-out infinite alternate;
+  mix-blend-mode:screen;opacity:.88;
+}
+@keyframes tmEntryAurora{from{transform:translate3d(-4%,-2%,0) rotate(-2deg)}to{transform:translate3d(4%,3%,0) rotate(3deg)}}
+html.tm-ultra-ui #auth-screen>*{position:relative;z-index:1;}
+
+/* Auth card readable in both light and dark */
+html.tm-ultra-ui[data-theme="light"] #auth-screen{
+  background:
+    radial-gradient(circle at 14% 12%,rgba(34,197,94,.16),transparent 23rem),
+    radial-gradient(circle at 86% 8%,rgba(20,184,166,.12),transparent 25rem),
+    linear-gradient(145deg,#F7FFF9 0%,#E9FAF1 52%,#F9FFFC 100%)!important;
+}
+html.tm-ultra-ui[data-theme="light"] .auth-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.86))!important;
+  border-color:rgba(4,120,87,.14)!important;
+  color:#07130D!important;
+}
+html.tm-ultra-ui[data-theme="dark"] .auth-card,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card{
+  background:linear-gradient(180deg,rgba(11,27,18,.96),rgba(5,17,10,.86))!important;
+  border-color:rgba(134,239,172,.18)!important;
+  color:#ECFDF5!important;
+}
+html.tm-ultra-ui[data-theme="dark"] .auth-card h1,
+html.tm-ultra-ui[data-theme="dark"] .auth-card h2,
+html.tm-ultra-ui[data-theme="dark"] .auth-card label,
+html.tm-ultra-ui[data-theme="dark"] .auth-card .hint,
+html.tm-ultra-ui[data-theme="dark"] .auth-card p,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card h1,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card h2,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card label,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card .hint,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card p{color:#ECFDF5!important;}
+html.tm-ultra-ui[data-theme="dark"] .auth-card .hint span,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card .hint span{color:#86EFAC!important;}
+html.tm-ultra-ui .auth-card input::placeholder{color:rgba(100,121,109,.68)!important;}
+html.tm-ultra-ui[data-theme="dark"] .auth-card input::placeholder,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card input::placeholder{color:rgba(236,253,245,.42)!important;}
+html.tm-ultra-ui[data-theme="dark"] .auth-card input,
+html.tm-ultra-ui[data-theme="dark"] .auth-card select,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card input,
+html.tm-ultra-ui:not([data-theme="light"]) .auth-card select{
+  background:rgba(2,8,5,.78)!important;
+  color:#ECFDF5!important;
+  border-color:rgba(134,239,172,.18)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.06),0 12px 32px rgba(0,0,0,.16)!important;
+}
+html.tm-ultra-ui[data-theme="light"] .auth-card input,
+html.tm-ultra-ui[data-theme="light"] .auth-card select{
+  background:rgba(255,255,255,.92)!important;color:#07130D!important;border-color:rgba(4,120,87,.16)!important;
+}
+html.tm-ultra-ui[data-theme="dark"] .role-btn,
+html.tm-ultra-ui:not([data-theme="light"]) .role-btn{
+  background:rgba(255,255,255,.055)!important;color:#D1FAE5!important;border-color:rgba(134,239,172,.16)!important;
+}
+html.tm-ultra-ui[data-theme="dark"] .role-btn.active,
+html.tm-ultra-ui:not([data-theme="light"]) .role-btn.active{
+  background:linear-gradient(135deg,rgba(34,197,94,.22),rgba(20,184,166,.10))!important;
+  color:#BBF7D0!important;border-color:rgba(34,197,94,.58)!important;
+}
+
+/* Teacher registration bKash payment section — theme-safe premium box */
+html.tm-ultra-ui #teacher-pay-section>div{
+  position:relative!important;overflow:hidden!important;border-radius:22px!important;padding:18px!important;margin:16px 0!important;
+  border:1px solid rgba(226,19,110,.22)!important;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(226,19,110,.14),transparent 10rem),
+    linear-gradient(135deg,rgba(255,255,255,.92),rgba(252,231,243,.72))!important;
+  box-shadow:0 20px 56px rgba(226,19,110,.12),inset 0 1px rgba(255,255,255,.65)!important;
+}
+html.tm-ultra-ui #teacher-pay-section>div::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,#E2136E,#22C55E,#14B8A6);opacity:.95;
+}
+html.tm-ultra-ui #teacher-pay-section>div>*{position:relative;z-index:1;}
+html.tm-ultra-ui #teacher-pay-section,
+html.tm-ultra-ui #teacher-pay-section div,
+html.tm-ultra-ui #teacher-pay-section label,
+html.tm-ultra-ui #teacher-pay-section strong{
+  color:#5B1336!important;
+}
+html.tm-ultra-ui #teacher-pay-section [style*="background:white"]{
+  background:linear-gradient(135deg,#FFFFFF,#FDF2F8)!important;
+  color:#111827!important;border:1px solid rgba(226,19,110,.18)!important;border-radius:16px!important;
+  box-shadow:0 14px 32px rgba(226,19,110,.10)!important;
+}
+html.tm-ultra-ui #teacher-pay-section #reg-txn-id{
+  background:rgba(255,255,255,.94)!important;color:#111827!important;border-color:rgba(226,19,110,.35)!important;
+}
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section>div,
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section>div{
+  border-color:rgba(244,114,182,.22)!important;
+  background:
+    radial-gradient(circle at 88% 0%,rgba(226,19,110,.20),transparent 11rem),
+    radial-gradient(circle at 16% 100%,rgba(34,197,94,.12),transparent 12rem),
+    linear-gradient(135deg,rgba(28,9,19,.94),rgba(7,19,13,.86))!important;
+  box-shadow:0 24px 68px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.08)!important;
+}
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section,
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section div,
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section label,
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section strong,
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section,
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section div,
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section label,
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section strong{
+  color:#FCE7F3!important;
+}
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section [style*="background:white"],
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section [style*="background:white"]{
+  background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.055))!important;
+  color:#FFFFFF!important;border-color:rgba(244,114,182,.24)!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.10)!important;
+}
+html.tm-ultra-ui[data-theme="dark"] #teacher-pay-section #reg-txn-id,
+html.tm-ultra-ui:not([data-theme="light"]) #teacher-pay-section #reg-txn-id{
+  background:rgba(2,8,5,.76)!important;color:#FFFFFF!important;border-color:rgba(244,114,182,.34)!important;
+}
+html.tm-ultra-ui #teacher-pay-section #reg-txn-id:focus{
+  border-color:#E2136E!important;box-shadow:0 0 0 5px rgba(226,19,110,.16),0 16px 40px rgba(226,19,110,.12)!important;
+}
+
+/* Standalone bKash modal readability in both themes */
+html.tm-ultra-ui .bkash-box{color:var(--tm-text)!important;}
+html.tm-ultra-ui[data-theme="dark"] .bkash-box,
+html.tm-ultra-ui:not([data-theme="light"]) .bkash-box{
+  background:linear-gradient(180deg,rgba(12,26,18,.98),rgba(6,15,10,.94))!important;
+  border-color:rgba(134,239,172,.16)!important;color:#ECFDF5!important;
+}
+html.tm-ultra-ui[data-theme="dark"] .bkash-step,
+html.tm-ultra-ui:not([data-theme="light"]) .bkash-step{
+  background:rgba(255,255,255,.06)!important;border:1px solid rgba(134,239,172,.10)!important;
+}
+html.tm-ultra-ui[data-theme="dark"] .bkash-step p,
+html.tm-ultra-ui[data-theme="dark"] .bkash-step strong,
+html.tm-ultra-ui:not([data-theme="light"]) .bkash-step p,
+html.tm-ultra-ui:not([data-theme="light"]) .bkash-step strong{color:#ECFDF5!important;}
+
+/* keep theme-color synced */
+html.tm-ultra-ui[data-theme="dark"]{color-scheme:dark;}
+html.tm-ultra-ui[data-theme="light"]{color-scheme:light;}
+</style>
+<script id="tuition-master-theme-fix-v3-js">
+(function(){
+  function syncThemeMeta(){
+    try{
+      var theme=document.documentElement.getAttribute('data-theme') || 'dark';
+      var meta=document.querySelector('meta[name="theme-color"]');
+      if(meta) meta.setAttribute('content', theme==='dark' ? '#020805' : '#F4FBF7');
+    }catch(e){}
+  }
+  syncThemeMeta();
+  var oldApply=window.applyTheme;
+  if(typeof oldApply==='function'){
+    window.applyTheme=function(theme){oldApply(theme);syncThemeMeta();};
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    document.documentElement.classList.add('tm-ultra-ui');
+    if(!localStorage.getItem('tm_theme')) document.documentElement.setAttribute('data-theme','dark');
+    syncThemeMeta();
+  });
+})();
+</script>
+
+
+
+<!-- =========================================================
+  Tuition Master Ultra UI v4 — Force dark premium entry screen
+  Landing/loading screens stay cinematic dark even when saved theme is light.
+  Login/Register still support both dark and light mode.
+========================================================= -->
+<style id="tuition-master-entry-dark-v4">
+/* Force the first landing/loading experience to never appear white/washed */
+html.tm-ultra-ui #loading-screen,
+html.tm-ultra-ui #landing-screen{
+  background:
+    linear-gradient(180deg,rgba(1,7,4,.18),rgba(1,7,4,.52)),
+    radial-gradient(circle at 50% 18%,rgba(22,242,139,.26),transparent 18rem),
+    radial-gradient(circle at 16% 22%,rgba(20,184,166,.16),transparent 22rem),
+    radial-gradient(circle at 86% 74%,rgba(34,197,94,.18),transparent 24rem),
+    linear-gradient(150deg,#010503 0%,#03130A 38%,#062A18 63%,#010604 100%)!important;
+  color:#ECFDF5!important;
+  isolation:isolate!important;
+}
+html.tm-ultra-ui #landing-screen::before,
+html.tm-ultra-ui #loading-screen::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  z-index:0!important;
+  background:
+    linear-gradient(rgba(134,239,172,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(134,239,172,.035) 1px,transparent 1px),
+    radial-gradient(ellipse at center,transparent 0%,rgba(0,0,0,.18) 58%,rgba(0,0,0,.74) 100%)!important;
+  background-size:42px 42px,42px 42px,100% 100%!important;
+  mask-image:none!important;
+  animation:tmEntryGridMove 22s linear infinite!important;
+  opacity:1!important;
+}
+html.tm-ultra-ui #landing-screen::after,
+html.tm-ultra-ui #loading-screen::after{
+  content:""!important;
+  position:absolute!important;
+  inset:-25%!important;
+  pointer-events:none!important;
+  z-index:0!important;
+  background:
+    linear-gradient(118deg,transparent 0 36%,rgba(134,239,172,.10) 46%,transparent 56% 100%),
+    radial-gradient(circle at 52% 28%,rgba(22,242,139,.14),transparent 18rem),
+    radial-gradient(circle at 78% 18%,rgba(20,184,166,.10),transparent 14rem)!important;
+  mix-blend-mode:screen!important;
+  opacity:.75!important;
+  animation:tmEntryAuroraStrong 16s ease-in-out infinite alternate!important;
+}
+@keyframes tmEntryGridMove{to{background-position:42px 42px,42px 42px,0 0}}
+@keyframes tmEntryAuroraStrong{from{transform:translate3d(-5%,-3%,0) rotate(-3deg)}to{transform:translate3d(5%,4%,0) rotate(3deg)}}
+html.tm-ultra-ui #landing-screen > *,
+html.tm-ultra-ui #loading-screen > *{position:relative!important;z-index:1!important;}
+html.tm-ultra-ui #lp-canvas{opacity:.52!important;mix-blend-mode:screen!important;filter:saturate(1.25) contrast(1.08)!important;}
+html.tm-ultra-ui #landing-screen .lp-blob{
+  opacity:.46!important;
+  mix-blend-mode:screen!important;
+  filter:blur(92px) saturate(1.35)!important;
+}
+html.tm-ultra-ui #landing-screen div[style*="Vignette"],
+html.tm-ultra-ui #landing-screen div[style*="radial-gradient(ellipse at center"]{
+  background:radial-gradient(ellipse at center,transparent 22%,rgba(0,0,0,.82) 100%)!important;
+}
+html.tm-ultra-ui #landing-screen h1,
+html.tm-ultra-ui #landing-screen .lp-title{
+  background:linear-gradient(135deg,#FFFFFF 0%,#D1FAE5 34%,#22C55E 72%,#13D9C5 100%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+  filter:drop-shadow(0 18px 45px rgba(22,242,139,.20))!important;
+}
+html.tm-ultra-ui #landing-screen .lp-sub,
+html.tm-ultra-ui #landing-screen p{
+  color:rgba(236,253,245,.70)!important;
+  text-shadow:0 10px 32px rgba(0,0,0,.36)!important;
+}
+html.tm-ultra-ui #landing-screen .lp-badge,
+html.tm-ultra-ui #landing-screen .lp-pill{
+  background:rgba(2,12,7,.56)!important;
+  color:rgba(236,253,245,.86)!important;
+  border-color:rgba(134,239,172,.24)!important;
+  box-shadow:0 14px 42px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.10)!important;
+  backdrop-filter:blur(16px) saturate(1.25)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.25)!important;
+}
+html.tm-ultra-ui #landing-screen .lp-cta{
+  background:linear-gradient(135deg,#22F28B 0%,#16C873 45%,#13D9C5 100%)!important;
+  color:#02170D!important;
+  box-shadow:0 26px 82px rgba(22,242,139,.36),inset 0 1px rgba(255,255,255,.38)!important;
+}
+html.tm-ultra-ui #landing-screen [style*="background:linear-gradient(to top"]{
+  background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,.05))!important;
+}
+html.tm-ultra-ui #landing-screen [style*="color:rgba(255,255,255,0.4)"]{color:rgba(236,253,245,.55)!important;}
+html.tm-ultra-ui #landing-screen [style*="color:#5DCAA5"]{color:#86EFAC!important;text-shadow:0 0 28px rgba(134,239,172,.25)!important;}
+
+/* Important: auth remains theme-aware; only login/register background in light mode becomes soft, not washed. */
+html.tm-ultra-ui[data-theme="light"] #auth-screen{
+  background:
+    radial-gradient(circle at 14% 12%,rgba(34,197,94,.16),transparent 23rem),
+    radial-gradient(circle at 86% 8%,rgba(20,184,166,.12),transparent 25rem),
+    linear-gradient(145deg,#F7FFF9 0%,#E9FAF1 52%,#F9FFFC 100%)!important;
+}
+</style>
 
 </body>
 </html>
